@@ -1,0 +1,13 @@
+function [IP,IP1]=Ioniz_Potenz_Hlike_ions;
+IP1=[];
+for Z=1:100
+    for n=1:Z 
+     IP1(end+1,1)=13.6*Z^2/n^2;
+     IP1(end,2)=Z;
+     IP1(end,3)=n;
+    end;
+end;
+bool=find(IP1(:,1)<1000|IP1(:,1)>3000);
+IP=IP1;
+IP(bool,:)=[];
+IP()=sort(IP,1);

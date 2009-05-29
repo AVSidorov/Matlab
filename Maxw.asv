@@ -1,0 +1,43 @@
+function [MaxwSp,WMax]=Maxw(Te,FileName);
+MaxwTable=[0,0,0];
+TableOfMax=[];
+A=load(FileName);
+cl=lines(size(A,1)/12);
+AvaibleT=[];
+for i=1:size(A,1)  
+    T_=A(i,1);
+    if T_~=0
+        bool=find(AvaibleT==T_);
+        if size(bool,1)==0
+         AvaibleT=[AvaibleT;T_]
+        end; 
+end;
+AvaibleT=sort(AvaibleT);
+dTe=0;
+for i=2:size(A,1)  
+    dTe=max([dTe,AvaibleT(i)-AvaibleT(i-1)]);
+end;
+TeInd=find(abs(AvaibleT(:)-Te)<=dTe/2,1,'first');
+Te=AvaibleT(TeInd);
+fprintf('Te for Maxwellian Fitting is %4.3f keV\n',Te);
+MaxwSp(:,1:2)=A(find(A(:,1)==Te),2:3);
+[Max,MaxI]=max(MaxwSp(:,2));
+Max2=max([MaxwSp(MaxI-1,2),MaxwSp(MaxI+1,2)]);
+MaxI=find(MaxwSp(:,2)==Max2);
+FitI=sort([MaxI,MaxI2]);
+Xi=FitI(1):FitI()
+MaxwFit=interp1(MaxwSp(:,1),MaxwSp(:,1),Xi,'spline');
+[MaxB,MaxBI]=max(B);
+MaxBW=Xi(MaxBI);
+bool=find(B/MaxB<10^(-0.5));
+B(bool)=[];
+Xi(bool)=[];
+figure(fig1);
+semilogy(Xi,B(:),'.-','Color',cl(i+1,:));
+hold on;
+figure(fig2);
+semilogy(Xi,B(:)/MaxB,'.-','Color',cl(i+1,:));
+MaxwTable=[MaxwTable;[[(0.1+0.025*i)*ones(size(B))',Xi',B'/max(B)];[0,0,0]]]; 
+TableOfMax=[TableOfMax;[(0.1+0.025*i),MaxBI,MaxBW,MaxB]];
+hold on;
+end;

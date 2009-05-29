@@ -1,0 +1,26 @@
+function SXR_spectr_calc(ne,Te,Ni);
+
+Ew_arr=300:10:3000;
+
+if nargin<3
+    [Ni,Zeff]=Zeff_calc_manual(ne);
+end;
+
+Jb=zeros(size(Ew_arr));
+Jr=zeros(size(Ew_arr));
+for i=1:max(size(Ni))
+    Z=Ni(i,1);
+    ni=Ni(i,2)*ne;
+    [jb(:,i),jr(:,i)]=J_calc(ne,ni,Z,Te,Ew_arr);
+    Jb(:)=Jb(:)+jb(:,i);
+    Jr(:)=Jr(:)+jr(:,i);
+end;    
+cm=colormap(hsv(max(size(Ni))));
+%semilogy(Ew_arr,jb(:,find(Ni(:,1)==1)),'Color',cm(i,:),'LineWidth',i);
+figure;
+    semilogy(Ew_arr,Jb(:),'-g','LineWidth',0.5);
+    hold on;
+    semilogy(Ew_arr,Jr(:),'-b','LineWidth',0.5);
+    semilogy(Ew_arr,Jb+Jr(:),'-b','LineWidth',1);
+    semilogy(Ew_arr,j(:,find(Ni(:,1)==1)),'-c','LineWidth',0.5);
+        

@@ -1,0 +1,32 @@
+function [MaxwTable,TableOfMax]=Maxw(FileName);
+MaxwTable=[0,0,0];
+TableOfMax=[];
+A=load(FileName);
+cl=lines(size(A,1)/12);
+fig1=figure;
+for i=0:(size(A,1)/12-1)
+semilogy(A(i*12+2:(i+1)*12,2),A(i*12+2:(i+1)*12,3),'-*','Color',cl(i+1,:));
+hold on;
+end;
+Wmin=min(A(:,2)); Wmax=max(A(:,2));
+Xinterp=Wmin:(Wmax-Wmin)/5000:Wmax;
+fig2=figure;
+for i=0:(size(A,1)/12-1)
+[Max,MaxI]=max(A(i*12+2:(i+1)*12,3));
+%Xi=Xinterp(find(Xinterp>=A(i*12+MaxI-2,2) & Xinterp<=A(i*12+MaxI+3,2)));
+Xi=Xinterp(find(Xinterp>=A(i*12+3,2) & Xinterp<=A((i+1)*12,2)));
+B=interp1(A(i*12+2:(i+1)*12,2),A(i*12+2:(i+1)*12,3),Xi,'spline');
+[MaxB,MaxBI]=max(B);
+MaxBW=Xi(MaxBI);
+bool=find(B/MaxB<10^(-0.5));
+B(bool)=[];
+Xi(bool)=[];
+figure(fig1);
+semilogy(Xi,B(:),'.-','Color',cl(i+1,:));
+hold on;
+figure(fig2);
+semilogy(Xi,B(:)/MaxB,'.-','Color',cl(i+1,:));
+MaxwTable=[MaxwTable;[[(0.1+0.025*i)*ones(size(B))',Xi',B'/max(B)];[0,0,0]]]; 
+TableOfMax=[TableOfMax;[(0.1+0.025*i),MaxBI,MaxBW,MaxB]];
+hold on;
+end;

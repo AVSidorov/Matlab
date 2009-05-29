@@ -1,0 +1,13 @@
+function [Te,Ne]=PickTeNe(Time);
+FileName=input('Input Te array name or ''fileName'', default is manual input\n');
+if isempty(FileName)
+    Te=
+if isstr(FileName
+Te=interp1(Te_Arr(:,1),Te_Arr(:,2),Time)/1000;
+fprintf('At time %2.2f ms Te interpolated is %4.3f keV\n',Time,Te);
+dTe=TbOfMax(2,1)-TbOfMax(1,1);
+TeInd=find(abs(TbOfMax(:,1)-Te)<=dTe/2);
+Te=TbOfMax(TeInd,1);
+fprintf('At time %2.2f ms Te for Maxwellian Fitting is %4.3f keV\n',Time,Te);
+Ne=interp1(Ne_Arr(:,1),Ne_Arr(:,2),Time);
+fprintf('At time %2.2f ms Ne interpolated is %4.3f*10^13cm^-3 \n',Time,Ne);
