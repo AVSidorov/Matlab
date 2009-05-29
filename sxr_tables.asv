@@ -1,8 +1,0 @@
-function sxr_tables;
-for Te=0.1:0.01:1.5
-    for dBe=100:100:700
-        F=inline(['(0.0136./',num2str(Te),')^0.5.*exp(-x./',num2str(Te),').*exp(-0.12.*',num2str(dBe),'./x.^3.12).*(1-exp(-345.55./x.^2.7))'],'x');
-        N(round((Te-0.1)/0.01+1),dBe/100)=quad(F,0.001,10e10,);
-    end;
-end;
-pause;
