@@ -29,7 +29,7 @@ SmoothParam=1;    % number of points for smoothing
 BckgFitN=2;       %number of points for background fitting
 InterpN=8;        %number of extra intervals for interpolation of Standard Pulse in fitting
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
-StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
+StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 PulsePlotBool= false;   % Plot fitting pulses or not
 
 
@@ -80,7 +80,7 @@ if nargin<4|isempty(StandardPulseIN)
       StandardPulseNorm=StandardPulseF;
       disp(['Standard Pulse is taken from File ',StandardPulseFile]);
     else
-      %?????????, ???? ????????, ???? ??? PreThreshold
+      %?????to correct if PreThreshold is not set?????????
       [PeakSet1,StandardPulseNorm]=Tops(trek,1,trekProcessBool,PreThreshold);
       clear PeakSet1;
       disp('Standard Pulse is taken from ''Tops''');
@@ -89,13 +89,13 @@ else
     Decision='q';
     if exist(StandardPulseFile,'file');
         StandardPulseF=load(StandardPulseFile);
-        Decision=input('Press ''F'' to load Standard Pulse from file, any key for inputed pulse','s');
+        Decision=input('Press ''F'' to load Standard Pulse from file, any key for inputed pulse \n','s');
         if isempty(Decision); Decision='q'; end;  
     end;
   
     if Decision=='f'||Decision=='F'
       StandardPulseNorm=StandardPulseF;
-      disp(['Standard Pulse is taken from file', StandardPeakFile]);
+      disp(['Standard Pulse is taken from file ', StandardPulseFile]);
     else
         StandardPulseNorm=StandardPulseIN;
         disp('Standard Pulse is taken from function input');

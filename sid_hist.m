@@ -61,7 +61,7 @@ if nargin==4
     dA=Ash-A;
     bool=find(dA<=0);
     dA(bool)=[];
-    if isempty(HistInteval); 
+    if isempty(HistInterval); 
         HistInterval=max(dA);
     end;     
 

@@ -1,0 +1,28 @@
+function PulseF=FitPulse(Pulse);
+lgPulse=log(Pulse);
+n=size(Pulse,1);
+[M,I]=max(Pulse);
+S=[];
+K=[];
+B=[];
+for i=I+3:n
+    FitInt=[I+1:i];
+    K(end+1)=(sum(FitInt'.*lgPulse(FitInt))-lgPulse(FitInt(1))*sum(FitInt))/(sum(FitInt.^2)-FitInt(1)*sum(FitInt));
+    B(end+1)=lgPulse(FitInt(1))-K(end)*FitInt(1);
+    TailF=exp(B(end))*exp(K(end)*[I+1:n]);
+    S(end+1)=sum((Pulse(I+1:n)-TailF').^2);
+end;
+[Smin,II]=min(S);
+Km=K(II);
+Bm=B(II);
+TailF=exp(Bm)*exp(Km*[I+1:n]);
+figure; 
+subplot(2,1,1);
+    plot([I+1:n],TailF,'.-b');
+    hold on; grid on;
+    plot(Pulse,'o-r');
+subplot(2,1,2);
+    plot(S,'.-'); 
+    hold on; grid on;
+PulseF(1:I)=Pulse(1:I);
+PulseF(I+1:n)=TailF;

@@ -23,6 +23,7 @@ Time=0.5*(MinTime+MaxTime);
 
 [flow1,flow2,spectr]=AnalyzePeaks(peaks1);
 
+return;
 
 alpha=input('Input chord angel\n');
 if isempty(alpha)

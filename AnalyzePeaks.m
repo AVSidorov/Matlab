@@ -36,7 +36,7 @@ PeakChiRange=MaxChi-MinChi;
 PeakAmplRange=MaxAmpl-MinAmpl; 
 SpecNA=fix(PeakAmplRange/SpecInterv)+1;
 
-spectr=sid_spectr(peaks,SpecStep,,SmParam);
+spectr=sid_spectr(peaks,SpecStep,[],SmParam);
 MaxAmplN=max(spectr(:,2)); 
 MinAmplN=min(spectr(:,2)); 
 

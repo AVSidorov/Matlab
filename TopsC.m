@@ -1,4 +1,4 @@
-function [PeakSet,StandardPulseNorm]=Tops(FileName,Plot,PreThreshold,trProcessBool)
+function [PeakSet,StandardPulseNorm]=TopsC(FileName,Plot,PreThreshold,trProcessBool)
 %PeakSet -> [SelectedPeakInd,PeakOnFrontInd,Threshold]
 % Search peak top indexes of tr(:,1) array.
 %FileName - file of 1D array of measurement sampled at 1/tau rate
@@ -366,7 +366,7 @@ if Plot
     plot(log10([ThresholdF,ThresholdF]),[0,MaxNoiseHist],'r','LineWidth',2);
     
     subplot(2,1,2);
-    title(['Peak noise separation. Threshold=',num2str(Threshold),' PreThreshold=',num2str(PreThreshold)]);
+    title(['Peak noise separation. Threshold=',num2str(Threshold),'\nPreThreshold=',num2str(PreThreshold)]);
     hold on; grid on; xlabel('log10(Range)');
     plot(Hist(:,1),Hist(:,2),'-k.');    plot(Hist(:,1),Hist(:,3),'-b.');
     plot(Hist(:,1),Hist(:,4),'-c.');    plot(Hist(:,1),Hist(:,5),'-m.');  
@@ -511,7 +511,7 @@ if not(isempty(PeakSet.SelectedPeakInd))
          StandardPulseNorm(1:LastFrontZero-1)=[];
         end;
 
-        [StPMax,StPMaxInd]=max(StandardPulseNorm);
+        [StPMax,StPMaxInd]=StandardPulseNorm;
         if StandardPulseNorm(StPMaxInd+1)<StandardPulseNorm(StPMaxInd-1)
                StPMax=StPMaxInd-1;
         end;
@@ -537,7 +537,7 @@ if not(isempty(PeakSet.SelectedPeakInd))
             ylim([min(StandardPulse(SignalsOk)), 1.1*max(StandardPulse(SignalsOk))]);
             grid on;
             subplot(2,1,2); hold on;
-            plot(StandardPulseNorm,'-r.'); grid on;
+            plot([1:size(StandardPulseNorm,1)],StandardPulseNorm,'-r.'); grid on;
             plot(StandardPulseNormF,'-b.');
         end;
     end;
@@ -547,10 +547,11 @@ end;
  
 if exist(StandardPulseFile,'file');
     StandardPulseNormFile=load(StandardPulseFile);
-   [StPFMax,StPFMaxInd]=max(StandardPulseNormFile);
+   [StPFMax,StPFMaxInd]=StandardPulseNormFile;
    if StandardPulseNormFile(StPFMaxInd+1)<StandardPulseNormFile(StPFMaxInd-1)
                StPFMaxInd=StPFMaxInd-1;
    end;
+    
     disp(['Standard pulses is taken from ',StandardPulseFile]);
     if Plot
     StandardPulseNormFileD=diff(StandardPulseNormFile); 
@@ -559,11 +560,6 @@ if exist(StandardPulseFile,'file');
     StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
     StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
     StandardPulseNormFileF=-20*StandardPulseNormFileD.^2.*StandardPulseNormFileDD;
-
-    if StandardPulseNormFile(StPFMaxInd+1)<StandardPulseNormFile(StPFMaxInd-1)
-        StPFMaxInd=StPFMaxInd-1;
-    end;
-    
     plot([(StPMaxInd-StPFMaxInd)+1:size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
     plot(StandardPulseNormFileF,'-bo');
     end;

@@ -1,4 +1,4 @@
-function [peaks,trekMinus]=ProcessingTrek(FileName);
+function [peaks,trekMinus,StandardPulseFirst]=ProcessingTrek(FileName);
 
 
 Pass1=2;
@@ -9,6 +9,13 @@ if isempty(trek); return; end;
 
 
 [PeakSetFirst,StandardPulseFirst]=Tops(trek,1,StdVal*OverSt);
+
+if isstr(FileName)
+    [pathstr, name, ext, versn]=fileparts(FileName);
+    assignin('base',['StP',name],StandardPulseFirst);
+else
+    assignin('base','StPulse',StandardPulseFirst);
+end;
 
 [peaks,trekMinus]=GetPeaks(trek,Pass1,PeakSetFirst,StandardPulseFirst,StdVal*OverSt);
 
