@@ -19,7 +19,7 @@ MaxFront=0.125;   % maximal peak front, us
 MinTail=0.05;     % minimal peak tail, us
 MaxTail=0.8;      % maximal peak tail, us
 
-MaxSignal=2200;   % maximal signal whithout distortion
+MaxSignal=4095;   % maximal signal whithout distortion
 notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt be processed
 OverSt=1.1;      % noise regection threshold, in standard deviations
 

@@ -41,7 +41,7 @@ MaxAmplN=max(spectr(:,2));
 MinAmplN=min(spectr(:,2)); 
 
 Pass2Bool=peaks(:,end)>1; 
-if not(isempty(peaks(Pass2Bool)))
+if max(size(peaks(Pass2Bool)))>1;
     spectr2=sid_hist(peaks(Pass2Bool));
 else
   spectr2=[];  

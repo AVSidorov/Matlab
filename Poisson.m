@@ -28,7 +28,10 @@ LowerBorder=0.8*Wmain; HighBorder=1.3*Wmain;
 W1=Wmain*W1Rad/WmainRad;
 Sigma1=SigmaMain*sqrt(W1/Wmain);
 key='s';
-hp=figure; set(hp,'name',FileName );
+hp=figure; 
+if isstr(FileName); 
+    set(hp,'name',FileName );
+end;
 while key=='r'|'R'
     if key~='s'
         fprintf('Amain=%3.0f:   ', Amain);

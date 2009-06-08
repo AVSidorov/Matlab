@@ -42,8 +42,9 @@ else
     tr=FileName;
 end;
 
-disp('>>>>>>>>Tops.m started'); tic;
+Time=[];
 
+disp('>>>>>>>>Tops.m started'); 
 if nargin<4|isempty(trProcessBool);
     trProcessBool=logical(ones(size(tr)));
     
@@ -63,6 +64,7 @@ MinFrontN=round(MinFront/tau); MinTailN=round(MinTail/tau);
 trSize=size(tr,1);
 %================ section 1 ==============
 % catch signal fronts:
+tic;
 trD=diff(tr);     trD(end+1)=trD(end);
 
 % BaseD=(circshift(trD,-2)+circshift(trD,-1)+circshift(trD,+1)+circshift(trD,+2))/4;
@@ -199,9 +201,11 @@ NoiseFIndN=size(NoiseFInd,1);
 clear trDD trFA AllBool PosFBool FBool AbsFBool NoiseFBool...
       BoolInd bool LogFNoise LogFPeak FInd NoiseInd  ...
       MaxFrontDiff MaxTailDiff Interval FindMax;
-
+Time(end+1)=toc;
+disp(['Section 1 time=', num2str(Time(end))]);
   
 %================ section 2 ==============  
+tic;
 trR1=circshift(tr,1);  trR1(1)=trR1(2);
 trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
 trL1=circshift(tr,-1); trL1(end)=trL1(end-1);
@@ -231,7 +235,11 @@ SignalBool(1:3)=false; SignalBool(end-1:end)=false;
 SignalBool(NoiseMInd)=false;  SignalBool(NoiseWInd)=false; 
 SignalInd=find(SignalBool); SIndN=size(SignalInd,1);
 
+Time(end+1)=toc;
+disp(['Section 2 time=', num2str(Time(end))]);
+
 %3. ====== Combination ====================
+tic;
 PeakBool=PeakFBool&SignalBool;
 PeakBool=PeakBool&trProcessBool;
 
@@ -379,7 +387,9 @@ if Plot
     end;
 end;
 
-    
+    Time(end+1)=toc;
+    disp(['Combination time=', num2str(Time(end))]);
+
     Decision=input('Press ''C'' to correct the threshold or any other key to accept the bellow one \n Default is PreThreshold (blue)   ','s');
     if isempty(Decision); Decision='q'; end;  
     if Decision=='c'||Decision=='C'
@@ -396,7 +406,7 @@ end;
         NewThreshold = 10^x;
         disp('=====================');
         disp(['Automatic Threshold is ',num2str(Threshold)]);
-        disp(['Manual Threshold =',num2str(NewThreshold),' is traken']);
+        disp(['Manual Threshold =',num2str(NewThreshold),' is taken']);
 
         %Decision=input('Press ''c'' to accept the new threshold or any key to leave the old one    ','s');
         %if isempty(Decision); Decision='q'; end;
@@ -406,7 +416,7 @@ end;
     else
        Threshold=max([Threshold,PreThreshold]);
     end;    
-    
+tic;    
 SelectedPeakBool=RangePeak>log10(Threshold); 
 PeakSet.SelectedPeakInd=PeakInd(SelectedPeakBool);
 SelectedPeakN=size(PeakSet.SelectedPeakInd,1);
@@ -436,7 +446,7 @@ end;
 
 
 fprintf('=====  Search of peak tops      ==========\n');
-fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*0.025);
+fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*tau);
 fprintf('The total number of peaks = %7.0f \n',MaxIndN);
 fprintf('The number of noise peaks selected from trF = %7.0f \n',PeakFIndN);
 fprintf('The number of noise peaks (W and M types)= %7.0f \n',NoiseMIndN+NoiseWIndN);
@@ -445,9 +455,12 @@ fprintf('The number of signal peaks combined with F peaks = %7.0f \n',PeakIndN);
 fprintf('The number of selected peaks above %7.2f threshold = %7.0f \n',PeakSet.Threshold,SelectedPeakN);
 fprintf('The number of peaks on the front of the selected peaks = %7.0f \n',PeakOnFrontIndN);
 fprintf('F Threshold = %7.0f \n',ThresholdF);
+Time(end+1)=toc;
+disp(['Time=', num2str(Time(end))]);
 
 %================ section 4 ==============
 %Distribution of time intervals among peaks: 
+tic;
 if not(isempty(PeakSet.SelectedPeakInd))
     IntervalBefore=PeakSet.SelectedPeakInd-circshift(PeakSet.SelectedPeakInd,1);
     IntervalBefore(1)=PeakSet.SelectedPeakInd(1);
@@ -569,5 +582,8 @@ if exist(StandardPulseFile,'file');
     end;
 end;
 
-disp('================ Tops.m finished'); toc
+Time(end+1)=toc;
+disp(['Standard Pulse Analyze=', num2str(Time(end))]);
+disp(['Full processing time=', num2str(sum(Time))]);
+disp('================ Tops.m finished');
       
