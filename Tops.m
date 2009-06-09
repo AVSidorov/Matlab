@@ -577,8 +577,8 @@ if exist(StandardPulseFile,'file');
         StPFMaxInd=StPFMaxInd-1;
     end;
     
-    plot([(StPMaxInd-StPFMaxInd)+1:(StPMaxInd-StPFMaxInd)+size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
-    plot([(StPMaxInd-StPFMaxInd)+1:(StPMaxInd-StPFMaxInd)+size(StandardPulseNormFile,1)],StandardPulseNormFileF,'-bo');
+    plot([(StPMaxInd-StPFMaxInd)+1:size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
+    plot(StandardPulseNormFileF,'-bo');
     end;
 end;
 
