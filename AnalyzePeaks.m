@@ -36,7 +36,7 @@ PeakChiRange=MaxChi-MinChi;
 PeakAmplRange=MaxAmpl-MinAmpl; 
 SpecNA=fix(PeakAmplRange/SpecInterv)+1;
 
-spectr=sid_spectr(peaks,SpecStep,[],SmParam);
+[spectr,SpecInterv,SpecStep]=sid_spectr(peaks,SpecStep,[],SmParam);
 MaxAmplN=max(spectr(:,2)); 
 MinAmplN=min(spectr(:,2)); 
 
@@ -128,6 +128,7 @@ fprintf('The period of peaks =  %6.5f us\n', Period);
 fprintf('The flow1(by number of peaks) =  %5.0f N/ms\n', flow1);
 fprintf('The flow2(by maximum of normalized(/SpecInt /TimeInt) spectra) =  %4.3f a.u.\n', flow2);
 fprintf('Resolution in the peak amplitude spectr=  %3.3f counts\n', SpecInterv);
+fprintf('Step in the peak amplitude spectr=  %3.3f counts\n', SpecStep);
 fprintf('Resolution in the peak interval histogram=  %3.3f us\n', HistIntervalT);
 fprintf('Expected number of double peaks for 0.025 us = %3.3f \n', NPeaks*0.025/Period);
 fprintf('=====================\n');                

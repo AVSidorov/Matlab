@@ -1,7 +1,7 @@
 function [Flow1,Flow2,Uloop,Etor,Wb,K_W,K_A]=ProcessPeaks(peaks);
 MeasAmplf=100;
 ClbrAmplf=100;
-ClbrAmplt=2253;
+ClbrAmplt=1160;
 R=0.55;
 Flow1=[];
 Flow2=[];

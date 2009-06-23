@@ -469,7 +469,7 @@ end;
   subplot(AmplHistogramPlot); errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-b.'); grid on; hold on; 
   
 fprintf('=====  Found pulses      ==========\n');
-fprintf('The number of measured points  = %7.0f during %7.0f us \n',trekSize,trekSize*0.025);
+fprintf('The number of measured points  = %7.0f during %7.0f us \n',trekSize,trekSize*tau);
 fprintf('The total number of peaks = %7.0f \n',PeakN);
 for Pass=1:PassNumber
     disp(['   The number of peaks found in pass # ', num2str(Pass), '  = ',num2str(PeakNumber(Pass))]);
