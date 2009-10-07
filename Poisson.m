@@ -213,11 +213,12 @@ for j=1:Wnum
            S(j)=KhiSquare(Spectr(BorderBool1,:),FitSpecS(BorderBool1))/NumSpectrPoints1;   %
 end; 
 %search along the W direction
-[MinKhi2,MinKhi2Ind]=min(S);
-Wfit=[W4set(MinKhi2Ind-1):Wstep/100:W4set(MinKhi2Ind+1)];
-SFine=interp1(W4set(MinKhi2Ind-1:MinKhi2Ind+1),S(MinKhi2Ind-1:MinKhi2Ind+1),Wfit,'spline');
-[MinKhi2,MinKhi2Ind]=min(SFine);
-W4=Wfit(MinKhi2Ind);
+% [MinKhi2,MinKhi2Ind]=min(S);
+% Wfit=[W4set(MinKhi2Ind-1):Wstep/100:W4set(MinKhi2Ind+1)];
+% SFine=interp1(W4set(MinKhi2Ind-1:MinKhi2Ind+1),S(MinKhi2Ind-1:MinKhi2Ind+1),Wfit,'spline');
+% [MinKhi2,MinKhi2Ind]=min(SFine);
+% W4=Wfit(MinKhi2Ind);
+W4=W1*W4Rad/W1Rad;
 
 FitSpec1=SpectrFit(Spectr(:,1),W1,Kmin);
 FitSpec2=0.5*SpectrFit(Spectr(:,1),W2,Kmin);
@@ -255,12 +256,12 @@ SigmaMain=Sigma1*sqrt(Wmain/W1);
 SigmaMainW=SigmaMain*WmainW/Wmain;
 
 Bool=(Spectr(:,1)>=W4+Sigma1)&(Spectr(:,1)<=Wmain);
-w1=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
-Bool=(Spectr(:,1)>=Wmain);
-w2=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
+ w1=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
+ Bool=(Spectr(:,1)>=Wmain);
+ w2=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
 
-w1W=W1Rad*w1/W1;
-w2W=W1Rad*w2/W1;
+ w1W=W1Rad*w1/W1;
+ w2W=W1Rad*w2/W1;
 
 
 %Energy spectrum 
@@ -342,6 +343,7 @@ subplot(2,1,1); plot(Spectr(:,1),Spectr(:,2),'-ro'); grid on; hold on;
                 plot(Spectr(:,1),A1*FitSpec3,'-g','LineWidth',2); 
                 plot(Spectr(:,1),A4*FitSpec4,'-k','LineWidth',2); 
                 plot(Spectr(:,1),FitSpecS,'-m','LineWidth',3); 
+                plot(Spectr(:,1),Spectr(:,2)-FitSpecS,'-k','LineWidth',1.5); 
                 plot(x,Amain*Gauss(x,Wmain,SigmaMain),'-k');  
 
                 xlabel('counts'); ylabel('numbers'); 
@@ -378,7 +380,7 @@ if not(isempty(y(not(LargeBool))))
     XX=X(not(LargeBool));
     y(not(LargeBool))=(X0-1).^(XX-X0).*gamma(X0)./gamma(XX);
 end; 
-y=Poisson_distr(K,W0,x);    
+%y=Poisson_distr(K,W0,x);    
 
 function s=KhiSquare(HSpec,FitSpec);
     s=sum(((HSpec(:,2)-FitSpec)./HSpec(:,3)).^2);
