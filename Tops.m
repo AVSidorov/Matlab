@@ -28,7 +28,7 @@ MinTail=0.05;     % minimal peak tail, us
 MaxTail=0.8;      % maximal peak tail, us
 OverSt=1.1;       % noise regection threshold, in standard deviations
 
-MaxSignal= 4095;  % maximal signal whithout distortion
+MaxSignal= 3300;  % maximal signal whithout distortion
 notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt be processed
 
 StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
@@ -249,6 +249,10 @@ PeakInd=sort(PeakInd);
 PeakIndN=size(PeakInd,1);
 PeakOnFrontIndN=size(PeakSet.PeakOnFrontInd,1);
 
+Time(end+1)=toc;
+disp(['Combination time=', num2str(Time(end))]);
+tic;
+
 HistStart =1e20;  HistEnd= -1e20;
 
 RangeM=zeros(1, NoiseMIndN);
@@ -338,6 +342,10 @@ for i=1:HistN
     Hist(i,8)=size(find((RangePeakW<=X+HistStep/2)&(RangePeakW>X-HistStep/2)),2);
 end;
 
+Time(end+1)=toc;
+disp(['Histograms calculation time=', num2str(Time(end))]);
+tic;
+
 % Threshold:
 %NoiseHist=(Hist(:,2)+Hist(:,3))/2;
 [MaxPeakHist,MaxPeakHistInd]=max(Hist(:,7));
@@ -361,6 +369,9 @@ if isempty(Threshold)
 end; 
 Threshold=10^Threshold;
 
+Time(end+1)=toc;
+disp(['Threshold determination time=', num2str(Time(end))]);
+tic;
 
 if Plot
     figure; 
@@ -388,7 +399,7 @@ if Plot
 end;
 
     Time(end+1)=toc;
-    disp(['Combination time=', num2str(Time(end))]);
+    disp(['Ploting time=', num2str(Time(end))]);
 
     Decision=input('Press ''C'' to correct the threshold or any other key to accept the bellow one \n Default is PreThreshold (blue)   ','s');
     if isempty(Decision); Decision='q'; end;  
@@ -416,6 +427,7 @@ end;
     else
        Threshold=max([Threshold,PreThreshold]);
     end;    
+
 tic;    
 SelectedPeakBool=RangePeak>log10(Threshold); 
 PeakSet.SelectedPeakInd=PeakInd(SelectedPeakBool);
@@ -456,10 +468,12 @@ fprintf('The number of selected peaks above %7.2f threshold = %7.0f \n',PeakSet.
 fprintf('The number of peaks on the front of the selected peaks = %7.0f \n',PeakOnFrontIndN);
 fprintf('F Threshold = %7.0f \n',ThresholdF);
 Time(end+1)=toc;
-disp(['Time=', num2str(Time(end))]);
-
+disp(['Search peak tops time=', num2str(Time(end))]);
+fprintf('>>>>>>>>>>>>>>>>>>>>>>\n');
 %================ section 4 ==============
 %Distribution of time intervals among peaks: 
+
+fprintf('=====  Search of Standard pulse    ==========\n');
 tic;
 if not(isempty(PeakSet.SelectedPeakInd))
     IntervalBefore=PeakSet.SelectedPeakInd-circshift(PeakSet.SelectedPeakInd,1);
@@ -584,6 +598,7 @@ end;
 
 Time(end+1)=toc;
 disp(['Standard Pulse Analyze=', num2str(Time(end))]);
+fprintf('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n');
 disp(['Full processing time=', num2str(sum(Time))]);
 disp('================ Tops.m finished');
       
