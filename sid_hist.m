@@ -2,13 +2,28 @@ function [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep,HistInterval);
 Step=5; %Number of min intervals for HistInterval Calculations
 A=[];
 if nargin==1
-    A=InArray(:,1);
+    [m,n]=size(InArray);
+    if m==1&n>1 
+        A=InArray';
+    end;
+    if m>1&n==1
+        A=InArray;
+    end;
+    if m>1&n>1
+        A=InArray(:,1);
+    end;
+    B=A-real(A);
+    A(find(B))=[];
     NA=size(A,1);
     A=sort(A);
     Ash=circshift(A,-1);
     dA=Ash-A;
     bool=find(dA<=0);
-    dA(bool)=[];
+     dA(bool)=[];
+%     dA=sort(dA);
+%     DdA=diff(dA);
+%     Ind=max(find(DdA<mean(DdA)));
+%     HistInterval=dA(Ind);
     HistInterval=max(dA);
     HistStep=mean(dA);
  end;

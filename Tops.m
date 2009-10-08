@@ -116,6 +116,17 @@ LogFNoise=log10(0.0001*StdVal+abs(trF(NoiseFBool)));
 LogFPeak=log10(trF(PeakFBool));
 LogNegFBool=log10(0.0001*StdVal-trF(NegFBool));
 
+[HistLogFNoise,HistLogFNoiseI,HistLogFNoiseS]=sid_hist(LogFNoise);
+[HistLogFPeak,HistLogFPeakI,HistLogFPeakS]=sid_hist(LogFPeak);
+[HistLogNegFBool,HistLogNegFBoolI,HistLogNegFBoolS]=sid_hist(LogNegFBool);
+HistFInterpStart=min(HistLogFNoise(1,1),HistLogFPeak(1,1));
+HistFInterpEnd=min(HistLogFNoise(end,1),HistLogFPeak(end,1));
+HistFInterpStep=min(HistLogFNoiseS,HistLogFPeakS);
+HistFInterp(:,1)=HistFInterpStart:HistFInterpStep:HistFInterpEnd;
+HistFInterp(:,2)=interp1(HistLogFNoise(:,1),HistLogFNoise(:,2),HistFInterp(:,1),'linear',1);
+HistFInterp(:,3)=interp1(HistLogFPeak(:,1),HistLogFPeak(:,2),HistFInterp(:,1),'linear',1);
+HistFFunc=HistFInterp(:,3)./HistFInterp(:,2);
+
 HistFStart=min(min(LogFNoise),min(LogFPeak));
 HistFEnd  =max(max(LogFNoise),max(LogFPeak));
 HistFStep= (HistFEnd-HistFStart)/(HistFN-1);
@@ -126,6 +137,7 @@ for i=1:HistFN
     HistF(i,3)=size(find(LogFPeak>X1&LogFPeak<=X2),1);
     HistF(i,4)=size(find(LogNegFBool>X1&LogNegFBool<=X2),1);
 end;
+
 % Search threshold:
 [MaxNoiseHist,MaxNoiseHistInd]=max(HistF(:,2));
 AboveNoise=HistF(:,3)>=HistF(:,2);
@@ -264,6 +276,11 @@ if not(isempty(RangeM));
     HistEnd=max(HistEnd,max(RangeM));  
 end;
 
+[HistRangeM,HistRangeMI,HistRangeMS]=sid_hist(RangeM);
+HistInterpStart=HistRangeM(1,1);
+HistInterpEnd=HistRangeM(end,1);
+HistInterpStep=HistRangeMS;
+
 RangeW=zeros(1, NoiseWIndN);
 for i=1:NoiseWIndN 
     y=tr(NoiseWInd(i)-3:NoiseWInd(i)+2); RangeW(i)=log10(max(y)-min(y));
@@ -273,6 +290,12 @@ if not(isempty(RangeW));
     HistEnd=max(HistEnd,max(RangeW));  
 end;
 
+[HistRangeW,HistRangeWI,HistRangeWS]=sid_hist(RangeW);
+HistInterpStart=min(HistInterpStart,HistRangeW(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangeW(end,1));
+HistInterpStep=min(HistInterpStep,HistRangeWS);
+
+
 RangePeakW=zeros(1, PeakWIndN);
 for i=1:PeakWIndN 
     y=tr(PeakWInd(i)-3:PeakWInd(i)+2); RangePeakW(i)=log10(max(y)-min(y));
@@ -281,12 +304,21 @@ if not(isempty(RangePeakW));
     HistStart=min(HistStart,min(RangePeakW)); 
     HistEnd=max(HistEnd,max(RangePeakW));  
 end;
+[HistRangePeakW,HistRangePeakWI,HistRangePeakWS]=sid_hist(RangePeakW);
+HistInterpStart=min(HistInterpStart,HistRangePeakW(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangePeakW(end,1));
+HistInterpStep=min(HistInterpStep,HistRangePeakWS);
 
 % Histogram of the range of noise F signals:
 RangeNoiseF=zeros(1,NoiseFIndN);
 for i=1:NoiseFIndN 
     y=tr(NoiseFInd(i)-3:NoiseFInd(i)+2); RangeNoiseF(i)=log10(max(y)-min(y));
 end;
+
+[HistRangeNoiseF,HistRangeNoiseFI,HistRangeNoiseFS]=sid_hist(RangeNoiseF);
+HistInterpStart=min(HistInterpStart,HistRangeNoiseF(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangeNoiseF(end,1));
+HistInterpStep=min(HistInterpStep,HistRangeNoiseFS);
 
 RangeS=zeros(1, SIndN);
 for i=1:SIndN 
@@ -298,11 +330,21 @@ if not(isempty(RangeS));
     HistEnd=max(HistEnd,max(RangeS));  
 end;
 
+[HistRangeS,HistRangeSI,HistRangeSS]=sid_hist(RangeS);
+HistInterpStart=min(HistInterpStart,HistRangeS(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangeS(end,1));
+HistInterpStep=min(HistInterpStep,HistRangeSS);
+
 RangePeakF=zeros(1, PeakFIndN);
 for i=1:PeakFIndN 
     y=tr(PeakFInd(i)-3:PeakFInd(i)+2); 
     RangePeakF(i)=log10(tr(PeakFInd(i))-min(y));
 end;
+
+[HistRangePeakF,HistRangePeakFI,HistRangePeakFS]=sid_hist(RangePeakF);
+HistInterpStart=min(HistInterpStart,HistRangePeakF(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangePeakF(end,1));
+HistInterpStep=min(HistInterpStep,HistRangePeakFS);
 
 PeakInd(PeakInd+3>trSize)=[];  PeakInd(PeakInd-2<1)=[];
 %PeakInd(tr(PeakInd)>MaxSignal)=[];
@@ -317,6 +359,11 @@ if not(isempty(RangePeak));
     HistEnd=max(HistEnd,max(RangePeak));  
 end;
 
+[HistRangePeak,HistRangePeakI,HistRangePeakS]=sid_hist(RangePeak);
+HistInterpStart=min(HistInterpStart,HistRangePeak(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangePeak(end,1));
+HistInterpStep=min(HistInterpStep,HistRangePeakS);
+
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd+2>trSize)=[];  
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd-2<1)=[];
 PeakOnFrontIndN=size(PeakSet.PeakOnFrontInd,1);
@@ -325,6 +372,21 @@ for i=1:PeakOnFrontIndN
     y=tr(PeakSet.PeakOnFrontInd(i)-2:PeakSet.PeakOnFrontInd(i)+2);    
     RangePeakOnFront(i)=log10(tr(PeakSet.PeakOnFrontInd(i))-min(y));
 end;
+
+[HistRangePeakOnFront,HistRangePeakOnFrontI,HistRangePeakOnFrontS]=sid_hist(RangePeakOnFront);
+HistInterpStart=min(HistInterpStart,HistRangePeakOnFront(1,1));
+HistInterpEnd=max(HistInterpEnd,HistRangePeakOnFront(end,1));
+HistInterpStep=min(HistInterpStep,HistRangePeakOnFrontS);
+
+HistInterp(:,1)=HistInterpStart:HistInterpStep:HistInterpEnd;
+HistInterp(:,2)=interp1(HistRangeM(:,1),HistRangeM(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,3)=interp1(HistRangeW(:,1),HistRangeW(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,4)=interp1(HistRangeNoiseF(:,1),HistRangeNoiseF(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,5)=interp1(HistRangeS(:,1),HistRangeS(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,6)=interp1(HistRangePeakF(:,1),HistRangePeakF(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,7)=interp1(HistRangePeak(:,1),HistRangePeak(:,2),HistInterp(:,1),'linear',1);
+HistInterp(:,8)=interp1(HistRangePeakW(:,1),HistRangePeakW(:,2),HistInterp(:,1),'linear',1);
+HistInterpFunc=(HistInterp(:,5).*HistInterp(:,6).*HistInterp(:,7))./(HistInterp(:,2).*HistInterp(:,3).*HistInterp(:,4).*HistInterp(:,8));
 
 HistPoints= min(100, round(mean([NoiseMIndN,NoiseWIndN,SIndN,NoiseFIndN,PeakFIndN,PeakIndN])/4));    % average number of points per an histogram interval
 HistN=round(mean([NoiseMIndN,NoiseWIndN,SIndN,NoiseFIndN,PeakFIndN,PeakIndN])/HistPoints);
@@ -348,7 +410,7 @@ tic;
 
 % Threshold:
 %NoiseHist=(Hist(:,2)+Hist(:,3))/2;
-[MaxPeakHist,MaxPeakHistInd]=max(Hist(:,7));
+[MaxPeakHist,MaxPeakHistInd]=max(HistRangePeak(:,2));
 %[MaxNoiseHist,MaxNoiseHistInd]=max(NoiseHist);
 %AboveNoise=Hist(:,7)>=NoiseHist; 
 AboveNoise=Hist(:,7)>Hist(:,8); 
@@ -378,25 +440,31 @@ if Plot
     subplot(2,1,1);
     title(['track noise separation. ThresholdF=',num2str(ThresholdF)]);  
     hold on; grid on; xlabel('log10(trF)');
-    plot(HistF(:,1),HistF(:,2),'-b.'); 
-    plot(HistF(:,1),HistF(:,3),'-g.'); 
-    plot(HistF(:,1),HistF(:,4),'-c.');
-    legend('trF noise','trFsignal','trFNeg', 'Location','NorthWest');
+    plot(HistLogFNoise(:,1),HistLogFNoise(:,2),'-b.'); 
+    plot(HistLogFPeak(:,1),HistLogFPeak(:,2),'-g.'); 
+    plot(HistLogNegFBool(:,1),HistLogNegFBool(:,2),'-c.');
+    plot(HistFInterp(:,1),HistFFunc(:),'-r');
+    legend('trF noise','trFsignal','trFNeg','Func', 'Location','NorthWest');
     plot(log10([ThresholdF,ThresholdF]),[0,MaxNoiseHist],'r','LineWidth',2);
     
     subplot(2,1,2);
     title(['Peak noise separation. Threshold=',num2str(Threshold),' PreThreshold=',num2str(PreThreshold)]);
     hold on; grid on; xlabel('log10(Range)');
-    plot(Hist(:,1),Hist(:,2),'-k.');    plot(Hist(:,1),Hist(:,3),'-b.');
-    plot(Hist(:,1),Hist(:,4),'-c.');    plot(Hist(:,1),Hist(:,5),'-m.');  
-    plot(Hist(:,1),Hist(:,6),'-r.');    plot(Hist(:,1),Hist(:,7),'-g.');
-    plot(Hist(:,1),Hist(:,8),'-y.');
-    legend('NoiseM','NoiseW','NoiseF','PeakS','PeakF','Peak','PeakW', 'Location','NorthWest');
+    plot(HistRangeM(:,1),HistRangeM(:,2),'-k.');    
+    plot(HistRangeW(:,1),HistRangeW(:,2),'-b.');
+    plot(HistRangeNoiseF(:,1),HistRangeNoiseF(:,2),'-c.');
+    plot(HistRangeS(:,1),HistRangeS(:,2),'-m.');  
+    plot(HistRangePeakF(:,1),HistRangePeakF(:,2),'-r.');
+    plot(HistRangePeak(:,1),HistRangePeak(:,2),'-g.');
+    plot(HistRangePeakW(:,1),HistRangePeakW(:,2),'-y.');   
+    plot(HistInterp(:,1),HistInterpFunc(:),'-r','LineWidth',2);
+    legend('NoiseM','NoiseW','NoiseF','PeakS','PeakF','Peak','PeakW','Func', 'Location','NorthWest');
     plot(log10([Threshold,Threshold]),[0,MaxNoiseHist],'r','LineWidth',2);
     if nargin>2;
         plot(log10([PreThreshold,PreThreshold]),[0,MaxNoiseHist],'b','LineWidth',2);       
     end;
 end;
+
 
     Time(end+1)=toc;
     disp(['Ploting time=', num2str(Time(end))]);
