@@ -107,8 +107,6 @@ NegFBool(1:2)=false;  NegFBool(end-1:end)=false;
 
 %PeakFBool=PeakFBool&not(Noise); 
 
-HistFPoints= min(50,round(min(size(find(PeakFBool),1),size(find(NoiseFBool),1))/4));    % average number of points per an histogram interval   
-HistFN=round(min(size(find(PeakFBool),1),size(find(NoiseFBool),1))/HistFPoints);
 
 % Searching the threshould for extraction real signals from PeakFBool
 % Signal and noise distributions of trF:
@@ -119,39 +117,33 @@ LogNegFBool=log10(0.0001*StdVal-trF(NegFBool));
 [HistLogFNoise,HistLogFNoiseI,HistLogFNoiseS]=sid_hist(LogFNoise);
 [HistLogFPeak,HistLogFPeakI,HistLogFPeakS]=sid_hist(LogFPeak);
 [HistLogNegFBool,HistLogNegFBoolI,HistLogNegFBoolS]=sid_hist(LogNegFBool);
+MaxHistLogFI=max(HistLogFNoiseI, HistLogFPeakI);
+HistLogFNoise(:,2)=MaxHistLogFI.*HistLogFNoise(:,2)./HistLogFNoiseI;
+HistLogFPeak(:,2)=MaxHistLogFI.*HistLogFPeak(:,2)./HistLogFPeakI;
+
 HistFInterpStart=min(HistLogFNoise(1,1),HistLogFPeak(1,1));
-HistFInterpEnd=min(HistLogFNoise(end,1),HistLogFPeak(end,1));
+HistFInterpEnd=max(HistLogFNoise(end,1),HistLogFPeak(end,1));
 HistFInterpStep=min(HistLogFNoiseS,HistLogFPeakS);
 HistFInterp(:,1)=HistFInterpStart:HistFInterpStep:HistFInterpEnd;
 HistFInterp(:,2)=interp1(HistLogFNoise(:,1),HistLogFNoise(:,2),HistFInterp(:,1),'linear',1);
 HistFInterp(:,3)=interp1(HistLogFPeak(:,1),HistLogFPeak(:,2),HistFInterp(:,1),'linear',1);
 HistFFunc=HistFInterp(:,3)./HistFInterp(:,2);
 
-HistFStart=min(min(LogFNoise),min(LogFPeak));
-HistFEnd  =max(max(LogFNoise),max(LogFPeak));
-HistFStep= (HistFEnd-HistFStart)/(HistFN-1);
-for i=1:HistFN
-    X=HistFStart+(i-1)*HistFStep;
-    HistF(i,1)=X; X1=X-HistFStep/2;  X2=X+HistFStep/2;
-    HistF(i,2)=size(find(LogFNoise >X1&LogFNoise<=X2),1);
-    HistF(i,3)=size(find(LogFPeak>X1&LogFPeak<=X2),1);
-    HistF(i,4)=size(find(LogNegFBool>X1&LogNegFBool<=X2),1);
-end;
 
 % Search threshold:
-[MaxNoiseHist,MaxNoiseHistInd]=max(HistF(:,2));
-AboveNoise=HistF(:,3)>=HistF(:,2);
+[MaxNoiseHist,MaxNoiseHistInd]=max(HistFInterp(:,2));
+AboveNoise=HistFInterp(:,3)>=HistFInterp(:,2);
 AboveNoise(1:MaxNoiseHistInd)=false; 
 AboveNoiseInd=find(AboveNoise);
 NoiseBorderLowInd=find(AboveNoise,1,'first');
 NoiseBorderHighInd=find(not(AboveNoise),1,'last');
-ThresholdF=(HistF(NoiseBorderLowInd,1)+HistF(NoiseBorderHighInd,1))/2;
+ThresholdF=(HistFInterp(NoiseBorderLowInd,1)+HistFInterp(NoiseBorderHighInd,1))/2;
 if isempty(ThresholdF)
    if isempty(NoiseBorderLowInd)
-       ThresholdF=HistF(NoiseBorderHighInd,1);
+       ThresholdF=HistFInterp(NoiseBorderHighInd,1);
    end;
    if isempty(NoiseBorderHighInd)
-       ThresholdF=HistF(NoiseBorderLowInd,1);
+       ThresholdF=HistFInterp(NoiseBorderLowInd,1);
    end;
 end; 
 ThresholdF=10^ThresholdF;    % Threshold for separation F signal and noise.
@@ -218,6 +210,9 @@ disp(['Section 1 time=', num2str(Time(end))]);
   
 %================ section 2 ==============  
 tic;
+
+[MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(tr,3,0);
+
 trR1=circshift(tr,1);  trR1(1)=trR1(2);
 trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
 trL1=circshift(tr,-1); trL1(end)=trL1(end-1);
@@ -280,6 +275,8 @@ end;
 HistInterpStart=HistRangeM(1,1);
 HistInterpEnd=HistRangeM(end,1);
 HistInterpStep=HistRangeMS;
+MaxHistInterpI=HistRangeMI;
+
 
 RangeW=zeros(1, NoiseWIndN);
 for i=1:NoiseWIndN 
@@ -294,6 +291,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangeW(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangeW(end,1));
 HistInterpStep=min(HistInterpStep,HistRangeWS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangeWI);
 
 
 RangePeakW=zeros(1, PeakWIndN);
@@ -308,6 +306,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangePeakW(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangePeakW(end,1));
 HistInterpStep=min(HistInterpStep,HistRangePeakWS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangePeakWI);
 
 % Histogram of the range of noise F signals:
 RangeNoiseF=zeros(1,NoiseFIndN);
@@ -319,6 +318,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangeNoiseF(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangeNoiseF(end,1));
 HistInterpStep=min(HistInterpStep,HistRangeNoiseFS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangeNoiseFI);
 
 RangeS=zeros(1, SIndN);
 for i=1:SIndN 
@@ -334,6 +334,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangeS(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangeS(end,1));
 HistInterpStep=min(HistInterpStep,HistRangeSS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangeSI);
 
 RangePeakF=zeros(1, PeakFIndN);
 for i=1:PeakFIndN 
@@ -345,6 +346,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangePeakF(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangePeakF(end,1));
 HistInterpStep=min(HistInterpStep,HistRangePeakFS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangePeakFI);
 
 PeakInd(PeakInd+3>trSize)=[];  PeakInd(PeakInd-2<1)=[];
 %PeakInd(tr(PeakInd)>MaxSignal)=[];
@@ -363,6 +365,7 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangePeak(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangePeak(end,1));
 HistInterpStep=min(HistInterpStep,HistRangePeakS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangePeakI);
 
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd+2>trSize)=[];  
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd-2<1)=[];
@@ -377,6 +380,16 @@ end;
 HistInterpStart=min(HistInterpStart,HistRangePeakOnFront(1,1));
 HistInterpEnd=max(HistInterpEnd,HistRangePeakOnFront(end,1));
 HistInterpStep=min(HistInterpStep,HistRangePeakOnFrontS);
+MaxHistInterpI=max(MaxHistInterpI,HistRangePeakOnFrontI);
+
+HistRangeM(:,2)=MaxHistInterpI.*HistRangeM(:,2)./HistRangeMI;
+HistRangeW(:,2)=MaxHistInterpI.*HistRangeW(:,2)./HistRangeWI;
+HistRangeNoiseF(:,2)=MaxHistInterpI.*HistRangeNoiseF(:,2)./HistRangeNoiseFI;
+HistRangeS(:,2)=MaxHistInterpI.*HistRangeS(:,2)./HistRangeSI;
+HistRangePeakF(:,2)=MaxHistInterpI.*HistRangePeakF(:,2)./HistRangePeakFI;
+HistRangePeak(:,2)=MaxHistInterpI.*HistRangePeak(:,2)./HistRangePeakI;
+HistRangePeakW(:,2)=MaxHistInterpI.*HistRangePeakW(:,2)./HistRangePeakWI;
+
 
 HistInterp(:,1)=HistInterpStart:HistInterpStep:HistInterpEnd;
 HistInterp(:,2)=interp1(HistRangeM(:,1),HistRangeM(:,2),HistInterp(:,1),'linear',1);
@@ -388,47 +401,42 @@ HistInterp(:,7)=interp1(HistRangePeak(:,1),HistRangePeak(:,2),HistInterp(:,1),'l
 HistInterp(:,8)=interp1(HistRangePeakW(:,1),HistRangePeakW(:,2),HistInterp(:,1),'linear',1);
 HistInterpFunc=(HistInterp(:,5).*HistInterp(:,6).*HistInterp(:,7))./(HistInterp(:,2).*HistInterp(:,3).*HistInterp(:,4).*HistInterp(:,8));
 
-HistPoints= min(100, round(mean([NoiseMIndN,NoiseWIndN,SIndN,NoiseFIndN,PeakFIndN,PeakIndN])/4));    % average number of points per an histogram interval
-HistN=round(mean([NoiseMIndN,NoiseWIndN,SIndN,NoiseFIndN,PeakFIndN,PeakIndN])/HistPoints);
-%HistStart =min(min(min(RangeM),min(RangeW)),min(min(RangeS),min(RangePeak)));
-%HistEnd   =max(max(max(RangeM),max(RangeW)),max(max(RangeS),max(RangePeak)));
-HistStep=(HistEnd-HistStart)/(HistN-1);
-for i=1:HistN 
-    X=HistStart+(i-1)*HistStep;   Hist(i,1)=X;
-    Hist(i,2)=size(find((RangeM<=X+HistStep/2)&(RangeM>X-HistStep/2)),2); 
-    Hist(i,3)=size(find((RangeW<=X+HistStep/2)&(RangeW>X-HistStep/2)),2);
-    Hist(i,4)=size(find((RangeNoiseF<=X+HistStep/2)&(RangeNoiseF>X-HistStep/2)),2);
-    Hist(i,5)=size(find((RangeS<=X+HistStep/2)&(RangeS>X-HistStep/2)),2);
-    Hist(i,6)=size(find((RangePeakF<=X+HistStep/2)&(RangePeakF>X-HistStep/2)),2);
-    Hist(i,7)=size(find((RangePeak<=X+HistStep/2)&(RangePeak>X-HistStep/2)),2);
-    Hist(i,8)=size(find((RangePeakW<=X+HistStep/2)&(RangePeakW>X-HistStep/2)),2);
-end;
+[MaxPeakHist,MaxPeakHistInd]=max(HistInterp(:,8));
 
 Time(end+1)=toc;
 disp(['Histograms calculation time=', num2str(Time(end))]);
 tic;
 
-% Threshold:
-%NoiseHist=(Hist(:,2)+Hist(:,3))/2;
-[MaxPeakHist,MaxPeakHistInd]=max(HistRangePeak(:,2));
-%[MaxNoiseHist,MaxNoiseHistInd]=max(NoiseHist);
-%AboveNoise=Hist(:,7)>=NoiseHist; 
-AboveNoise=Hist(:,7)>Hist(:,8); 
-[MaxNoiseHist,MaxNoiseHistInd]=max(Hist(:,8));
-AboveNoise(1:MaxNoiseHistInd)=false; 
-AboveNoiseInd=find(AboveNoise);
-NoiseBorderLowInd=find(AboveNoise,1,'first');
-%NoiseBorderHighInd=find(not(AboveNoise),1,'last');
-%Threshold=(Hist(NoiseBorderLowInd,1)+Hist(NoiseBorderHighInd,1))/2;
-Threshold=Hist(NoiseBorderLowInd,1);
+% % Threshold:
+% %NoiseHist=(Hist(:,2)+Hist(:,3))/2;
+% [MaxPeakHist,MaxPeakHistInd]=max(HistInterp(:,7));
+% %[MaxNoiseHist,MaxNoiseHistInd]=max(NoiseHist);
+% %AboveNoise=Hist(:,7)>=NoiseHist; 
+% AboveNoise=HistInterp(:,7)>HistInterp(:,8); 
+% [MaxNoiseHist,MaxNoiseHistInd]=max(HistInterp(:,8));
+% AboveNoise(1:MaxNoiseHistInd)=false; 
+% AboveNoiseInd=find(AboveNoise);
+% NoiseBorderLowInd=find(AboveNoise,1,'first');
+% %NoiseBorderHighInd=find(not(AboveNoise),1,'last');
+% %Threshold=(Hist(NoiseBorderLowInd,1)+Hist(NoiseBorderHighInd,1))/2;
+% Threshold=HistInterp(NoiseBorderLowInd,1);
+% if isempty(Threshold)
+%    if isempty(NoiseBorderLowInd)
+%        Threshold=HistInterp(NoiseBorderHighInd,1);
+%    end;
+%    if isempty(NoiseBorderHighInd)
+%        Threshold=HistInterp(NoiseBorderLowInd,1);
+%    end;
+% end; 
+
+AboveNoise=HistInterpFunc>1;
+NoiseBorderInd=find(HistInterp(:,1)>=log10(OverSt*StdVal),1,'first');
+AboveNoise(1:NoiseBorderInd)=false;
+NoiseBorderInd=find(AboveNoise,1,'first');
+Threshold=HistInterp(NoiseBorderInd,1);
 if isempty(Threshold)
-   if isempty(NoiseBorderLowInd)
-       Threshold=Hist(NoiseBorderHighInd,1);
-   end;
-   if isempty(NoiseBorderHighInd)
-       Threshold=Hist(NoiseBorderLowInd,1);
-   end;
-end; 
+    Threshold=log10(OverSt*StdVal);
+end;
 Threshold=10^Threshold;
 
 Time(end+1)=toc;
@@ -458,10 +466,11 @@ if Plot
     plot(HistRangePeak(:,1),HistRangePeak(:,2),'-g.');
     plot(HistRangePeakW(:,1),HistRangePeakW(:,2),'-y.');   
     plot(HistInterp(:,1),HistInterpFunc(:),'-r','LineWidth',2);
+    %set(gca,'YScale','log');
     legend('NoiseM','NoiseW','NoiseF','PeakS','PeakF','Peak','PeakW','Func', 'Location','NorthWest');
-    plot(log10([Threshold,Threshold]),[0,MaxNoiseHist],'r','LineWidth',2);
+    plot(log10([Threshold,Threshold]),[0,MaxPeakHist],'r','LineWidth',2);
     if nargin>2;
-        plot(log10([PreThreshold,PreThreshold]),[0,MaxNoiseHist],'b','LineWidth',2);       
+        plot(log10([PreThreshold,PreThreshold]),[0,MaxPeakHist],'b','LineWidth',2);       
     end;
 end;
 
@@ -475,10 +484,10 @@ end;
         %Colors=['k','b','g','y','c','m']';
         %Decision='q';
         %while not(Decision=='c'||Decision=='C')
-            Color='b';   %Colors(1);
+            Color='m';   %Colors(1);
             x=[]; z=[];
             [x,z]=ginput(1);
-            plot([x,x],[0,MaxNoiseHist],Color,'LineWidth',2);
+            plot([x,x],[0,MaxHist],Color,'LineWidth',2);
             %Colors=circshift(Colors,-1);
             %Decision= input('Press ''c'' when new threshold is selected      ','s');
         %end;
@@ -501,7 +510,7 @@ SelectedPeakBool=RangePeak>log10(Threshold);
 PeakSet.SelectedPeakInd=PeakInd(SelectedPeakBool);
 SelectedPeakN=size(PeakSet.SelectedPeakInd,1);
 PeakSet.Threshold=Threshold;
-PeakRangeMost=10^Hist(MaxPeakHistInd,1);
+PeakRangeMost=10^HistInterp(MaxPeakHistInd,1);
 %preselection to search standard peak: 
 RangeSelectedPeak=10.^RangePeak(SelectedPeakBool);
 % StandardPeakBool=RangePeak>(Threshold+MaxPeakHist)/2; 
@@ -607,9 +616,8 @@ if not(isempty(PeakSet.SelectedPeakInd))
         end;
 
         [StPMax,StPMaxInd]=max(StandardPulseNorm);
-        if StandardPulseNorm(StPMaxInd+1)<StandardPulseNorm(StPMaxInd-1)
-               StPMax=StPMaxInd-1;
-        end;
+        [StPMax1,StPMax1Ind]=max(StandardPulseNorm(StandardPulseNorm<StPMax));
+        StPFitInd=min(StPMaxInd,StPMax1Ind);
 
         fprintf('The number of standard pulses found = %7.0f \n',StandardPeakN);
         StandardPulseNormD=diff(StandardPulseNorm);
@@ -619,6 +627,7 @@ if not(isempty(PeakSet.SelectedPeakInd))
         StandardPulseNormDD(end+1)=StandardPulseNormDD(end);
         StandardPulseNormF=-20*StandardPulseNormD.^2.*StandardPulseNormDD;
     end;
+
     if Plot
         figure;
         if StandardPeakN>0
@@ -641,27 +650,26 @@ end;
 % Readout of standard pulse averaged aver many tracks
  
 if exist(StandardPulseFile,'file');
-    StandardPulseNormFile=load(StandardPulseFile);
+   StandardPulseNormFile=load(StandardPulseFile);
    [StPFMax,StPFMaxInd]=max(StandardPulseNormFile);
-   if StandardPulseNormFile(StPFMaxInd+1)<StandardPulseNormFile(StPFMaxInd-1)
-               StPFMaxInd=StPFMaxInd-1;
-   end;
-    disp(['Standard pulses is taken from ',StandardPulseFile]);
-    if Plot
+   [StPFMax1,StPFMax1Ind]=max(StandardPulseNormFile(StandardPulseNormFile<StPFMax));
+   StPFFitInd=min(StPFMaxInd,StPFMax1Ind);
+
+   disp(['Standard pulses is taken from ',StandardPulseFile]);
+
     StandardPulseNormFileD=diff(StandardPulseNormFile); 
     StandardPulseNormFileD(end+1)=StandardPulseNormFileD(end); 
     StandardPulseNormFileDD=diff(StandardPulseNormFile,2); 
     StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
     StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
     StandardPulseNormFileF=-20*StandardPulseNormFileD.^2.*StandardPulseNormFileDD;
-
-    if StandardPulseNormFile(StPFMaxInd+1)<StandardPulseNormFile(StPFMaxInd-1)
-        StPFMaxInd=StPFMaxInd-1;
-    end;
     
-    plot([(StPMaxInd-StPFMaxInd)+1:size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
-    plot(StandardPulseNormFileF,'-bo');
-    end;
+   if Plot
+    plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
+    plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFileF,'-bo');
+    legend('Standard Pulse','Standard Pulse F','File Standard Pulse','File Standard Pulse F');
+   end;
+
 end;
 
 Time(end+1)=toc;
