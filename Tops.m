@@ -487,7 +487,7 @@ end;
             Color='m';   %Colors(1);
             x=[]; z=[];
             [x,z]=ginput(1);
-            plot([x,x],[0,MaxHist],Color,'LineWidth',2);
+            plot([x,x],[0,MaxPeakHist],Color,'LineWidth',2);
             %Colors=circshift(Colors,-1);
             %Decision= input('Press ''c'' when new threshold is selected      ','s');
         %end;
