@@ -1,4 +1,4 @@
-function spectr=sid_spectr(peaks,SpecStep,SpecInterval,SmoothParam);
+function [spectr,SpecInterval,SpecStep]=sid_spectr(peaks,SpecStep,SpecInterval,SmoothParam);
 if nargin==1  
     [spectr,SpecInterval,SpecStep]=sid_hist(peaks,5);
     SmoothParam=1;

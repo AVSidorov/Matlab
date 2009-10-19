@@ -1,4 +1,4 @@
-function [peaks,trekMinus]=GetPeaks(FileName,PassNumber,PeakSet,StandardPulseIN,PreThreshold);
+function [peaks,trekMinus]=GetPeaks(FileName,PassNumber,PeakSet,StandardPulseIN);
 %[peaks,trekMinus]=GetPeaks(trek,Pass,PeakSet)
 %FileName - file or array of row trek data
 %PassNumber is the number of passes 
@@ -29,7 +29,7 @@ SmoothParam=1;    % number of points for smoothing
 BckgFitN=2;       %number of points for background fitting
 InterpN=8;        %number of extra intervals for interpolation of Standard Pulse in fitting
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
-StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
+StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 PulsePlotBool= false;   % Plot fitting pulses or not
 
 
@@ -42,7 +42,6 @@ disp('>>>>>>>>Get Peaks started');
 
 if nargin<3;
     [trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName); 
-    PreThreshold=OverSt*StdVal;
 else
     trek=FileName;
 end;
@@ -60,7 +59,7 @@ clear trekProcessBoolSh;
 trek=smooth(trek,SmoothParam);
 
 if nargin<3|isempty(PeakSet);
-    [PeakSet,StandardPulseN]=Tops(trek,1,trekProcessBool,PreThreshold);
+    [PeakSet,StandardPulseN]=Tops(trek,1,trekProcessBool);
     StandardPulseIN=StandardPulseN;
     disp('Standard Pulse and Peak Set are taken from ''Tops''');
 end;
@@ -80,8 +79,7 @@ if nargin<4|isempty(StandardPulseIN)
       StandardPulseNorm=StandardPulseF;
       disp(['Standard Pulse is taken from File ',StandardPulseFile]);
     else
-      %?????to correct if PreThreshold is not set?????????
-      [PeakSet1,StandardPulseNorm]=Tops(trek,1,trekProcessBool,PreThreshold);
+      [PeakSet1,StandardPulseNorm]=Tops(trek,1,trekProcessBool);
       clear PeakSet1;
       disp('Standard Pulse is taken from ''Tops''');
     end;
@@ -352,7 +350,7 @@ end;  %while
 disp(['=======Pass #',num2str(Pass),' finished. Elapsed time is ', num2str(toc),' sec']);
 
 if (Pass<PassNumber&PassNumber>1)&&not(isempty(PeakSet.SelectedPeakInd)); 
-    PeakSetNew=Tops(trekMinus,1,PreThreshold,trekProcessBool);
+    PeakSetNew=Tops(trekMinus,1,trekProcessBool);
     if PeakSetNew.Threshold>PeakSet.Threshold; 
         PeakSetNew.Threshold=PeakSet.Threshold; 
     end;  

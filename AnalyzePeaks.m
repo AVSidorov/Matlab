@@ -3,7 +3,7 @@ function [flow1,flow2,spectr]=AnalyzePeaks(peaks);
 SpecInterv=250;
 SpecStep=1; %Step in spectr or 'mean' etc. from sid_hist
 SmParam=1;
-tau=0.025;
+tau=0.020;
 %???? ??????? ????? ????????????? ????????? ?? ????????????? ? ????????????
 %???? ?????? ??????
 
@@ -130,7 +130,7 @@ fprintf('The flow2(by maximum of normalized(/SpecInt /TimeInt) spectra) =  %4.3f
 fprintf('Resolution in the peak amplitude spectr=  %3.3f counts\n', SpecInterv);
 fprintf('Step in the peak amplitude spectr=  %3.3f counts\n', SpecStep);
 fprintf('Resolution in the peak interval histogram=  %3.3f us\n', HistIntervalT);
-fprintf('Expected number of double peaks for 0.025 us = %3.3f \n', NPeaks*0.025/Period);
+fprintf('Expected number of double peaks for %4.3f us = %3.3f \n', tau,NPeaks*tau/Period);
 fprintf('=====================\n');                
 
 

@@ -3,7 +3,7 @@ function [trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName);
 Text=false;           % switch between text and binary input files
 FileType='single';      %choose file type for precision in fread function 
 OverSt1=2.5;         % noise regection threshold, in standard deviations    
-StartOffsetDef=10000; %in us old system was Tokamak delay + 1.6ms
+StartOffsetDef=0;     %in us old system was Tokamak delay + 1.6ms
 tau=0.020;
 
 disp('>>>>>>>>Prepare Trek started');

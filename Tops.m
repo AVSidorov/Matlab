@@ -1,4 +1,4 @@
-function [PeakSet,StandardPulseNorm]=Tops(FileName,Plot,PreThreshold,trProcessBool)
+function [PeakSet,StandardPulseNorm]=Tops(FileName,Plot,trProcessBool)
 %PeakSet -> [SelectedPeakInd,PeakOnFrontInd,Threshold]
 % Search peak top indexes of tr(:,1) array.
 %FileName - file of 1D array of measurement sampled at 1/tau rate
@@ -31,21 +31,21 @@ OverSt=1.1;       % noise regection threshold, in standard deviations
 MaxSignal= 3300;  % maximal signal whithout distortion
 notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt be processed
 
-StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
+StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 
 
 if nargin<2; Plot=true; end;
-if nargin<3; 
-    [tr,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName); 
-    PreThreshold=OverSt*StdVal;
-else
-    tr=FileName;
-end;
+if isstr(FileName); 
+     [tr,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName); 
+     ThresholdStd=OverSt*StdVal;
+ else
+     tr=FileName;
+ end;
 
 Time=[];
 
 disp('>>>>>>>>Tops.m started'); 
-if nargin<4|isempty(trProcessBool);
+if nargin<3|isempty(trProcessBool);
     trProcessBool=logical(ones(size(tr)));
     
     trProcessBool=tr<MaxSignal;
@@ -212,6 +212,7 @@ disp(['Section 1 time=', num2str(Time(end))]);
 tic;
 
 [MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(tr,3,0);
+ThresholdStd=StdVal*OverSt;
 
 trR1=circshift(tr,1);  trR1(1)=trR1(2);
 trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
@@ -407,27 +408,28 @@ Time(end+1)=toc;
 disp(['Histograms calculation time=', num2str(Time(end))]);
 tic;
 
-% % Threshold:
-% %NoiseHist=(Hist(:,2)+Hist(:,3))/2;
-% [MaxPeakHist,MaxPeakHistInd]=max(HistInterp(:,7));
-% %[MaxNoiseHist,MaxNoiseHistInd]=max(NoiseHist);
-% %AboveNoise=Hist(:,7)>=NoiseHist; 
-% AboveNoise=HistInterp(:,7)>HistInterp(:,8); 
-% [MaxNoiseHist,MaxNoiseHistInd]=max(HistInterp(:,8));
-% AboveNoise(1:MaxNoiseHistInd)=false; 
-% AboveNoiseInd=find(AboveNoise);
-% NoiseBorderLowInd=find(AboveNoise,1,'first');
-% %NoiseBorderHighInd=find(not(AboveNoise),1,'last');
-% %Threshold=(Hist(NoiseBorderLowInd,1)+Hist(NoiseBorderHighInd,1))/2;
-% Threshold=HistInterp(NoiseBorderLowInd,1);
-% if isempty(Threshold)
-%    if isempty(NoiseBorderLowInd)
-%        Threshold=HistInterp(NoiseBorderHighInd,1);
-%    end;
-%    if isempty(NoiseBorderHighInd)
-%        Threshold=HistInterp(NoiseBorderLowInd,1);
-%    end;
-% end; 
+ % Threshold:
+ %NoiseHist=(Hist(:,2)+Hist(:,3))/2;
+ [MaxPeakHist,MaxPeakHistInd]=max(HistInterp(:,7));
+ %[MaxNoiseHist,MaxNoiseHistInd]=max(NoiseHist);
+ %AboveNoise=Hist(:,7)>=NoiseHist; 
+ AboveNoise=HistInterp(:,7)>HistInterp(:,8); 
+ [MaxNoiseHist,MaxNoiseHistInd]=max(HistInterp(:,8));
+ AboveNoise(1:MaxNoiseHistInd)=false; 
+ AboveNoiseInd=find(AboveNoise);
+ NoiseBorderLowInd=find(AboveNoise,1,'first');
+ NoiseBorderHighInd=find(not(AboveNoise),1,'last');
+ %Threshold=(Hist(NoiseBorderLowInd,1)+Hist(NoiseBorderHighInd,1))/2;
+ Threshold1=HistInterp(NoiseBorderLowInd,1);
+ if isempty(Threshold1)
+    if isempty(NoiseBorderLowInd)
+        Threshold1=HistInterp(NoiseBorderHighInd,1);
+    end;
+    if isempty(NoiseBorderHighInd)
+        Threshold1=HistInterp(NoiseBorderLowInd,1);
+    end;
+ end; 
+Threshold1=10^Threshold1;
 
 AboveNoise=HistInterpFunc>1;
 NoiseBorderInd=find(HistInterp(:,1)>=log10(OverSt*StdVal),1,'first');
@@ -437,6 +439,7 @@ Threshold=HistInterp(NoiseBorderInd,1);
 if isempty(Threshold)
     Threshold=log10(OverSt*StdVal);
 end;
+
 Threshold=10^Threshold;
 
 Time(end+1)=toc;
@@ -456,7 +459,7 @@ if Plot
     plot(log10([ThresholdF,ThresholdF]),[0,MaxNoiseHist],'r','LineWidth',2);
     
     subplot(2,1,2);
-    title(['Peak noise separation. Threshold=',num2str(Threshold),' PreThreshold=',num2str(PreThreshold)]);
+    title(['Peak noise separation. Threshold=',num2str(Threshold),' Threshold1=',num2str(Threshold1),' Threshold by Std=',num2str(ThresholdStd)]);
     hold on; grid on; xlabel('log10(Range)');
     plot(HistRangeM(:,1),HistRangeM(:,2),'-k.');    
     plot(HistRangeW(:,1),HistRangeW(:,2),'-b.');
@@ -468,18 +471,51 @@ if Plot
     plot(HistInterp(:,1),HistInterpFunc(:),'-r','LineWidth',2);
     %set(gca,'YScale','log');
     legend('NoiseM','NoiseW','NoiseF','PeakS','PeakF','Peak','PeakW','Func', 'Location','NorthWest');
-    plot(log10([Threshold,Threshold]),[0,MaxPeakHist],'r','LineWidth',2);
-    if nargin>2;
-        plot(log10([PreThreshold,PreThreshold]),[0,MaxPeakHist],'b','LineWidth',2);       
-    end;
+    plot(log10([StdVal,StdVal]),[0,MaxPeakHist],'r','LineWidth',2);
+    plot(log10([Threshold,Threshold]),[0,MaxPeakHist],'b','LineWidth',2);
+    plot(log10([Threshold1,Threshold1]),[0,MaxPeakHist],'k','LineWidth',2);
+    plot(log10([ThresholdStd,ThresholdStd]),[0,MaxPeakHist],'m','LineWidth',2);       
 end;
 
 
     Time(end+1)=toc;
     disp(['Ploting time=', num2str(Time(end))]);
+    fprintf(['Press ''C'' to correct the threshold or to accept the followes one as Threshold: \n',...
+        '''r'' (red) by Standard deviation %6.3f\n',...
+        '''b'' (blue)by Func %6.3f\n',...
+        '''k'' (black)by Peaks above Noise  in Histogram %6.3f\n',...
+        '''m'' (magenta) by Std*OverSt %6.3f\n',...
+        '''e'' for manual input \n'],StdVal,Threshold,Threshold1,ThresholdStd);
 
-    Decision=input('Press ''C'' to correct the threshold or any other key to accept the bellow one \n Default is PreThreshold (blue)   ','s');
+        
+    Decision=input('Default is Maximal Threshold ','s');
     if isempty(Decision); Decision='q'; end;  
+    if Decision=='q'  
+        Threshold=max([Threshold,Threshold1,ThresholdStd]);
+    end;
+    if Decision=='r'||Decision=='R'
+        Threshold=StdVal;
+    end;
+    if Decision=='b'||Decision=='B'
+        Threshold=Threshold;
+    end;
+
+    if Decision=='k'||Decision=='K'
+        Threshold=Threshold1;
+    end;
+
+    if Decision=='m'||Decision=='M'
+        Threshold=ThresholdStd;
+    end;
+
+    if Decision=='e'||Decision=='E'
+        Threshold=input('Input threshold ');
+        if isempty(Threshold)
+            Threshold=max([Threshold,Threshold1,ThresholdStd]);
+        end;
+    end;
+
+
     if Decision=='c'||Decision=='C'
         %Colors=['k','b','g','y','c','m']';
         %Decision='q';
@@ -501,8 +537,6 @@ end;
         %if Decision=='C'||Decision=='c'
             Threshold=NewThreshold;
         %end; 
-    else
-       Threshold=max([Threshold,PreThreshold]);
     end;    
 
 tic;    

@@ -8,16 +8,16 @@ OverSt=3;         % noise regection threshold, in standard deviations
 if isempty(trek); return; end;
 
 
-[PeakSetFirst,StandardPulseFirst]=Tops(trek,1,StdVal*OverSt);
+[PeakSetFirst,StandardPulseFirst]=Tops(trek,1);
 
 if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);
     assignin('base',['StP',name,'T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
 else
-    assignin('base',['StP18T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
+    assignin('base',['StP31T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
 end;
 
-[peaks,trekMinus]=GetPeaks(trek,Pass1,PeakSetFirst,StandardPulseFirst,StdVal*OverSt);
+[peaks,trekMinus]=GetPeaks(trek,Pass1,PeakSetFirst,StandardPulseFirst);
 StdValTM=std(trekMinus);
 fprintf('Initial Std=%3.3f\n',StdVal);
 fprintf('Final Std=%3.3f\n',StdValTM);
@@ -29,10 +29,10 @@ if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);
     assignin('base',['p',name,'T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
 else
-    assignin('base',['p18T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
+    assignin('base',['p31T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
 end;    
     
- return;
+%  return;
 [Flow1,Flow2,Uloop,Etor,Wb,K_W,K_A]=ProcessPeaks(peaks);
 
 
