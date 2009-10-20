@@ -2,6 +2,29 @@ function [flow1,flow2,spectr]=AnalyzePeaks(peaks);
 
 SpecInterv=250;
 SpecStep=1; %Step in spectr or 'mean' etc. from sid_hist
+
+MeasAmplf=33.33;
+ClbrAmplf=33.33;
+ClbrAmplt=1725;
+
+fprintf('Default Amplification in measurements is %6.3f\n', MeasAmplf);
+MeasAmp=input('Input Amplification in this trek (value not number)\n (1=1, 2=1.1,3=3.704,4=11.11,5=33.33,6=100)\n');
+if not(isempty(MeasAmp))
+    MeasAmplf=MeasAmp;
+end;
+
+fprintf('Default Amplification in calibration is %6.3f\n', ClbrAmplf);
+ClbrAmp=input('Input Amplification in calibration (value not number)\n(1=1, 2=1.1,3=3.704,4=11.11,5=33.33,6=100)\n');
+if not(isempty(ClbrAmp))
+    ClbrAmplf=ClbrAmp;
+end;
+
+fprintf('Default Calibration Amplitude is %7.3f\n', ClbrAmplt);
+ClbrAmpl=input('Input Amplitude of 5.96 keV peak\n');
+if not(isempty(ClbrAmpl))
+    ClbrAmplt=ClbrAmpl;
+end;
+
 SmParam=1;
 tau=0.020;
 %???? ??????? ????? ????????????? ????????? ?? ????????????? ? ????????????
@@ -36,7 +59,8 @@ PeakChiRange=MaxChi-MinChi;
 PeakAmplRange=MaxAmpl-MinAmpl; 
 SpecNA=fix(PeakAmplRange/SpecInterv)+1;
 
-[spectr,SpecInterv,SpecStep]=sid_spectr(peaks,SpecStep,[],SmParam);
+[spectr,SpecInterv,SpecStep]=sid_hist(peaks,5,SpecStep,'10percent');
+
 MaxAmplN=max(spectr(:,2)); 
 MinAmplN=min(spectr(:,2)); 
 
@@ -49,7 +73,6 @@ end;
 % Flow
 
 flow1=NPeaks/(TimeInt/1000);
-flow2=MaxAmplN;
 
 
 %Chi2 histogram
@@ -120,15 +143,25 @@ subplot(2,2,4); errorbar(HistT(:,1),log(HistT(:,2)),1./sqrt(HistT(:,2)),'-b.'); 
                 axis([0,max(HistT(:,1)),0,1.2*max(log(HistT(:,2)))]);
                 xlabel('peak interval, us'); ylabel('exp & Poisson, numbers');                 
 
+
+CountkeV=5.96/ClbrAmplt*(ClbrAmplf/MeasAmplf);                
+figure('Name','Spectr Counts/ms/keV');
+    plot(spectr(:,1)*CountkeV,spectr(:,2)/(TimeInt/1000)/(SpecInterv*CountkeV),'.-r');
+    grid on;
+    set(gca,'YScale','log');
+
+flow2=MaxAmplN/(TimeInt/1000)/(SpecInterv*CountkeV);
+
+                
 fprintf('---------------------\n');                
 fprintf('The number of peaks =  %5.0f\n', NPeaks);
 fprintf('The time of spectrum =  %5.0f us\n', Time);
 fprintf('The time interval of spectrum =  %5.0f us\n', TimeInt);
 fprintf('The period of peaks =  %6.5f us\n', Period);
 fprintf('The flow1(by number of peaks) =  %5.0f N/ms\n', flow1);
-fprintf('The flow2(by maximum of normalized(/SpecInt /TimeInt) spectra) =  %4.3f a.u.\n', flow2);
-fprintf('Resolution in the peak amplitude spectr=  %3.3f counts\n', SpecInterv);
-fprintf('Step in the peak amplitude spectr=  %3.3f counts\n', SpecStep);
+fprintf('The flow2(by maximum of spectra in counts/ms/keV) =  %4.3f \n', flow2);
+fprintf('Resolution in the peak amplitude spectr=  %3.3f counts or %5.1f eV \n', SpecInterv,SpecInterv*CountkeV*1000);
+fprintf('Step in the peak amplitude spectr=  %3.3f counts or %5.1f eV\n', SpecStep,SpecStep*CountkeV*1000);
 fprintf('Resolution in the peak interval histogram=  %3.3f us\n', HistIntervalT);
 fprintf('Expected number of double peaks for %4.3f us = %3.3f \n', tau,NPeaks*tau/Period);
 fprintf('=====================\n');                

@@ -1,6 +1,7 @@
 function [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep,HistInterval);
 Step=5; %Number of min intervals for HistInterval Calculations
 A=[];
+rflag=false;
 if nargin==1
     [m,n]=size(InArray);
     if m==1&n>1 
@@ -78,6 +79,23 @@ if nargin==4
     dA(bool)=[];
     if isempty(HistInterval); 
         HistInterval=max(dA);
+    else
+        if isstr(HistInterval);
+            switch HistInterval;
+                case '10percent'
+                    HistInterval=max(dA);
+                    rflag=true;
+                case 'dif'
+                     dA=sort(dA);
+                     DdA=diff(dA);
+                     Ind=max(find(DdA<mean(DdA)));
+                     HistInterval=dA(Ind);
+                case 'auto'
+                    HistInterval=max(dA);
+                case 'mean'
+                    HistInterval=mean(dA);
+            end;
+        end;
     end;     
 
     if isempty(HistStep); 
@@ -113,5 +131,10 @@ for i=1:HistN
                  (A(:)>=Hist(i,1)-HistInterval/2);
         Hist(i,2)=size(A(HistBool,1),1);  
         Hist(i,3)=sqrt(Hist(i,2));  %error
+end;
+if rflag
+    [MaxHist,MaxHistInd]=max(Hist(:,2));
+    err=Hist(MaxHistInd,3)/MaxHist;
+    [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep*err/0.1,HistInterval*err/0.1);
 end;
 

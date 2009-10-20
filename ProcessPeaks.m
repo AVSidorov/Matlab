@@ -22,10 +22,8 @@ TimeInt=MaxTime-MinTime;
 Time=0.5*(MinTime+MaxTime);
 
 [flow1,flow2,spectr]=AnalyzePeaks(peaks1);
-figure;
-    plot(spectr(:,1)*5.9/ClbrAmplt*(ClbrAmplf/MeasAmplf),spectr(:,2),'.-r');
-    grid on;
-    set(gca,'YScale','log');
+
+
     
 assignin('base',['SpecT',num2str(round(Time/1000),'%2.0f'),'Av',num2str(round(TimeInt/1000),'%2.0f')],spectr);
 
