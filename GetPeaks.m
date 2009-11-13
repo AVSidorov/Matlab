@@ -334,14 +334,17 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
         if (Ampl>PeakSet.Threshold)&...
               (abs(trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<3*PeakSet.Threshold)&...     %%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
                 ((Ampl+B)<MaxSignal)
+            yi=trekMinus(FitIdx(FitIdxOk));
+            fi=SubtractedPulse(FitIdxOk);
             trekMinus(FitIdx(FitIdxOk))=trekMinus(FitIdx(FitIdxOk))-SubtractedPulse(FitIdxOk);
+            Khi2Fin=1/size(FitIdxOk,1)*sum(((yi-fi)./yi).^2);
             NPeaksSubtr=NPeaksSubtr+1;
             peaks(NPeaksSubtr,1)=PeakSet.SelectedPeakInd(i);             %PeakSet.SelectedPeakInd Max initial
             peaks(NPeaksSubtr,2)=PeakSet.SelectedPeakInd(i)*tau+dtau;      %Peak Max Time fitted
             peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
             peaks(NPeaksSubtr,4)=B;                        %Peak Zero Level
             peaks(NPeaksSubtr,5)=Ampl;                     %Peak Amplitude
-            peaks(NPeaksSubtr,6)=MinKhi2;% /Ampl;          % KhiMin
+            peaks(NPeaksSubtr,6)=Khi2Fin ;%MinKhi2;% /Ampl;% KhiMin
             peaks(NPeaksSubtr,7)=Pass;                     % number of Pass in which peak finded
         end;  %(MinKhi2>0)&(MinKhi2<Khi2Thr)&(Ampl>0);
     end;  %if trekMinus(PeakSet.SelectedPeakInd(i))-B>PeakSet.Threshold    

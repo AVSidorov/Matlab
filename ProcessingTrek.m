@@ -14,7 +14,7 @@ if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);
     assignin('base',['StP',name,'T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
 else
-    assignin('base',['StP31T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
+    assignin('base',['StP13T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
 end;
 
 [peaks,trekMinus]=GetPeaks(trek,Pass1,PeakSetFirst,StandardPulseFirst);
@@ -29,7 +29,7 @@ if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);
     assignin('base',['p',name,'T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
 else
-    assignin('base',['p31T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
+    assignin('base',['p13T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],peaks);
 end;    
     
 %  return;

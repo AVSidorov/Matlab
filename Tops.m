@@ -20,13 +20,17 @@ function [PeakSet,StandardPulseNorm]=Tops(FileName,Plot,trProcessBool)
 % 3. Combimagtion of (1) and (2) to select noise out. 
 % 4. Search a standradr signal pulse from extracted signal.  
 
+Time=[];
+tic;
+
 Text  = false;    % switch between text and bin files
+HistCalc =false;  % switch histogram analysis for threshold determination
 tau=0.020;        % us digitizing time
 MinFront=0.05;    % minimal peak front, us
 MaxFront=0.125;   % maximal peak front, us
 MinTail=0.05;     % minimal peak tail, us
 MaxTail=0.8;      % maximal peak tail, us
-OverSt=1.1;       % noise regection threshold, in standard deviations
+OverSt=4;       % noise regection threshold, in standard deviations
 
 MaxSignal= 3300;  % maximal signal whithout distortion
 notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt be processed
@@ -42,7 +46,7 @@ if isstr(FileName);
      tr=FileName;
  end;
 
-Time=[];
+
 
 disp('>>>>>>>>Tops.m started'); 
 if nargin<3|isempty(trProcessBool);
@@ -64,6 +68,7 @@ MinFrontN=round(MinFront/tau); MinTailN=round(MinTail/tau);
 trSize=size(tr,1);
 %================ section 1 ==============
 % catch signal fronts:
+Time(end+1)=toc;
 tic;
 trD=diff(tr);     trD(end+1)=trD(end);
 
@@ -259,6 +264,21 @@ PeakOnFrontIndN=size(PeakSet.PeakOnFrontInd,1);
 
 Time(end+1)=toc;
 disp(['Combination time=', num2str(Time(end))]);
+
+tic;
+PeakIndN=size(PeakInd,1);
+RangePeak=zeros(1, PeakIndN);
+for i=1:PeakIndN 
+    IndMax=min([size(tr,1),PeakInd(i)+2]);
+    IndMin=max([1,PeakInd(i)-2]);
+    y=tr(IndMin:IndMax);    RangePeak(i)=log10(tr(PeakInd(i))-min(y));
+end;
+clear IndMax IndMin;
+Time(end+1)=toc;
+disp(['RangePeak calculation=', num2str(Time(end))]);
+toc;
+
+if HistCalc
 tic;
 
 HistStart =1e20;  HistEnd= -1e20;
@@ -352,11 +372,12 @@ MaxHistInterpI=max(MaxHistInterpI,HistRangePeakFI);
 PeakInd(PeakInd+3>trSize)=[];  PeakInd(PeakInd-2<1)=[];
 %PeakInd(tr(PeakInd)>MaxSignal)=[];
 
-PeakIndN=size(PeakInd,1);
-RangePeak=zeros(1, PeakIndN);
-for i=1:PeakIndN 
-    y=tr(PeakInd(i)-3:PeakInd(i)+2);    RangePeak(i)=log10(tr(PeakInd(i))-min(y));
-end;
+% PeakIndN=size(PeakInd,1);
+% RangePeak=zeros(1, PeakIndN);
+% for i=1:PeakIndN 
+%     y=tr(PeakInd(i)-3:PeakInd(i)+2);    RangePeak(i)=log10(tr(PeakInd(i))-min(y));
+% end;
+
 if not(isempty(RangePeak)); 
     HistStart=min(HistStart,min(RangePeak)); 
     HistEnd=max(HistEnd,max(RangePeak));  
@@ -477,9 +498,12 @@ if Plot
     plot(log10([ThresholdStd,ThresholdStd]),[0,MaxPeakHist],'m','LineWidth',2);       
 end;
 
-
+else
+    Threshold=0;
+    Threshold1=0;  
+end;
     Time(end+1)=toc;
-    disp(['Ploting time=', num2str(Time(end))]);
+%     disp(['Ploting time=', num2str(Time(end))]);
     fprintf(['Press ''C'' to correct the threshold or to accept the followes one as Threshold: \n',...
         '''r'' (red) by Standard deviation %6.3f\n',...
         '''b'' (blue)by Func %6.3f\n',...
@@ -515,7 +539,7 @@ end;
         end;
     end;
 
-
+    if Plot
     if Decision=='c'||Decision=='C'
         %Colors=['k','b','g','y','c','m']';
         %Decision='q';
@@ -538,14 +562,23 @@ end;
             Threshold=NewThreshold;
         %end; 
     end;    
-
+    end;
 tic;    
-SelectedPeakBool=RangePeak>log10(Threshold); 
+
+SelectedPeakBool=RangePeak>log10(Threshold);
+
+
 PeakSet.SelectedPeakInd=PeakInd(SelectedPeakBool);
 SelectedPeakN=size(PeakSet.SelectedPeakInd,1);
 PeakSet.Threshold=Threshold;
-PeakRangeMost=10^HistInterp(MaxPeakHistInd,1);
+
+
 %preselection to search standard peak: 
+if HistCalc
+    PeakRangeMost=10^HistInterp(MaxPeakHistInd,1);
+else
+    PeakRangeMost=mean(10.^RangePeak(SelectedPeakBool));
+end;
 RangeSelectedPeak=10.^RangePeak(SelectedPeakBool);
 % StandardPeakBool=RangePeak>(Threshold+MaxPeakHist)/2; 
 % StandardPeakInd=PeakInd(StandardPeakBool);

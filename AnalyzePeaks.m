@@ -5,7 +5,7 @@ SpecStep=1; %Step in spectr or 'mean' etc. from sid_hist
 
 MeasAmplf=33.33;
 ClbrAmplf=33.33;
-ClbrAmplt=1725;
+ClbrAmplt=420;
 
 fprintf('Default Amplification in measurements is %6.3f\n', MeasAmplf);
 MeasAmp=input('Input Amplification in this trek (value not number)\n (1=1, 2=1.1,3=3.704,4=11.11,5=33.33,6=100)\n');

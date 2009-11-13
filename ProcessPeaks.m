@@ -1,7 +1,7 @@
 function [Flow1,Flow2,Uloop,Etor,Wb,K_W,K_A]=ProcessPeaks(peaks);
 MeasAmplf=100;
 ClbrAmplf=33.33;
-ClbrAmplt=1725;
+ClbrAmplt=420;
 R=0.55;
 Flow1=[];
 Flow2=[];
@@ -27,7 +27,7 @@ Time=0.5*(MinTime+MaxTime);
     
 assignin('base',['SpecT',num2str(round(Time/1000),'%2.0f'),'Av',num2str(round(TimeInt/1000),'%2.0f')],spectr);
 
-%return;
+return;
 % 
 % alpha=input('Input chord angel\n');
 % if isempty(alpha)
