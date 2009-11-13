@@ -20,8 +20,12 @@ function [PeakSet,StandardPulseNorm]=TopsClb(FileName,Plot,trProcessBool)
 % 3. Combimagtion of (1) and (2) to select noise out. 
 % 4. Search a standradr signal pulse from extracted signal.  
 
-Time=[];
 tic;
+
+Time=[];
+disp('>>>>>>>>Tops.m started'); 
+
+
 
 Text  = false;    % switch between text and bin files
 tau=0.020;        % us digitizing time
@@ -47,7 +51,6 @@ if isstr(FileName);
 
 
 
-disp('>>>>>>>>Tops.m started'); 
 if nargin<3|isempty(trProcessBool);
     trProcessBool=logical(ones(size(tr)));
     
@@ -65,60 +68,18 @@ MinFrontN=round(MinFront/tau); MinTailN=round(MinTail/tau);
 
 
 trSize=size(tr,1);
-Time(end+1)=toc;
 
-%================ section 2 ==============  
+Time(end+1)=toc;
+%================ Threshold Determination Peaks ==============  
+
 tic;
 
-[MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(tr,3,0);
+[MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(tr,OverSt,0);
 ThresholdStd=StdVal*OverSt;
 
-trR1=circshift(tr,1);  trR1(1)=trR1(2);
-trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
-trL1=circshift(tr,-1); trL1(end)=trL1(end-1);
-trL2=circshift(tr,-2); trL2(end)=trL2(end-2); trL2(end-1)=trL2(end-2);
-% search all peaks in tr:
-
-%5-points noise analysis
-% noise like: /\/\
-NoiseMInd=find(tr<trR1&tr<trL1&trL2<trL1&trR2<trR1);
-NoiseMInd(NoiseMInd<=3|NoiseMInd>=trSize-2)=[];
-NoiseMIndN=size(NoiseMInd,1);
-% noise like: \/\/
-NoiseWInd=find(tr>trR1&tr>trL1&trL2>trL1&trR2>trR1); %&tr>trL2
-NoiseWInd(NoiseWInd<=3|NoiseWInd>=trSize-2)=[];
-NoiseWIndN=size(NoiseWInd,1);
-%Expected signals: //\
-SignalBool=tr>trR1&trR1>trR2&tr>=trL1; %&trL1>trL2; (otherwise the peak may be hidden by the next one)
-SignalBool(1:3)=false; SignalBool(end-1:end)=false;
-SignalBool(NoiseMInd)=false;  SignalBool(NoiseWInd)=false; 
-SignalInd=find(SignalBool); SIndN=size(SignalInd,1);
-
 Time(end+1)=toc;
-disp(['Section 2 time=', num2str(Time(end))]);
+disp(['Std Calculation time=', num2str(Time(end))]);
 
-%3. ====== Combination ====================
-tic;
-PeakBool=SignalBool;
-PeakBool=PeakBool&trProcessBool;
-
-PeakInd=find(PeakBool); 
-PeakIndN=size(PeakInd,1);
-
-Time(end+1)=toc;
-disp(['Combination time=', num2str(Time(end))]);
-
-tic;
-PeakIndN=size(PeakInd,1);
-RangePeak=zeros(1, PeakIndN);
-for i=1:PeakIndN 
-    IndMax=min([size(tr,1),PeakInd(i)+2]);
-    IndMin=max([1,PeakInd(i)-2]);
-    y=tr(IndMin:IndMax);    RangePeak(i)=(tr(PeakInd(i))-min(y));
-end;
-clear IndMax IndMin;
-Time(end+1)=toc;
-disp(['RangePeak calculation=', num2str(Time(end))]);
 
 fprintf(['Press ''C'' to correct the threshold or to accept the followes one as Threshold: \n',...
         '''r'' (red) by Standard deviation %6.3f\n',...
@@ -145,6 +106,48 @@ fprintf(['Press ''C'' to correct the threshold or to accept the followes one as 
         end;
     end;
 
+%================ Find Peaks ==============  
+
+tic;
+   
+trR1=circshift(tr,1);  trR1(1)=trR1(2);
+trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
+
+trL1=circshift(tr,-1); trL1(end)=trL1(end-1);
+trL2=circshift(tr,-2); trL2(end)=trL2(end-2); trL2(end-1)=trL2(end-2);
+
+SignalBool=tr>=trR1&tr>=trL1&tr>Threshold; 
+SignalBool(1:3)=false; SignalBool(end-1:end)=false;
+SignalInd=find(SignalBool); SIndN=size(SignalInd,1);
+
+clear trR1 trR2 trL1 trL2 ;
+Time(end+1)=toc;
+disp(['Find peak above threshold time=', num2str(Time(end))]);
+
+%3. ====== Combination ====================
+tic;
+PeakBool=SignalBool;
+
+PeakInd=find(PeakBool); 
+PeakIndN=size(PeakInd,1);
+
+Time(end+1)=toc;
+tic;
+
+PeakIndN=size(PeakInd,1);
+
+RangePeak=zeros(1, PeakIndN);
+for i=1:PeakIndN 
+    IndMax=min([size(tr,1),PeakInd(i)+2]);
+    IndMin=max([1,PeakInd(i)-2]);
+    y=tr(IndMin:IndMax);    RangePeak(i)=(tr(PeakInd(i))-min(y));
+end;
+
+clear IndMax IndMin;
+
+Time(end+1)=toc;
+disp(['RangePeak calculation=', num2str(Time(end))]);
+
 tic;    
 
 SelectedPeakBool=RangePeak>Threshold;
@@ -164,10 +167,11 @@ RangeSelectedPeak=RangePeak(SelectedPeakBool);
 if Plot    
     figure; hold on; grid on; 
     plot(tr,'-y.');  %plot(trD,'m');  
-    plot(NoiseMInd,tr(NoiseMInd),'k.'); plot(NoiseWInd,tr(NoiseWInd),'b.');
+    %plot(NoiseMInd,tr(NoiseMInd),'k.'); plot(NoiseWInd,tr(NoiseWInd),'b.');
     plot(SignalInd,tr(SignalInd),'m.');          
     plot(PeakSet.SelectedPeakInd,tr(PeakSet.SelectedPeakInd),'go'); 
-    legend('track','NoiseM','NoiseW','S','Selected peaks');
+    %legend('track','NoiseM','NoiseW','S','Selected peaks');
+    legend('track','S','Selected peaks');
     plot([1,trSize],[Threshold,Threshold]);
 end; 
 
@@ -176,9 +180,8 @@ end;
 
 fprintf('=====  Search of peak tops      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*tau);
-fprintf('The number of noise peaks (W and M types)= %7.0f \n',NoiseMIndN+NoiseWIndN);
+% fprintf('The number of noise peaks (W and M types)= %7.0f \n',NoiseMIndN+NoiseWIndN);
 fprintf('The number of signal peaks = %7.0f \n',SIndN);
-fprintf('The number of signal peaks combined with F peaks = %7.0f \n',PeakIndN);
 fprintf('The number of selected peaks above %7.2f threshold = %7.0f \n',PeakSet.Threshold,SelectedPeakN);
 Time(end+1)=toc;
 disp(['Search peak tops time=', num2str(Time(end))]);
