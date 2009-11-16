@@ -38,6 +38,8 @@ notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt
 StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 
 
+disp('>>>>>>>>Tops.m started'); 
+
 if nargin<2; Plot=true; end;
 if isstr(FileName); 
      [tr,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName); 
@@ -48,7 +50,6 @@ if isstr(FileName);
 
 
 
-disp('>>>>>>>>Tops.m started'); 
 if nargin<3|isempty(trProcessBool);
     trProcessBool=logical(ones(size(tr)));
     

@@ -33,7 +33,8 @@ MinFront=0.05;    % minimal peak front, us
 MaxFront=0.125;   % maximal peak front, us
 MinTail=0.05;     % minimal peak tail, us
 MaxTail=0.8;      % maximal peak tail, us
-OverSt=4;       % noise regection threshold, in standard deviations
+OverSt=4;         % noise regection threshold, in standard deviations
+ThresholdPre=100; % PreSelected threshol for manual input
 
 MaxSignal= 3300;  % maximal signal whithout distortion
 notProcessTail=8; % number of points after exceeding of Maxsignal, which will'nt be processed
@@ -79,18 +80,19 @@ ThresholdStd=StdVal*OverSt;
 
 Time(end+1)=toc;
 disp(['Std Calculation time=', num2str(Time(end))]);
+disp(['Total time=', num2str(sum(Time))]);
 
 
 fprintf(['Press ''C'' to correct the threshold or to accept the followes one as Threshold: \n',...
         '''r'' (red) by Standard deviation %6.3f\n',...
         '''m'' (magenta) by Std*OverSt %6.3f\n',...
-        '''e'' for manual input \n'],StdVal,ThresholdStd);
+        '''e'' for manual input default %6.3f\n'],StdVal,ThresholdStd,ThresholdPre);
 
         
     Decision=input('Default is Threshold=Std*OverSt ','s');
     if isempty(Decision); Decision='q'; end;  
     if Decision=='q'  
-        Threshold=ThresholdStd;
+        Threshold=max([ThresholdStd,ThresholdPre]);
     end;
     if Decision=='r'||Decision=='R'
         Threshold=StdVal;
@@ -102,7 +104,7 @@ fprintf(['Press ''C'' to correct the threshold or to accept the followes one as 
     if Decision=='e'||Decision=='E'
         Threshold=input('Input threshold ');
         if isempty(Threshold)
-            Threshold=ThresholdStd;
+            Threshold=ThresholdPre;
         end;
     end;
 
@@ -116,62 +118,63 @@ trR2=circshift(tr,2);  trR2(1)=trR2(3); trR2(2)=trR2(3);
 trL1=circshift(tr,-1); trL1(end)=trL1(end-1);
 trL2=circshift(tr,-2); trL2(end)=trL2(end-2); trL2(end-1)=trL2(end-2);
 
-SignalBool=tr>=trR1&tr>=trL1&tr>Threshold; 
-SignalBool(1:3)=false; SignalBool(end-1:end)=false;
-SignalInd=find(SignalBool); SIndN=size(SignalInd,1);
+MaxBool=tr>trR1&tr>trL1;
+MaxBool(1)=false; MaxBool(end)=false;
+MaxInd=find(MaxBool); 
+MaxIndN=size(MaxInd,1);
+
+%5-points noise analysis
+% noise like: /\/\
+NoiseMBool=tr<trR1&tr<trL1&trL2<trL1&trR2<trR1;
+NoiseMInd=find(NoiseMBool);
+NoiseMIndN=size(NoiseMInd,1);
+
+% noise like: \/\/
+NoiseWBool=tr>trR1&tr>trL1&trL2>trL1&trR2>trR1;
+NoiseWInd=find(NoiseWBool);
+NoiseWIndN=size(NoiseWInd,1);
+
+SignalBool=tr>Threshold; 
+SignalInd=find(SignalBool);
+SIndN=size(SignalInd,1);
+
+%Standard Pulse Preselection
+StPBool=tr>trR1&trR1>trR2&tr>trL1&trL1>trL2;
+StPBool=StPBool&SignalBool&not(NoiseWBool)&not(NoiseMBool);
+StPInd=find(StPBool);
+StPIndN=size(StPInd,1);
 
 clear trR1 trR2 trL1 trL2 ;
-Time(end+1)=toc;
-disp(['Find peak above threshold time=', num2str(Time(end))]);
 
-%3. ====== Combination ====================
-tic;
-PeakBool=SignalBool;
-
+PeakBool=MaxBool&SignalBool&not(NoiseWBool)&not(NoiseMBool);
 PeakInd=find(PeakBool); 
 PeakIndN=size(PeakInd,1);
 
 Time(end+1)=toc;
-tic;
-
-PeakIndN=size(PeakInd,1);
-
-RangePeak=zeros(1, PeakIndN);
-for i=1:PeakIndN 
-    IndMax=min([size(tr,1),PeakInd(i)+2]);
-    IndMin=max([1,PeakInd(i)-2]);
-    y=tr(IndMin:IndMax);    RangePeak(i)=(tr(PeakInd(i))-min(y));
-end;
-
-clear IndMax IndMin;
-
-Time(end+1)=toc;
-disp(['RangePeak calculation=', num2str(Time(end))]);
+disp(['Finding Peaks,max, W, M, and above Threshold signals time=', num2str(Time(end))]);
 
 tic;    
 
-SelectedPeakBool=RangePeak>Threshold;
-
-
-PeakSet.SelectedPeakInd=PeakInd(SelectedPeakBool);
+PeakSet.SelectedPeakInd=PeakInd;
 SelectedPeakN=size(PeakSet.SelectedPeakInd,1);
 PeakSet.Threshold=Threshold;
 
 
 %preselection to search standard peak: 
 
-PeakRangeMost=mean(RangePeak(SelectedPeakBool));
-RangeSelectedPeak=RangePeak(SelectedPeakBool);
+PeakRangeMost=mean(tr(PeakBool));
+RangeSelectedPeak=tr(PeakBool);
 
 
 if Plot    
     figure; hold on; grid on; 
     plot(tr,'-y.');  %plot(trD,'m');  
-    %plot(NoiseMInd,tr(NoiseMInd),'k.'); plot(NoiseWInd,tr(NoiseWInd),'b.');
-    plot(SignalInd,tr(SignalInd),'m.');          
+    plot(MaxInd,tr(MaxInd),'g.');
+    plot(NoiseMInd,tr(NoiseMInd),'k.'); plot(NoiseWInd,tr(NoiseWInd),'b.');
+    plot(SignalInd,tr(SignalInd),'-m.');          
     plot(PeakSet.SelectedPeakInd,tr(PeakSet.SelectedPeakInd),'go'); 
-    %legend('track','NoiseM','NoiseW','S','Selected peaks');
-    legend('track','S','Selected peaks');
+    plot(StPInd,tr(StPInd),'ro');
+    legend('track','max','NoiseM','NoiseW','S','Selected peaks','Standard peaks');
     plot([1,trSize],[Threshold,Threshold]);
 end; 
 
@@ -180,8 +183,11 @@ end;
 
 fprintf('=====  Search of peak tops      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*tau);
-% fprintf('The number of noise peaks (W and M types)= %7.0f \n',NoiseMIndN+NoiseWIndN);
-fprintf('The number of signal peaks = %7.0f \n',SIndN);
+fprintf('The number of maximums  = %7.0f \n',MaxIndN);
+fprintf('The number of noise peaks (W types)= %7.0f \n',NoiseWIndN);
+fprintf('The number of noise peaks (M types)= %7.0f \n',NoiseMIndN);
+fprintf('The number of noise peaks (W and M types)= %7.0f \n',NoiseMIndN+NoiseWIndN);
+fprintf('The number of signal points (above threshold) = %7.0f \n',SIndN);
 fprintf('The number of selected peaks above %7.2f threshold = %7.0f \n',PeakSet.Threshold,SelectedPeakN);
 Time(end+1)=toc;
 disp(['Search peak tops time=', num2str(Time(end))]);
@@ -192,10 +198,10 @@ fprintf('>>>>>>>>>>>>>>>>>>>>>>\n');
 fprintf('=====  Search of Standard pulse    ==========\n');
 tic;
 if not(isempty(PeakSet.SelectedPeakInd))
-    IntervalBefore=PeakSet.SelectedPeakInd-circshift(PeakSet.SelectedPeakInd,1);
-    IntervalBefore(1)=PeakSet.SelectedPeakInd(1);
-    IntervalAfter=circshift(PeakSet.SelectedPeakInd,-1)-PeakSet.SelectedPeakInd;
-    IntervalAfter(end)=trSize-PeakSet.SelectedPeakInd(end);
+    IntervalBefore=StPInd-circshift(StPInd,1);
+    IntervalBefore(1)=StPInd(1);
+    IntervalAfter=circshift(StPInd,-1)-StPInd;
+    IntervalAfter(end)=trSize-StPInd(end);
 
 
     SingleInterval=(MaxFrontN+MaxTailN);
