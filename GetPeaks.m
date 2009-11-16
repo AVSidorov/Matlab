@@ -84,15 +84,46 @@ if nargin<4|isempty(StandardPulseIN)
       disp('Standard Pulse is taken from ''Tops''');
     end;
 else
+    StandardPulseIND=diff(StandardPulseIN);
+    StandardPulseIND(end+1)=StandardPulseIND(end);
+    StandardPulseINDD=diff(StandardPulseIN,2);
+    StandardPulseINDD(end+1)=StandardPulseINDD(end);
+    StandardPulseINDD(end+1)=StandardPulseINDD(end);
+    StandardPulseINF=-20*StandardPulseIND.^2.*StandardPulseINDD;
+
+    figure;
+    plot(StandardPulseIN,'-r.'); grid on; hold on;
+    plot(StandardPulseINF,'-b.');
+    
+    [StPMax,StPMaxInd]=max(StandardPulseIN);
+    [StPMax1,StPMax1Ind]=max(StandardPulseIN(StandardPulseIN<StPMax));
+    StPFitInd=min(StPMaxInd,StPMax1Ind);
+
     Decision='q';
     if exist(StandardPulseFile,'file');
-        StandardPulseF=load(StandardPulseFile);
+        StandardPulseNormFile=load(StandardPulseFile);
+        [StPFMax,StPFMaxInd]=max(StandardPulseNormFile);
+        [StPFMax1,StPFMax1Ind]=max(StandardPulseNormFile(StandardPulseNormFile<StPFMax));
+        StPFFitInd=min(StPFMaxInd,StPFMax1Ind);
+
+        disp(['Standard pulses is taken from ',StandardPulseFile]);
+
+        StandardPulseNormFileD=diff(StandardPulseNormFile); 
+        StandardPulseNormFileD(end+1)=StandardPulseNormFileD(end); 
+        StandardPulseNormFileDD=diff(StandardPulseNormFile,2); 
+        StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
+        StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
+        StandardPulseNormFileF=-20*StandardPulseNormFileD.^2.*StandardPulseNormFileDD;
+        plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
+        plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFileF,'-bo');
+        legend('Standard Pulse','Standard Pulse F','File Standard Pulse','File Standard Pulse F');
+
         Decision=input('Press ''F'' to load Standard Pulse from file, any key for inputed pulse \n','s');
         if isempty(Decision); Decision='q'; end;  
     end;
   
     if Decision=='f'||Decision=='F'
-      StandardPulseNorm=StandardPulseF;
+      StandardPulseNorm=StandardPulseNormFile;
       disp(['Standard Pulse is taken from file ', StandardPulseFile]);
     else
         StandardPulseNorm=StandardPulseIN;
