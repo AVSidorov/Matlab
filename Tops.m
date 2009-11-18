@@ -744,5 +744,6 @@ Time(end+1)=toc;
 disp(['Standard Pulse Analyze=', num2str(Time(end))]);
 fprintf('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n');
 disp(['Full processing time=', num2str(sum(Time))]);
+CloseGraphs;
 disp('================ Tops.m finished');
       

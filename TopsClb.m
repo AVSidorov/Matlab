@@ -23,7 +23,7 @@ function [PeakSet,StandardPulseNorm]=TopsClb(FileName,Plot,trProcessBool)
 tic;
 
 Time=[];
-disp('>>>>>>>>Tops.m started'); 
+disp('>>>>>>>>TopsClb.m started'); 
 
 
 
@@ -160,6 +160,36 @@ SelectedPeakN=size(PeakSet.SelectedPeakInd,1);
 PeakSet.Threshold=Threshold;
 
 
+% Readout of standard pulse averaged aver many tracks
+if exist(StandardPulseFile,'file');
+   StandardPulseNormFile=load(StandardPulseFile);
+   [StPFMax,StPFMaxInd]=max(StandardPulseNormFile);
+   [StPFMax1,StPFMax1Ind]=max(StandardPulseNormFile(StandardPulseNormFile<StPFMax));
+   StPFFitInd=min(StPFMaxInd,StPFMax1Ind);
+
+   disp(['Standard pulses is taken from ',StandardPulseFile]);
+   
+   MaxFrontN=StPFMaxInd;
+   MaxTailN=size(StandardPulseNormFile,1)-StPFMaxInd;
+
+    StandardPulseNormFileD=diff(StandardPulseNormFile); 
+    StandardPulseNormFileD(end+1)=StandardPulseNormFileD(end); 
+    StandardPulseNormFileDD=diff(StandardPulseNormFile,2); 
+    StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
+    StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
+    StandardPulseNormFileF=-20*StandardPulseNormFileD.^2.*StandardPulseNormFileDD;
+end;
+%search of PeakOnFront
+if not(isempty(PeakSet.SelectedPeakInd))
+    IntervalBefore=PeakInd-circshift(PeakInd,1);
+    IntervalBefore(1)=PeakInd(1);
+    IntervalAfter=circshift(PeakInd,-1)-PeakInd;
+    IntervalAfter(end)=trSize-PeakInd(end);
+    PeakOnFrontBool=IntervalAfter<MaxFrontN;
+    PeakSet.PeakOnFrontInd=PeakInd(PeakOnFrontBool);
+end;
+
+
 %preselection to search standard peak: 
 
 PeakRangeMost=mean(tr(PeakBool));
@@ -179,8 +209,6 @@ if Plot
 end; 
 
 
-
-
 fprintf('=====  Search of peak tops      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*tau);
 fprintf('The number of maximums  = %7.0f \n',MaxIndN);
@@ -197,6 +225,9 @@ fprintf('>>>>>>>>>>>>>>>>>>>>>>\n');
 
 fprintf('=====  Search of Standard pulse    ==========\n');
 tic;
+
+
+
 if not(isempty(PeakSet.SelectedPeakInd))
     IntervalBefore=StPInd-circshift(StPInd,1);
     IntervalBefore(1)=StPInd(1);
@@ -292,34 +323,19 @@ if not(isempty(PeakSet.SelectedPeakInd))
     end;
 end;
 
-% Readout of standard pulse averaged aver many tracks
  
 if exist(StandardPulseFile,'file');
-   StandardPulseNormFile=load(StandardPulseFile);
-   [StPFMax,StPFMaxInd]=max(StandardPulseNormFile);
-   [StPFMax1,StPFMax1Ind]=max(StandardPulseNormFile(StandardPulseNormFile<StPFMax));
-   StPFFitInd=min(StPFMaxInd,StPFMax1Ind);
-
-   disp(['Standard pulses is taken from ',StandardPulseFile]);
-
-    StandardPulseNormFileD=diff(StandardPulseNormFile); 
-    StandardPulseNormFileD(end+1)=StandardPulseNormFileD(end); 
-    StandardPulseNormFileDD=diff(StandardPulseNormFile,2); 
-    StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
-    StandardPulseNormFileDD(end+1)=StandardPulseNormFileDD(end);
-    StandardPulseNormFileF=-20*StandardPulseNormFileD.^2.*StandardPulseNormFileDD;
-    
    if Plot
     plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFile,'-ro'); grid on;  hold on;
     plot([(StPFitInd-StPFFitInd)+1:(StPFitInd-StPFFitInd)+size(StandardPulseNormFile,1)],StandardPulseNormFileF,'-bo');
     legend('Standard Pulse','Standard Pulse F','File Standard Pulse','File Standard Pulse F');
    end;
-
 end;
 
 Time(end+1)=toc;
 disp(['Standard Pulse Analyze=', num2str(Time(end))]);
 fprintf('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n');
 disp(['Full processing time=', num2str(sum(Time))]);
+CloseGraphs;
 disp('================ Tops.m finished');
       

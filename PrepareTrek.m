@@ -5,6 +5,7 @@ FileType='single';      %choose file type for precision in fread function
 OverSt1=2.5;         % noise regection threshold, in standard deviations    
 StartOffsetDef=0;     %in us old system was Tokamak delay + 1.6ms
 tau=0.020;
+MaxSignal=3650;
 
 disp('>>>>>>>>Prepare Trek started');
 tic;
@@ -59,6 +60,13 @@ NoiseArray=logical(true(trekSize1,1));  % first, all measurements are considered
 if PeakPolarity==1; trek(:)=trek(:)-MeanVal;  else trek(:)=MeanVal-trek(:); end;
 fprintf('First mean search   =                        %7.4f  sec\n', toc); 
 fprintf('  Standard deviat = %6.4f\n', StdVal);
+
+bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
+if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
+trek(bool,:)=0;  clear bool; 
+
+
+
 StartOffset=input(['Input Start Offset Default is ',num2str(StartOffsetDef,'%6.0f us'),'\n']);
 if isempty(StartOffset)
     StartOffset=StartOffsetDef;

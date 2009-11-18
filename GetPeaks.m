@@ -68,7 +68,7 @@ end;
 %intervals for pulse fitting:
 if nargin<4|isempty(StandardPulseIN)
   
-    Decision='q';
+    Decision='f';
     if exist(StandardPulseFile,'file');
      StandardPulseF=load(StandardPulseFile);
      Decision=input('Press ''F'' to load Standard Pulse from file, any key for Pulse from ''Tops''','s');
@@ -507,10 +507,15 @@ for Pass=1:PassNumber
     disp(['   The number of peaks found in pass # ', num2str(Pass), '  = ',num2str(PeakNumber(Pass))]);
 end;
 
+
 fprintf('Last threshold = %7.0f \n',PeakSet.Threshold);
+CloseGraphs;
+disp('========Get Peaks finished');
 disp([]);
-  
-  %%%%%%%%%%%%%%%%%%%%  global PulsePlot isubplot(2,1,1); errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-r.'); grid on; hold on; 
+
+
+
+%%%%%%%%%%%%%%%%%%%%  global PulsePlot isubplot(2,1,1); errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-r.'); grid on; hold on; 
   
     function PulsePlotView(Delay);
         close(PulsePlot);
@@ -553,5 +558,4 @@ disp([]);
         end;
         if nargin==1; pause(Delay); else; pause; end;
 
- disp('========Get Peaks finished');
  
