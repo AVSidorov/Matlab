@@ -24,7 +24,7 @@ Time=[];
 tic;
 
 Text  = false;    % switch between text and bin files
-HistCalc =false;  % switch histogram analysis for threshold determination
+HistCalc =true;  % switch histogram analysis for threshold determination
 tau=0.020;        % us digitizing time
 MinFront=0.05;    % minimal peak front, us
 MaxFront=0.125;   % maximal peak front, us

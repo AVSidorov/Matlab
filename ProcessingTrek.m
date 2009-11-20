@@ -1,14 +1,14 @@
 function [peaks,trekMinus,StandardPulseFirst]=ProcessingTrek(FileName);
 
 
-Pass1=1;
+Pass1=2;
 OverSt=3;         % noise regection threshold, in standard deviations 
 
 [trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName);
 if isempty(trek); return; end;
 
 
-[PeakSetFirst,StandardPulseFirst]=Tops(trek,1);
+[PeakSetFirst,StandardPulseFirst]=TopsClb(trek,0);
 
 if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);

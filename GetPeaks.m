@@ -193,6 +193,7 @@ if not(isempty(PeakSet.SelectedPeakInd))
     disp(['>>>>>>>>> scan the trek, pass # ', num2str(Pass)]); tic;
     if PulsePlotBool;  PulsePlot=figure; end; 
 end;
+
 while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
     i=i+1;
     A=[];Khi2Fit=[];FitSignal=[];
@@ -234,6 +235,7 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
                 EdgeFit=false;
                 x=[MinKhi2Idx-1:1:MinKhi2Idx+1]';
                 A=Sums2(x)./Sums3(x,FitType);    y=x;
+                Khi2Fin1=1/FitNi*sum(((NetFitSignal-A(2)*FitPulses(1:FitNi,MinKhi2Idx)')./A(2)).^2);
             end;
         end;        
         
@@ -256,6 +258,7 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
             MinKhi2Idx=InterpHalfRange+iEdge+1;
             MinKhi2=Khi2Fit(2);
             A=Sums2(x)./Sums3Edge(x);
+            Khi2Fin1=1/FitNi*sum(((NetFitSignal-A(2)*FitPulsesEdge')./A(2)).^2);
             y=x+MinKhi2Idx-2;
         end;
 
@@ -289,6 +292,7 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
                 MinKhi2Idx=iEdge+InterpHalfRange;
                 x=[InterpRange-2:InterpRange]'; y=x+MinKhi2Idx-InterpRange+1;
                 A=Sums2(x)./Sums3Edge(x);
+                Khi2Fin1=1/FitNi*sum(((NetFitSignal-A(2)*FitPulsesEdge')./A(2)).^2);
             end;
         end;
 
@@ -304,6 +308,7 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
         end;
         PulseInterpFineShifted=circshift(PulseInterpFine(:,2),FineShift);
         dtau=FineShift/FineInterpN*tau;
+        
 
 
         if PulsePlotBool
@@ -313,22 +318,29 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
             plot([1:FitNi]'+StartFitPoint-1,NetFitSignal+B,'-bo'); hold on;
             plot(FitBackgndInterval,trekMinus(PeakSet.SelectedPeakInd(i)+FitBackgndInterval),'-ko');
             if MinKhi2Idx<=1
-                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-g.');
+                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-ko');
                 [Min,k]=min([Khi2Fit(1),1000000,Khi2Fit(3)]);
                 plot([1:FitNi]'+StartFitPoint-1,A(k)*FitPulsesEdge+B,'-g.');
+                Khi2Fin2=1/FitNi*sum(((NetFitSignal-A(k)*FitPulsesEdge')./A(k)).^2);
             end;
             if MinKhi2Idx>=InterpRange
-                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-g.');
+                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-ko');
                 [Min,k]=min([Khi2Fit(end-2),1000000,Khi2Fit(end)]);
                 plot([1:FitNi]'+StartFitPoint-1,A(k)*FitPulsesEdge+B,'-g.');
+                Khi2Fin2=1/FitNi*sum(((NetFitSignal-A(k)*FitPulsesEdge')./A(k)).^2);
             end;
             if MinKhi2Idx<InterpRange&MinKhi2Idx>1
-                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulses(1:FitNi,MinKhi2Idx)+B,'-g.');
+                plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulses(1:FitNi,MinKhi2Idx)+B,'-ko');
                 [Min,k]=min([Khi2Fit(MinKhi2Idx-1),1000000,Khi2Fit(MinKhi2Idx+1)]);
                 plot([1:FitNi]'+StartFitPoint-1,A(k)*FitPulses(1:FitNi,MinKhi2Idx+k-2)+B,'-g.');
+                Khi2Fin2=1/FitNi*sum(((NetFitSignal-A(k)*FitPulses(1:FitNi,MinKhi2Idx+k-2)')./A(k)).^2);
             end;
 
             plot(PulseInterpFine(:,1),Ampl*PulseInterpFineShifted+B,'-r');
+            
+            text(FitNi+StartFitPoint,A(2),num2str(Khi2Fin1),'Color','k');
+            text(FitNi+StartFitPoint,50,num2str(Khi2Fin2),'Color','g');           
+
             subplot(2,1,2);
             KhiDD=diff(Khi2Fit,2);
             KhiDD=[2*KhiDD(1)-KhiDD(2);KhiDD;2*KhiDD(end)-KhiDD(end-1)];
@@ -351,7 +363,7 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
             if ShortFit
                 text(Khi2MinIdxFine/2,(mean(Khi2Fit)+max(Khi2Fit))/2,'Short fitting!!!','color','r');
             end;
-            pause(0.001);
+            pause;
         end;
 
         FitIdx=PulseInterpFine(1:FineInterpN:end,1);
@@ -363,31 +375,40 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
 
 
         if (Ampl>PeakSet.Threshold)&...
-              (abs(trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<3*PeakSet.Threshold)&...     %%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
+              (abs(trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<OverSt*PeakSet.Threshold)&...     %%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
                 ((Ampl+B)<MaxSignal)
-            yi=trekMinus(FitIdx(FitIdxOk));
-            fi=SubtractedPulse(FitIdxOk);
+%             yi=trekMinus(FitIdx(FitIdxOk));
+%             fi=SubtractedPulse(FitIdxOk);
+%             Khi2Fin=1/size(FitIdxOk,1)*sum(((yi-fi)./yi).^2);
             trekMinus(FitIdx(FitIdxOk))=trekMinus(FitIdx(FitIdxOk))-SubtractedPulse(FitIdxOk);
-            Khi2Fin=1/size(FitIdxOk,1)*sum(((yi-fi)./yi).^2);
             NPeaksSubtr=NPeaksSubtr+1;
             peaks(NPeaksSubtr,1)=PeakSet.SelectedPeakInd(i);             %PeakSet.SelectedPeakInd Max initial
             peaks(NPeaksSubtr,2)=PeakSet.SelectedPeakInd(i)*tau+dtau;      %Peak Max Time fitted
             peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
             peaks(NPeaksSubtr,4)=B;                        %Peak Zero Level
             peaks(NPeaksSubtr,5)=Ampl;                     %Peak Amplitude
-            peaks(NPeaksSubtr,6)=Khi2Fin ;%MinKhi2;% /Ampl;% KhiMin
+            peaks(NPeaksSubtr,6)=Khi2Fin1 ;%MinKhi2;% /Ampl;% KhiMin
             peaks(NPeaksSubtr,7)=Pass;                     % number of Pass in which peak finded
         end;  %(MinKhi2>0)&(MinKhi2<Khi2Thr)&(Ampl>0);
     end;  %if trekMinus(PeakSet.SelectedPeakInd(i))-B>PeakSet.Threshold    
 end;  %while
+  TrekFg=figure; plot(trek); hold on;
+  title([TrekName,':  tracks. Pass=', num2str(Pass)]);
+  plot(trekMinus,'y');  grid on; hold on; 
+  plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
+  plot(peaks(:,2)/tau,peaks(:,4),'g>');
+  legend('trek','trekMinus','Amplitude+Zero','Zero');
+  pause;
+  close(TrekFg);  
+
 
 disp(['=======Pass #',num2str(Pass),' finished. Elapsed time is ', num2str(toc),' sec']);
 
 if (Pass<PassNumber&PassNumber>1)&&not(isempty(PeakSet.SelectedPeakInd)); 
     PeakSetNew=Tops(trekMinus,1,trekProcessBool);
-    if PeakSetNew.Threshold>PeakSet.Threshold; 
-        PeakSetNew.Threshold=PeakSet.Threshold; 
-    end;  
+%     if PeakSetNew.Threshold>PeakSet.Threshold; 
+%         PeakSetNew.Threshold=PeakSet.Threshold; 
+%     end;  
     PeakSet=PeakSetNew;
     PeakN=size(PeakSet.SelectedPeakInd,1);
     i=0;
@@ -403,48 +424,25 @@ end; % for Pass=1:PassNumber
   peaks(1:end-1,3)=diff(peaks(:,3)); peaks(end,3)=trek(end)-peaks(end,2); 
   
   
-%   figure; title([TrekName,':  tracks']);
-%   plot(trek); hold on; plot(trekMinus,'r');  
-%   plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
-%   plot(peaks(:,2)/tau,peaks(:,4),'g>');
-%   legend('trek','trekMinus','Amplitude+Zero','Zero');
-%   dt=[];
-%   for i=1:NPeaksSubtr
-%       FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
-%       dtau=peaks(i,2)-peaks(i,1)*tau;
-%       FineShift=round(dtau/tau*FineInterpN);
-%       PulseInterpFineShifted=circshift(PulseInterpFine(:,2),FineShift);
-%       point='k.';
-%       if dtau<-tau; point='b.'; end;
-%       if dtau>tau; point='r.'; end;
-%          plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point); 
-%   end; 
   
-  HistPoints= min(100,round(NPeaksSubtr/4));    % average number of points per an histogram interval
-  if HistPoints==0; error('Error:  HistPoints=0'); end; 
-  HistN=round(NPeaksSubtr/HistPoints);
   Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
-  HistPeakStart =min(Log10Peaks);  HistPeakEnd   =max(Log10Peaks);
-  HistKhiStart =min(Log10Khi);   HistKhiEnd =max(Log10Khi);  
-  HistPeakStep=(HistPeakEnd-HistPeakStart)/(HistN-1);
-  HistKhiStep=(HistKhiEnd-HistKhiStart)/(HistN-1);
-for i=1:HistN 
-    X=HistPeakStart+(i-1)*HistPeakStep;   Hist(i,1)=X;
-    Hist(i,2)=size(find((Log10Peaks<=X+HistPeakStep/2)&(Log10Peaks>X-HistPeakStep/2)),1); 
-    X=HistKhiStart+(i-1)*HistKhiStep;     Hist(i,3)=X;
-    Hist(i,4)=size(find((Log10Khi<=X+HistKhiStep/2)&(Log10Khi>X-HistKhiStep/2)),1); 
-end;
+
+  HistPeaks=sid_hist(Log10Peaks);
+  HistKhi=sid_hist(Log10Khi);
+
+
   HistogramPlot=figure; 
   AmplHistogramPlot=subplot(2,1,1); 
-  errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-r.'); grid on; hold on; 
+  errorbar(HistPeaks(:,1),HistPeaks(:,2),HistPeaks(:,3),'-r.'); grid on; hold on; 
   title([TrekName,': Peak amplitude histogram. Pass=', num2str(Pass)]);
   xlabel('Lg(Amplitude)');
   subplot(2,1,2); title([TrekName,': Chi^2 histogram']);  hold on; 
-  [Max,MaxKhiInd]=max(Hist(:,4));
-  KhiThreshold=10^(Hist(MaxKhiInd,3)+1);  
+  [Max,MaxKhiInd]=max(HistKhi(:,2));
+  %KhiThreshold=10^(Hist(MaxKhiInd,3)+1);  
+  KhiThreshold=0.01;  
   plot(log10([KhiThreshold,KhiThreshold]),[0,Max/2],'-r','LineWidth',2);
   legend('Chi^2 threshold');
-  errorbar(Hist(:,3),Hist(:,4),Hist(:,4).^0.5,'-b.'); grid on; 
+  errorbar(HistKhi(:,1),HistKhi(:,2),HistKhi(:,3),'-b.'); grid on; 
   xlabel('Lg(Chi^2)');
   figure; hold on; title([TrekName,': Chi^2 versus peak amplitude. Pass=', num2str(Pass)]);
   plot(peaks(:,5),peaks(:,6),'r.');
@@ -460,9 +458,8 @@ end;
    
   NPeaksSubtr=size(peaks,1);
   
-  figure; plot(trek); hold on;
+  TrekFg=figure; plot(trek); hold on; grid on;
   title([TrekName,':  tracks. Pass=', num2str(Pass)]);
-  plot(trekMinus,'r');  grid on; 
   plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
   plot(peaks(:,2)/tau,peaks(:,4),'g>');
   legend('trek','trekMinus','Amplitude+Zero','Zero');
@@ -483,22 +480,15 @@ end;
       if dtau>tau; point=['r',mark]; end;
          plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point); 
   end; 
-  plot(trekMinus,'y');
- 
-   HistN=round(NPeaksSubtr/HistPoints);
-   Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6));
-   HistPeakStart =min(Log10Peaks);  HistPeakEnd   =max(Log10Peaks);
-   HistKhiStart =min(Log10Khi);   HistKhiEnd =max(Log10Khi);
-   HistPeakStep=(HistPeakEnd-HistPeakStart)/(HistN-1);
-   HistKhiStep=(HistKhiEnd-HistKhiStart)/(HistN-1);
-   for i=1:HistN
-       X=HistPeakStart+(i-1)*HistPeakStep;   Hist(i,1)=X;
-       Hist(i,2)=size(find((Log10Peaks<=X+HistPeakStep/2)&(Log10Peaks>X-HistPeakStep/2)),1);
-       X=HistKhiStart+(i-1)*HistKhiStep;     Hist(i,3)=X;
-       Hist(i,4)=size(find((Log10Khi<=X+HistKhiStep/2)&(Log10Khi>X-HistKhiStep/2)),1);
-   end;
+  plot(trekMinus,'y'); 
+
+  Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
+
+  HistPeaks=sid_hist(Log10Peaks);
+  HistKhi=sid_hist(Log10Khi);
+
   figure( HistogramPlot);
-  subplot(AmplHistogramPlot); errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-b.'); grid on; hold on; 
+  subplot(AmplHistogramPlot); errorbar(HistPeaks(:,1),HistPeaks(:,2),HistPeaks(:,3),'-b.'); grid on; hold on; 
   
 fprintf('=====  Found pulses      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trekSize,trekSize*tau);
@@ -511,51 +501,7 @@ end;
 fprintf('Last threshold = %7.0f \n',PeakSet.Threshold);
 CloseGraphs;
 disp('========Get Peaks finished');
-disp([]);
 
 
-
-%%%%%%%%%%%%%%%%%%%%  global PulsePlot isubplot(2,1,1); errorbar(Hist(:,1),Hist(:,2),Hist(:,2).^0.5,'-r.'); grid on; hold on; 
-  
-    function PulsePlotView(Delay);
-        close(PulsePlot);
-        PulsePlot=figure;   set(PulsePlot,'name',num2str(i));
-        subplot(2,1,1);
-        plot([1:FitNi]'+StartFitPoint-1,NetFitSignal+B,'-bo'); hold on;
-        plot(FitBackgndInterval,trekMinus(PeakSet.SelectedPeakInd(i)+FitBackgndInterval),'-ko');
-        if MinKhi2Idx<=1
-            plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-g.');
-        end;
-        if MinKhi2Idx>=InterpRange
-            plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulsesEdge+B,'-g.');
-        end;
-        if MinKhi2Idx<InterpRange&MinKhi2Idx>1
-            plot([1:FitNi]'+StartFitPoint-1,A(2)*FitPulses(1:FitNi,MinKhi2Idx)+B,'-g.');
-        end;
-
-        %plot(PulseInterpFine(:,1),Ampl*PulseInterpFineShifted+B,'-r');
-        subplot(2,1,2);
-        KhiDD=diff(Khi2Fit,2);
-        KhiDD=[2*KhiDD(1)-KhiDD(2);KhiDD;2*KhiDD(end)-KhiDD(end-1)];
-        plot(Khi2Fit,'-ko'); hold on;  plot(KhiDD,'-bo');
-        plot(Khi2MinIdxFine,Khi2MinFine,'r*');
-        text(Khi2MinIdxFine,max(Khi2Fit),num2str(Khi2MinFine));
-        %%check MinKhi2Idx to be inside the KhiDD index range
-        if MinKhi2Idx<1
-            text(Khi2MinIdxFine,mean(Khi2Fit),num2str(KhiDD(2)),'color','b');
-            text(Khi2MinIdxFine,(mean(Khi2Fit)+max(Khi2Fit))/2,num2str(Khi2MinFine/KhiDD(2)),'color','r');
-        end;
-        if MinKhi2Idx>InterpRange
-            text(Khi2MinIdxFine,mean(Khi2Fit),num2str(KhiDD(end-1)),'color','b');
-            text(Khi2MinIdxFine,(mean(Khi2Fit)+max(Khi2Fit))/2,num2str(Khi2MinFine/KhiDD(end-1)),'color','r');
-        end;
-        if MinKhi2Idx<InterpRange&MinKhi2Idx>1
-            text(Khi2MinIdxFine,mean(Khi2Fit),num2str(KhiDD(MinKhi2Idx)),'color','b');
-            text(Khi2MinIdxFine,(mean(Khi2Fit)+max(Khi2Fit))/2,num2str(Khi2MinFine/KhiDD(MinKhi2Idx)),'color','r');
-        end;
-        if ShortFit
-            text(Khi2MinIdxFine/2,(mean(Khi2Fit)+max(Khi2Fit))/2,'Short fitting!!!','color','r');
-        end;
-        if nargin==1; pause(Delay); else; pause; end;
 
  
