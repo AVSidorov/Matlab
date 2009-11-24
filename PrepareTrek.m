@@ -2,7 +2,7 @@ function [trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName);
 
 Text=false;           % switch between text and binary input files
 FileType='single';      %choose file type for precision in fread function 
-OverSt1=2.5;         % noise regection threshold, in standard deviations    
+OverSt1=3;         % noise regection threshold, in standard deviations    
 StartOffsetDef=0;     %in us old system was Tokamak delay + 1.6ms
 tau=0.020;
 MaxSignal=3650;
@@ -34,36 +34,13 @@ tic;
        end; 
   end;
 
- if size(trek,2)==2; trek(:,1)=[]; end;      
-% if not(isstr(FileName)); 
-%     trek=FileName; 
-% else
-%    if Text;  
-%        trek=load(FileName);  
-%    else  
-%        %fid = fopen(FileName); trek = fread(fid,inf,'int16'); fclose(fid); clear fid; 
-%        fid = fopen(FileName); trek = fread(fid,inf,'single'); fclose(fid); clear fid; 
-%    end; 
-% end; 
+if size(trek,2)==2; trek(:,1)=[]; end;      
 
-if size(trek,2)==2; trek(:,1)=trek(:,2); trek(:,2)=[]; end; 
 
-bool=(trek(:)>4095)|(trek(:)<0); OutRangeN=size(find(bool),1); 
-if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
-trek(bool,:)=[];  clear bool; 
 
 trekSize1=size(trek(:,1),1);
 fprintf('Loading time =                                %7.4f  sec\n', toc); tic; 
 
-NoiseArray=logical(true(trekSize1,1));  % first, all measurements are considered as noise
-[MeanVal,StdVal,PeakPolarity,NoiseArray]=MeanSearch(trek,OverSt1,NoiseArray);
-if PeakPolarity==1; trek(:)=trek(:)-MeanVal;  else trek(:)=MeanVal-trek(:); end;
-fprintf('First mean search   =                        %7.4f  sec\n', toc); 
-fprintf('  Standard deviat = %6.4f\n', StdVal);
-
-bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
-if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
-trek(bool,:)=0;  clear bool; 
 
 
 
@@ -115,37 +92,25 @@ ProcInt1=input(['Input Process Interval indexes[...:...]\n Default is [',num2str
 ProcIntTime=[StartOffset+(ProcInt(1)-1)*tau,StartOffset+(ProcInt(end)-1)*tau];
 fprintf('Process Inteval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]\n',ProcIntTime(1),ProcIntTime(end),(ProcIntTime(end)-ProcIntTime(1)),ProcInt(1),ProcInt(end));
 trek=trek(ProcInt);
+
+bool=(trek(:)>4095)|(trek(:)<0); OutRangeN=size(find(bool),1); 
+if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
+trek(bool,:)=[];  clear bool; 
+
+tic;
+MeanVal=1;
+while MeanVal>0.001
+    [MeanVal,StdVal,PeakPolarity,NoiseArray]=MeanSearch(trek,OverSt1,0);
+    trek=PeakPolarity*(trek-MeanVal);
+end;
+
+fprintf('First mean search   =                        %7.4f  sec\n', toc); 
+fprintf('  Standard deviat = %6.4f\n', StdVal);
+
+bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
+if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
+trek(bool,:)=0;  clear bool; 
+
+
 disp('==========Prepare Trek finished');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function [MeanVal,StdVal,PP,Noise]=MeanSearch(tr,OverSt,Noise);    
-% search the signal pedestal and make it zero
-           % Input parameters: tr or trD - input measurements, Over St (see above), Noise - assumed initial noise array  
-           % Output parameters: MeanValue, Standad deviation, Pulse polarity, Noise - residual noise array
-trSize=size(tr,1); %  (N,1) dimension
-
-M =mean(tr(:)); St=std(tr(:));  
-Positive=size(find(tr(:)-(M+5*St)>0),1);  
-Negative=size(find(tr(:)-(M-5*St)<0),1); 
-MaxVal=max(tr(:)); MinVal=min(tr(:)); DeltaM=MaxVal-MinVal;  
-
-if Positive>Negative PeakPolarity=1; else PeakPolarity=-1;  end; 
-
-NoisePoints=size(find(Noise),1); 
-while DeltaM>0.1
-    M =[M,mean(tr(Noise))];  St=[St,std(tr(Noise))];          
-    L=length(M);    
-    if L>2   DeltaM=abs(M(L)-M(L-1));  else     DeltaM=10;    end; 
-    NoiseLevel=M(L)+PeakPolarity*OverSt*St(L);    
-    if PeakPolarity==1 Noise=(tr(:)<NoiseLevel); else; Noise=(tr(:)>NoiseLevel); end;  %(abs(M(L)-tr(:,2))<OverSt*St(L));
-    NoisePoints=[NoisePoints,size(find(Noise),1)];
-    %if St(L)==0 DeltaM=0;end;
-end; 
-    NoiseL=circshift(Noise,-1);   NoiseL(end)=Noise(end);     
-    NoiseR=circshift(Noise,1);    NoiseR(1)=Noise(1);
-    SingleNoise=not(Noise)&NoiseR&NoiseL;           %search alone peaks above the NoiseLevel
-    Noise(SingleNoise)=true;                        %the alone peaks are brought to the Noise array
-    NoiseIndx=find(Noise);
-    Noise(1:NoiseIndx(1))=1;  Noise(NoiseIndx(end):end)=1;
-    MeanVal=M(L); StdVal=St(L); PP=PeakPolarity;
