@@ -8,7 +8,7 @@ OverSt=3;         % noise regection threshold, in standard deviations
 if isempty(trek); return; end;
 
 
-[PeakSetFirst,StandardPulseFirst]=TopsClb(trek,0);
+[PeakSetFirst,StandardPulseFirst]=TopsClb(trek,1);
 
 if isstr(FileName)
     [pathstr, name, ext, versn]=fileparts(FileName);

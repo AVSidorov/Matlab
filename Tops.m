@@ -106,7 +106,7 @@ NegFBool(1:2)=false;  NegFBool(end-1:end)=false;
 % PeakFBool=PosFBool&AbsFBool;            %Signals
 % NoiseFBool=not(AbsFBool)&PosFBool;   %Noise
 
-[MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(trF,3,0);
+[MeanVal,StdVal,PeakPolarity,Noise]=MeanSearchF(trF,3,0);
 % PeakPolarity must be ==1; %
     PeakFBool=(PosFBool&not(Noise)&(trF>0));
     NoiseFBool=(PosFBool&Noise)|(NegFBool&Noise&trF>-StdVal);
@@ -276,13 +276,17 @@ for i=1:PeakIndN
 end;
 clear IndMax IndMin;
 Time(end+1)=toc;
-disp(['RangePeak calculation=', num2str(Time(end))]);
+% disp(['RangePeak calculation=', num2str(Time(end))]);
 toc;
 
 if HistCalc
 tic;
 
 HistStart =1e20;  HistEnd= -1e20;
+HistInterpStart=1e20;
+HistInterpEnd=-1e20;
+HistInterpStep=1e20;
+MaxHistInterpI=-1e20;
 
 RangeM=zeros(1, NoiseMIndN);
 for i=1:NoiseMIndN 
@@ -291,13 +295,13 @@ end;
 if not(isempty(RangeM)); 
     HistStart=min(HistStart,min(RangeM)); 
     HistEnd=max(HistEnd,max(RangeM));  
+    [HistRangeM,HistRangeMI,HistRangeMS]=sid_hist(RangeM);
+    HistInterpStart=HistRangeM(1,1);
+    HistInterpEnd=HistRangeM(end,1);
+    HistInterpStep=HistRangeMS;
+    MaxHistInterpI=HistRangeMI;
 end;
 
-[HistRangeM,HistRangeMI,HistRangeMS]=sid_hist(RangeM);
-HistInterpStart=HistRangeM(1,1);
-HistInterpEnd=HistRangeM(end,1);
-HistInterpStep=HistRangeMS;
-MaxHistInterpI=HistRangeMI;
 
 
 RangeW=zeros(1, NoiseWIndN);
@@ -307,13 +311,13 @@ end;
 if not(isempty(RangeW)); 
     HistStart=min(HistStart,min(RangeW)); 
     HistEnd=max(HistEnd,max(RangeW));  
+    [HistRangeW,HistRangeWI,HistRangeWS]=sid_hist(RangeW);
+    HistInterpStart=min(HistInterpStart,HistRangeW(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangeW(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangeWS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangeWI);
 end;
 
-[HistRangeW,HistRangeWI,HistRangeWS]=sid_hist(RangeW);
-HistInterpStart=min(HistInterpStart,HistRangeW(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangeW(end,1));
-HistInterpStep=min(HistInterpStep,HistRangeWS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangeWI);
 
 
 RangePeakW=zeros(1, PeakWIndN);
@@ -323,24 +327,26 @@ end;
 if not(isempty(RangePeakW)); 
     HistStart=min(HistStart,min(RangePeakW)); 
     HistEnd=max(HistEnd,max(RangePeakW));  
+   [HistRangePeakW,HistRangePeakWI,HistRangePeakWS]=sid_hist(RangePeakW);
+    HistInterpStart=min(HistInterpStart,HistRangePeakW(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangePeakW(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangePeakWS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangePeakWI);
 end;
-[HistRangePeakW,HistRangePeakWI,HistRangePeakWS]=sid_hist(RangePeakW);
-HistInterpStart=min(HistInterpStart,HistRangePeakW(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangePeakW(end,1));
-HistInterpStep=min(HistInterpStep,HistRangePeakWS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangePeakWI);
 
 % Histogram of the range of noise F signals:
 RangeNoiseF=zeros(1,NoiseFIndN);
 for i=1:NoiseFIndN 
     y=tr(NoiseFInd(i)-3:NoiseFInd(i)+2); RangeNoiseF(i)=log10(max(y)-min(y));
 end;
+if not(isempty(RangeNoiseF)); 
+    [HistRangeNoiseF,HistRangeNoiseFI,HistRangeNoiseFS]=sid_hist(RangeNoiseF);
+    HistInterpStart=min(HistInterpStart,HistRangeNoiseF(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangeNoiseF(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangeNoiseFS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangeNoiseFI);
+end;
 
-[HistRangeNoiseF,HistRangeNoiseFI,HistRangeNoiseFS]=sid_hist(RangeNoiseF);
-HistInterpStart=min(HistInterpStart,HistRangeNoiseF(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangeNoiseF(end,1));
-HistInterpStep=min(HistInterpStep,HistRangeNoiseFS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangeNoiseFI);
 
 RangeS=zeros(1, SIndN);
 for i=1:SIndN 
@@ -350,25 +356,27 @@ end;
 if not(isempty(RangeS)); 
     HistStart=min(HistStart,min(RangeS)); 
     HistEnd=max(HistEnd,max(RangeS));  
+    [HistRangeS,HistRangeSI,HistRangeSS]=sid_hist(RangeS);
+    HistInterpStart=min(HistInterpStart,HistRangeS(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangeS(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangeSS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangeSI);
 end;
 
-[HistRangeS,HistRangeSI,HistRangeSS]=sid_hist(RangeS);
-HistInterpStart=min(HistInterpStart,HistRangeS(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangeS(end,1));
-HistInterpStep=min(HistInterpStep,HistRangeSS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangeSI);
 
 RangePeakF=zeros(1, PeakFIndN);
 for i=1:PeakFIndN 
     y=tr(PeakFInd(i)-3:PeakFInd(i)+2); 
     RangePeakF(i)=log10(tr(PeakFInd(i))-min(y));
 end;
+if not(isempty(RangePeakF)); 
+    [HistRangePeakF,HistRangePeakFI,HistRangePeakFS]=sid_hist(RangePeakF);
+    HistInterpStart=min(HistInterpStart,HistRangePeakF(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangePeakF(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangePeakFS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangePeakFI);
+end;
 
-[HistRangePeakF,HistRangePeakFI,HistRangePeakFS]=sid_hist(RangePeakF);
-HistInterpStart=min(HistInterpStart,HistRangePeakF(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangePeakF(end,1));
-HistInterpStep=min(HistInterpStep,HistRangePeakFS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangePeakFI);
 
 PeakInd(PeakInd+3>trSize)=[];  PeakInd(PeakInd-2<1)=[];
 %PeakInd(tr(PeakInd)>MaxSignal)=[];
@@ -382,13 +390,13 @@ PeakInd(PeakInd+3>trSize)=[];  PeakInd(PeakInd-2<1)=[];
 if not(isempty(RangePeak)); 
     HistStart=min(HistStart,min(RangePeak)); 
     HistEnd=max(HistEnd,max(RangePeak));  
+    [HistRangePeak,HistRangePeakI,HistRangePeakS]=sid_hist(RangePeak);
+    HistInterpStart=min(HistInterpStart,HistRangePeak(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangePeak(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangePeakS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangePeakI);
 end;
 
-[HistRangePeak,HistRangePeakI,HistRangePeakS]=sid_hist(RangePeak);
-HistInterpStart=min(HistInterpStart,HistRangePeak(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangePeak(end,1));
-HistInterpStep=min(HistInterpStep,HistRangePeakS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangePeakI);
 
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd+2>trSize)=[];  
 PeakSet.PeakOnFrontInd(PeakSet.PeakOnFrontInd-2<1)=[];
@@ -399,11 +407,13 @@ for i=1:PeakOnFrontIndN
     RangePeakOnFront(i)=log10(tr(PeakSet.PeakOnFrontInd(i))-min(y));
 end;
 
-[HistRangePeakOnFront,HistRangePeakOnFrontI,HistRangePeakOnFrontS]=sid_hist(RangePeakOnFront);
-HistInterpStart=min(HistInterpStart,HistRangePeakOnFront(1,1));
-HistInterpEnd=max(HistInterpEnd,HistRangePeakOnFront(end,1));
-HistInterpStep=min(HistInterpStep,HistRangePeakOnFrontS);
-MaxHistInterpI=max(MaxHistInterpI,HistRangePeakOnFrontI);
+if not(isempty(RangePeakOnFront)); 
+    [HistRangePeakOnFront,HistRangePeakOnFrontI,HistRangePeakOnFrontS]=sid_hist(RangePeakOnFront);
+    HistInterpStart=min(HistInterpStart,HistRangePeakOnFront(1,1));
+    HistInterpEnd=max(HistInterpEnd,HistRangePeakOnFront(end,1));
+    HistInterpStep=min(HistInterpStep,HistRangePeakOnFrontS);
+    MaxHistInterpI=max(MaxHistInterpI,HistRangePeakOnFrontI);
+end;
 
 HistRangeM(:,2)=MaxHistInterpI.*HistRangeM(:,2)./HistRangeMI;
 HistRangeW(:,2)=MaxHistInterpI.*HistRangeW(:,2)./HistRangeWI;
