@@ -194,12 +194,15 @@ if not(isempty(PeakSet.SelectedPeakInd))
     if PulsePlotBool;  PulsePlot=figure; end; 
 end;
 
+% NullLine=zeros(treksize,1);
+
 while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
     i=i+1;
     A=[];Khi2Fit=[];FitSignal=[];
     MinKhi2=-1;MinKhi2Idx=-1;
     BckgIndx=PeakSet.SelectedPeakInd(i)+FitBackgndInterval;  BckgIndx(BckgIndx<1)=1;
     B=mean(trekMinus(BckgIndx));
+    
     if trekMinus(PeakSet.SelectedPeakInd(i))-B>PeakSet.Threshold
 
         ShortFit=not(isempty(find(PeakSet.PeakOnFrontInd==PeakSet.SelectedPeakInd(i),1)));
@@ -390,15 +393,16 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
         end;  %(MinKhi2>0)&(MinKhi2<Khi2Thr)&(Ampl>0);
     end;  %if trekMinus(PeakSet.SelectedPeakInd(i))-B>PeakSet.Threshold    
 end;  %while
-  TrekFg=figure; plot(trek); hold on;
-  title([TrekName,':  tracks. Pass=', num2str(Pass)]);
-  plot(trekMinus,'y');  grid on; hold on; 
-  plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
-  plot(peaks(:,2)/tau,peaks(:,4),'g>');
-  legend('trek','trekMinus','Amplitude+Zero','Zero');
-  pause;
-  close(TrekFg);  
 
+%   TrekFg=figure; plot(trek); hold on;
+%   title([TrekName,':  tracks. Pass=', num2str(Pass)]);
+%   plot(trekMinus,'y');  grid on; hold on; 
+%   plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
+%   plot(peaks(:,2)/tau,peaks(:,4),'g>');
+%   legend('trek','trekMinus','Amplitude+Zero','Zero');
+%   pause;
+%   close(TrekFg);  
+% 
 
 disp(['=======Pass #',num2str(Pass),' finished. Elapsed time is ', num2str(toc),' sec']);
 
