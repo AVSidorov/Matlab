@@ -57,55 +57,46 @@ trL(:,1)=circshift(trek,-1);
 FrontBool(:,1)=trek>=trR(:,1);
 TailBool(:,1)=trek>=trL(:,1);
 MaxBool=trek>trR(:,1)&trek>=trL(:,1);
+MinBool=trek<=trR(:,1)&trek<trL(:,1);
 MaxBool(1)=false;    MaxBool(end)=false;
 MaxInd=find(MaxBool);
-MaxN=size(MaxInd);
+MaxN=size(MaxInd,1);
 
-i=1;
-while N>0
- i=i+1;
- trR(:,i)=circshift(trek,i);
- trL(:,i)=circshift(trek,-i);
-   FrontBool(:,i)=FrontBool(:,i-1)&trR(:,i-1)>=trR(:,i);
-   FrontInd=find(FrontBool(:,i));
-   FrontN(i)=size(FrontInd,1);
+MinBool(1)=false;    MinBool(end)=false;
+MinInd=find(MinBool);
+MinN=size(MinInd,1);
 
-   NFrontEndBool(:,i-1)=MaxBool&xor(FrontBool(:,i-1),FrontBool(:,i));
-   NFrontInd=find(NFrontEndBool(:,i-1));
-   NFrontStartBool(:,i-1)=circshift(NFrontEndBool(:,i-1),-(i-1));
-   NFrontN(i-1)=size(NFrontInd,1);
-   FrontHigh(NFrontEndBool(:,i-1))=trek(NFrontEndBool(:,i-1))-trR(NFrontEndBool(:,i-1),i-1);
+ while MaxInd(1)<MinInd(1)
+     MaxInd(1)=[];
+     MaxN=MaxN-1;
+ end;
+ 
+ while MinN>MaxN
+      MinInd(end)=[];
+      MinN=MinN-1;
+ end;
 
-   TailBool(:,i)=TailBool(:,i-1)&trL(:,i-1)>=trL(:,i);
-   TailInd=find(TailBool(:,i));
-   TailN(i)=size(TailInd,1);
+ FrontN=MaxInd-MinInd;
 
-   N=max([FrontN(i),TailN(i)]);
-end;
-toc
-tic
+ FrontHigh=trek(MaxInd)-trek(MinInd);
+
 trD=diff(trek,1);
 trD(end+1)=0;
-MaxFrontFounded=i-1;
-for i=1:MaxFrontFounded
-    trD(find(NFrontEndBool(:,i)))=0;
-    trD(find(NFrontStartBool(:,i)))=0;
-end;
+trD(MaxInd)=0;
+trD(MinInd)=0;
 trDR=circshift(trD,1);
 trDL=circshift(trD,-1);
 trDMinBool=trD<trDL&trD<=trDR;
 trDMinInd=find(trDMinBool);
 
 PeakOnFrontInd=[];
-for i=MaxFrontN:MaxFrontFounded
-FrontStartInd=find(NFrontStartBool(:,i));
-FrontEndInd=find(NFrontEndBool(:,i));
-    for ii=1:NFrontN(i)
-        Ind=trDMinInd(find(trDMinInd>FrontStartInd(ii)&trDMinInd<FrontEndInd(ii)));
-        bool=(trek(Ind)-trek(FrontStartInd(ii)))>StdVal;
+longFrontsInd=find(FrontN>MaxFrontN);
+for ii=1:size(longFrontsInd,1)
+        i=longFrontsInd(ii);
+        Ind=trDMinInd(find(trDMinInd>MinInd(i)&trDMinInd<MaxInd(i)));
+        bool=(trek(Ind)-trek(MinInd(i)))>StdVal;
         Ind=Ind(bool);
         PeakOnFrontInd=[PeakOnFrontInd;Ind];
-    end;
 end;
 
 PeakSet.PeakOnFrontInd=PeakOnFrontInd;
@@ -114,20 +105,11 @@ PeakOnFrontBool=false(trSize,1);
 PeakOnFrontBool(PeakOnFrontInd)=true;
 
 
-trDD=diff(trek,2);
 
-IntervalBefore=MaxInd-circshift(MaxInd,1);
-IntervalBefore(1)=MaxInd(1);
-A=zeros(trSize,1);
-A(MaxInd)=IntervalBefore;
-IntervalBefore=A;
-
-weightF=sum(FrontBool');
-weightT=sum(TailBool');
-weight=weightF+weightF;
-
-ByFrontBool=FrontHigh>=Threshold&weightF'>=2;
-ByFrontInd=find(ByFrontBool);
+ByFrontBool=FrontHigh>=Threshold&FrontN>=2;
+ByFrontInd=MaxInd(find(ByFrontBool));
+ByFrontBool=false(trSize,1);
+ByFrontBool(ByFrontInd)=true;
 ByFrontN=size(ByFrontInd,1);
 
 MaxIndSh=circshift(MaxInd,-1);
@@ -139,6 +121,9 @@ A=zeros(trSize,1);
 A(IndMaxAfterByFront)=IndMaxAfterByFront-ByFrontInd;
 IntervalAfterByFront=A;
 
+A=zeros(trSize,1);
+A(MaxInd)=FrontHigh;
+FrontHigh=A;
 OnTailBool=IntervalAfterByFront<OnTailN&IntervalAfterByFront>0&FrontHigh>StdVal&not(ByFrontBool);
 OnTailInd=find(OnTailBool);
 OnTailN=size(OnTailInd,1);
@@ -178,7 +163,8 @@ figure;
 plot(trek);
 grid on; hold on;
 plot(SelectedInd,trek(SelectedInd),'.r');
-plot(find(OnTailBool),trek(OnTailBool),'or');
+plot(find(OnTailBool),trek(OnTailBool),'om');
+plot(PeakSet.PeakOnFrontInd,trek(PeakSet.PeakOnFrontInd),'dg');
 
 
 
