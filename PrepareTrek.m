@@ -1,4 +1,4 @@
-function [trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName);
+function TrekSet=PrepareTrek(FileName);
 
 Text=false;           % switch between text and binary input files
 FileType='single';      %choose file type for precision in fread function 
@@ -26,7 +26,10 @@ tic;
         return;
     case 1
         trek=FileName;
+        TrekSet.name='unknown';
     case 2
+       [pathstr, name, ext, versn]=fileparts(FileName);
+       TrekSet.name=name;
        if Text;  
            trek=load(FileName);  
        else  
@@ -91,15 +94,19 @@ ProcInt1=input(['Input Process Interval indexes[...:...]\n Default is [',num2str
 
 ProcIntTime=[StartOffset+(ProcInt(1)-1)*tau,StartOffset+(ProcInt(end)-1)*tau];
 fprintf('Process Inteval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]\n',ProcIntTime(1),ProcIntTime(end),(ProcIntTime(end)-ProcIntTime(1)),ProcInt(1),ProcInt(end));
+
 trek=trek(ProcInt);
+trSize=size(trek,1);
 
 bool=(trek(:)>4095)|(trek(:)<0); OutRangeN=size(find(bool),1); 
 if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
 trek(bool,:)=[];  clear bool; 
 
 tic;
+Mold=0;
 MeanVal=1;
-while MeanVal>0.001
+while abs(MeanVal-Mold)>1e-4
+    Mold=MeanVal;
     [MeanVal,StdVal,PeakPolarity,NoiseArray]=MeanSearch(trek,OverSt1,0);
     trek=PeakPolarity*(trek-MeanVal);
 end;
@@ -109,7 +116,13 @@ fprintf('  Standard deviat = %6.4f\n', StdVal);
 
 bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
 if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
-trek(bool,:)=0;  clear bool; 
+trek(bool,:)=MaxSignal;  clear bool; 
+
+TrekSet.trek=trek;
+TrekSet.StdVal=StdVal;
+TrekSet.tau=tau;
+TrekSet.StartTime=ProcIntTime(1);
+TrekSet.Size=trSize;
 
 
 disp('==========Prepare Trek finished');

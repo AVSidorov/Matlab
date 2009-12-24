@@ -4,18 +4,15 @@ function [peaks,trekMinus,StandardPulseFirst]=ProcessingTrek(FileName);
 Pass1=2;
 OverSt=3;         % noise regection threshold, in standard deviations 
 
-[trek,ProcInt,ProcIntTime,StdVal]=PrepareTrek(FileName);
-if isempty(trek); return; end;
-
-
-[PeakSetFirst,StandardPulseFirst]=TopsClb(trek,1);
-
-if isstr(FileName)
-    [pathstr, name, ext, versn]=fileparts(FileName);
-    assignin('base',['StP',name,'T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
-else
-    assignin('base',['StP13T',num2str(round(ProcIntTime(1)/1000)),'d',num2str(round(ProcIntTime(end)/1000)),'ms'],StandardPulseFirst);
+TrekSet=PrepareTrek(FileName);
+if isempty(TrekSet); return; end;
+i=0;
+while exist(['TrekSet',num2str(i)])>0
+ i=i+1;
 end;
+ 
+assignin('base',['TrekSet',num2str(i)],TrekSet);
+
 
 [peaks,trekMinus]=GetPeaks(trek,Pass1,PeakSetFirst,StandardPulseFirst);
 StdValTM=std(trekMinus);

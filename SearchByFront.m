@@ -1,10 +1,9 @@
-function PeakSet=SearchByFront(trek);
+function PeakSet=SearchByFront(TrekSet);
 
 tic;
 disp('>>>>>>>>Search by Front started');
 
-OverSt=1.5;
-tau=0.020;
+OverSt=12;
 BckgFitN=2;
 OnTailBorder=0.1;
 
@@ -27,26 +26,16 @@ OnTailN=StPMaxInd+find(StandardPulse(StPMaxInd+1:end)<OnTailBorder,1,'first');
 
 
 
-DeltaM=1;
-i=0;
-while DeltaM>1e-4
-i=i+1;
-    [MeanVal,StdVal,PeakPolarity,Noise]=MeanSearch(trek,OverSt,0);
-    if i>1
-        DeltaM=abs(MeanVal-M);
-    end;
-    trek=PeakPolarity*(trek-MeanVal);
-    M=MeanVal;
-end;
-trSize=size(trek,1);
+
+trek=TrekSet.trek;
+StdVal=TrekSet.StdVal;
+trSize=TrekSet.Size;
 
 Threshold=StdVal*OverSt;
 
 % trekS=smooth(trek,SmoothPar);
 
 FrontInd=[];
-i=0;
-N=1;
 FrontHigh=zeros(trSize,1);
 
 
@@ -88,7 +77,8 @@ trDR=circshift(trD,1);
 trDL=circshift(trD,-1);
 trDMinBool=trD<trDL&trD<=trDR;
 trDMinInd=find(trDMinBool);
-
+toc
+tic;
 PeakOnFrontInd=[];
 longFrontsInd=find(FrontN>MaxFrontN);
 for ii=1:size(longFrontsInd,1)
@@ -149,7 +139,7 @@ end;
 
 toc
 fprintf('=====  Search of peak tops      ==========\n');
-fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*tau);
+fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
 fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',OverSt,StdVal,Threshold);
 fprintf('The total number of maximum = %7.0f \n',MaxN);
 fprintf('The number peaks selected by FrontHigh = %7.0f \n',ByFrontN);

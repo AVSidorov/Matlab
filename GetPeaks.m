@@ -376,11 +376,24 @@ while (i<PeakN)&&not(isempty(PeakSet.SelectedPeakInd))
         FitIdx=PeakSet.SelectedPeakInd(i)+PulseInterpFine(1:FineInterpN:end,1);
         FitIdxOk=(FitIdx<trekSize-1)&(FitIdx>1+MinFrontN);
 
-
-        if (Ampl>PeakSet.Threshold)&...
-              (abs(trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<OverSt*PeakSet.Threshold)&...     %%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
-                ((Ampl+B)<MaxSignal)
-
+        
+        MinusOk=false;
+        
+        if (Ampl>PeakSet.Threshold)&((Ampl+B)<MaxSignal)&...
+             (abs(trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<OverSt*PeakSet.Threshold)           %%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
+            MinusOk=true;
+        end;
+%          if (Ampl>PeakSet.Threshold)&((Ampl+B)<MaxSignal)&not(MinusOk)&...
+%               ((trekMinus(PeakSet.SelectedPeakInd(i))-Ampl-B)<OverSt*PeakSet.Threshold)%%%&&((Ampl/PeakSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
+%              figure;
+%              plot(FitIdx(FitIdxOk),trekMinus(FitIdx(FitIdxOk)));
+%              grid on; hold on;
+%              plot(FitIdx(FitIdxOk),SubtractedPulse(FitIdxOk)+B,'.r');
+%              plot(FitIdx(FitIdxOk),trekMinus(FitIdx(FitIdxOk))-SubtractedPulse(FitIdxOk),'g-');
+%              pause;
+%              close(gcf);           
+%          end;
+        if MinusOk
             trekMinus(FitIdx(FitIdxOk))=trekMinus(FitIdx(FitIdxOk))-SubtractedPulse(FitIdxOk);
             NPeaksSubtr=NPeaksSubtr+1;
             peaks(NPeaksSubtr,1)=PeakSet.SelectedPeakInd(i);             %PeakSet.SelectedPeakInd Max initial
@@ -442,7 +455,7 @@ end; % for Pass=1:PassNumber
   [Max,MaxKhiInd]=max(HistKhi(:,2));
 %   KhiThreshold=10^(HistKhi(MaxKhiInd,2)+1);  
 %   KhiThreshold=0.01;  
-  KhiThreshold=Max;  
+  KhiThreshold=Max*10;  
   plot(log10([KhiThreshold,KhiThreshold]),[0,Max/2],'-r','LineWidth',2);
   legend('Chi^2 threshold');
   errorbar(HistKhi(:,1),HistKhi(:,2),HistKhi(:,3),'-b.'); grid on; 
@@ -465,7 +478,8 @@ end; % for Pass=1:PassNumber
   title([TrekName,':  tracks. Pass=', num2str(Pass)]);
   plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
   plot(peaks(:,2)/tau,peaks(:,4),'g>');
-  legend('trek','trekMinus','Amplitude+Zero','Zero');
+  plot(trekMinus,'y'); 
+  legend('trek','Amplitude+Zero','Zero','trekMinus');
   dt=[];
   for i=1:NPeaksSubtr
       FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
@@ -483,7 +497,6 @@ end; % for Pass=1:PassNumber
       if dtau>tau; point=['r',mark]; end;
          plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point); 
   end; 
-  plot(trekMinus,'y'); 
 
   Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
 
