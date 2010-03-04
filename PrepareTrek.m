@@ -39,7 +39,9 @@ tic;
 
 if size(trek,2)==2; trek(:,1)=[]; end;      
 
-
+while trek(end)==0
+    trek(end)=[];
+end;
 
 trekSize1=size(trek(:,1),1);
 fprintf('Loading time =                                %7.4f  sec\n', toc); tic; 
@@ -98,10 +100,6 @@ fprintf('Process Inteval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]
 trek=trek(ProcInt);
 trSize=size(trek,1);
 
-bool=(trek(:)>4095)|(trek(:)<0); OutRangeN=size(find(bool),1); 
-if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
-trek(bool,:)=[];  clear bool; 
-
 tic;
 Mold=0;
 MeanVal=1;
@@ -114,9 +112,17 @@ end;
 fprintf('First mean search   =                        %7.4f  sec\n', toc); 
 fprintf('  Standard deviat = %6.4f\n', StdVal);
 
-bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
-if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
-trek(bool,:)=MaxSignal;  clear bool; 
+
+if PeakPolarity<0
+    bool=(trek(:)>4095)|(trek(:)<0); OutRangeN=size(find(bool),1); 
+    if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
+    trek(bool,:)=[];  clear bool; 
+else
+    bool=(trek(:)>MaxSignal); OutRangeN=size(find(bool),1); 
+    if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
+    trek(bool,:)=MaxSignal;  clear bool; 
+end;
+
 
 TrekSet.trek=trek;
 TrekSet.StdVal=StdVal;
@@ -125,5 +131,5 @@ TrekSet.StartTime=ProcIntTime(1);
 TrekSet.Size=trSize;
 
 
-disp('==========Prepare Trek finished');
+disp('>>>>>>>>>>>Prepare Trek finished');
 

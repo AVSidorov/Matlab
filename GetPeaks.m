@@ -478,8 +478,6 @@ end; % for Pass=1:PassNumber
   title([TrekName,':  tracks. Pass=', num2str(Pass)]);
   plot(peaks(:,2)/tau,peaks(:,4)+peaks(:,5),'r^')
   plot(peaks(:,2)/tau,peaks(:,4),'g>');
-  plot(trekMinus,'y'); 
-  legend('trek','Amplitude+Zero','Zero','trekMinus');
   dt=[];
   for i=1:NPeaksSubtr
       FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
@@ -497,6 +495,10 @@ end; % for Pass=1:PassNumber
       if dtau>tau; point=['r',mark]; end;
          plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point); 
   end; 
+
+  plot(trekMinus,'y'); 
+  legend('trek','Amplitude+Zero','Zero','trekMinus');
+
 
   Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
 
@@ -516,7 +518,7 @@ end;
 
 fprintf('Last threshold = %7.0f \n',PeakSet.Threshold);
 CloseGraphs;
-disp('========Get Peaks finished');
+disp('>>>>>>>>Get Peaks finished');
 
 
 
