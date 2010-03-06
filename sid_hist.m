@@ -13,6 +13,12 @@ if nargin==1
     if m>1&n>1
         A=InArray(:,1);
     end;
+    if m==1&n==1
+        Hist(1,1)=InArray;
+        Hist(1,2)=1;
+        Hist(1,3)=1;
+        return;
+    end;
     B=A-real(A);
     A(find(B))=[];
     NA=size(A,1);
