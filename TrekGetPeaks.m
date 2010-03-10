@@ -14,7 +14,7 @@ InterpN=8;        %number of extra intervals for interpolation of Standard Pulse
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
 
 PulsePlotBool= false;   % Plot fitting pulses or not
-EndPlotBool=true;       % Plot after proccessing
+EndPlotBool=false;       % Plot after proccessing
 
 TrekSet=TrekSetIn;
 
@@ -361,32 +361,8 @@ end; % for Pass=1:PassNumber
 if PeakN>1
   peaks=sortrows(peaks,2); 
   peaks(1:end-1,3)=diff(peaks(:,3)); peaks(end,3)=trek(end)-peaks(end,2); 
-  
-  Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
-
-  HistPeaks=sid_hist(Log10Peaks);
-  HistKhi=sid_hist(Log10Khi);
-
-  [Max,MaxKhiInd]=max(HistKhi(:,2));
-%   KhiThreshold=10^(HistKhi(MaxKhiInd,2)+1);  
-%   KhiThreshold=0.01;  
-  KhiThreshold=Max*10;  
-
-  HighKhiBool=peaks(:,6)>KhiThreshold;
-
-  peaks(peaks(:,6)>KhiThreshold,:)=[];
-
-  PeakN=size(peaks,1);
-
-  if PeakN>1  
-      peaks(end,3)=mean(peaks(1:(end-1),3));  % period of peaks
-    
-      Log10Peaks=log10(peaks(:,5)); Log10Khi=log10(peaks(:,6)); 
-  
-      HistPeaks1=sid_hist(Log10Peaks);
-      HistKhi1=sid_hist(Log10Khi);
-
-      NPeaksSubtr=size(peaks,1);
+ 
+  NPeaksSubtr=size(peaks,1);
 
      
       for Pass=1:PassNumber
@@ -395,7 +371,6 @@ if PeakN>1
        
       TrekSet.peaks=[TrekSet.peaks;peaks];
 
-  end;
 end;
 
 fprintf('=====  Found pulses      ==========\n');
@@ -411,18 +386,6 @@ fprintf('Last threshold = %7.0f \n',TrekSet.Threshold);
 
 if EndPlotBool  
  if PeakN>1
-    HistogramPlot=figure; 
-      AmplHistogramPlot=subplot(2,1,1); 
-        errorbar(HistPeaks(:,1),HistPeaks(:,2),HistPeaks(:,3),'-r.'); grid on; hold on; 
-        title([TrekName,': Peak amplitude histogram. Pass=', num2str(Pass)]);
-        xlabel('Lg(Amplitude)');
-      subplot(2,1,2); 
-        title([TrekName,': Chi^2 histogram']);  hold on; 
-        
-        plot(log10([KhiThreshold,KhiThreshold]),[0,Max/2],'-r','LineWidth',2);
-        legend('Chi^2 threshold');
-        errorbar(HistKhi(:,1),HistKhi(:,2),HistKhi(:,3),'-b.'); grid on; 
-        xlabel('Lg(Chi^2)');
   
  figure; hold on; 
     title([TrekName,': Chi^2 versus peak amplitude. Pass=', num2str(Pass)]);
@@ -440,29 +403,19 @@ if EndPlotBool
         dtau=peaks(i,2)-TrekSet.StartTime-peaks(i,1)*tau;
         FineShift=round(dtau/tau*FineInterpN);
         PulseInterpFineShifted=circshift(PulseInterpFine(:,2),FineShift);
-        if peaks(i,6)>KhiThreshold; 
-            mark='o'; 
-            FitIdxOk=(FitIdx<trekSize-1)&(FitIdx>1+MinFrontN);   
-            SubtractedPulse=peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end);
-            trekMinus(FitIdx(FitIdxOk))=trekMinus(FitIdx(FitIdxOk))+SubtractedPulse(FitIdxOk);
-        else
-            mark='.'; 
-        end;
-      
-        %if peaks(i,6)>10; mark='*'; end;      
+        
+        mark='.';    
         point=['k',mark];
+
         if dtau<-tau; point=['b',mark]; end;
         if dtau>tau; point=['r',mark]; end;
-        
+       
         plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point);
       end; 
 
-  plot(trekMinus,'y'); 
-  legend('trek','Amplitude+Zero','Zero','trekMinus');
+      plot(trekMinus,'y'); 
+      legend('trek','Amplitude+Zero','Zero','trekMinus');
 
-  figure( HistogramPlot);
-    subplot(AmplHistogramPlot); errorbar(HistPeaks1(:,1),HistPeaks1(:,2),HistPeaks1(:,3),'-b.'); 
-    grid on; hold on; 
  
   CloseGraphs;
 

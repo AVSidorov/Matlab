@@ -2,9 +2,8 @@ function TrekSet=TrekPickThr(TrekSetIn);
 
 TrekSet=TrekSetIn;
 
-OverStMin=4;
-OverStMax=20;
-Plot=true;
+StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshol Search
+Plot=false;
 
 
 tic;
@@ -47,49 +46,76 @@ MinN=size(MinInd,1);
       MinN=MinN-1;
  end;
 
-
+ 
  FrontHigh=trek(MaxInd)-trek(MinInd);
- 
- bool=(FrontHigh>OverStMin*StdVal)&(FrontHigh<OverStMax*StdVal);
- 
- HistFH=sid_hist(FrontHigh(bool),1,'max');
 
+ 
+ Thr=0;
 
+ MinFrontHigh=min(FrontHigh);
+ MaxFrontHigh=max(FrontHigh);
+
+ HS=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
+
+ [HistFH,HI]=sid_hist(FrontHigh,1,HS);
+ 
  HistR=circshift(HistFH(:,2),1);
+ HistR(1)=HistFH(1,2);
+ 
  HistL=circshift(HistFH(:,2),-1);
- MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<=HistL;
 
- 
- 
- PreThr=HistFH(find(MinHistBool,1,'first'),1);
- if Plot
-    figure;
-    semilogy(HistFH(:,1),HistFH(:,2),'-g.');
-    grid on; hold on;
-    plot([PreThr,PreThr],[min(HistFH(:,2)),max(HistFH(:,2))],'-g','LineWidth',2);
- end;
+FrontHistBool=HistFH(:,2)>HistR&HistFH(:,2)<HistL;
+TailHistBool=HistFH(:,2)<HistR&HistFH(:,2)>HistL;
 
- bool=(FrontHigh>PreThr-StdVal)&(FrontHigh<PreThr+StdVal);
+FrontHistInd=find(FrontHistBool);
+TailHistInd=find(TailHistBool);
 
-[HistFH,HI]=sid_hist(FrontHigh(bool),1);
- 
- [MinHist,MinHistInd]=min(HistFH(:,2));
- 
- Thr=HistFH(MinHistInd,1);
+if  size(TailHistInd,1)>0
+     if  not(isempty(FrontHistInd))
+         while FrontHistInd(1)<TailHistInd(1)
+            FrontHistInd(1)=[];
+            if isempty(FrontHistInd);  break;  end;
+         end;
+     end;
 
-%  HistR=circshift(HistFH(:,2),1);
-%  HistL=circshift(HistFH(:,2),-1);
-%  MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<=HistL;
-% 
-% 
-%  
-%  Thr=HistFH(find(MinHistBool,1,'first'),1);
+    if  not(isempty(FrontHistInd))
+        bool=TailHistInd<FrontHistInd(1);
+    else
+        bool=ones(size(TailHistInd,1));
+    end;
+    
+    FitInd=TailHistInd(bool);
 
- if Plot
-    semilogy(HistFH(:,1),HistFH(:,2),'-r.');
-    plot([Thr,Thr],[min(HistFH(:,2)),max(HistFH(:,2))],'-r','LineWidth',2);
- end;
+end;
 
+if size(FitInd,1)>1
+    p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
+    p(2)=p(2)-1;
+    Thr=roots(p);
+else
+    Thr=HistFH(1,1);
+end;
+Ind=find(HistFH(:,2)==1,1,'first');
+Thr=min([HistFH(Ind,1),Thr]);
+
+     
+
+    if Plot
+        HistFig=figure; 
+        semilogy(HistFH(:,1),HistFH(:,2),'-b.');
+        hold on; grid on;
+
+        semilogy(HistFH(FitInd,1),exp(polyval(p,HistFH(FitInd,1))),'-g.','LineWidth',2);
+        plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
+        
+        Bool=FrontHigh>Thr;
+        [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
+        semilogy(HistFH(:,1),HistFH(:,2),'-m.');
+
+        pause;
+        close(gcf);
+    end;
+    
  
 
 TrekSet.OverStThr=Thr/StdVal;
@@ -102,7 +128,3 @@ fprintf('The Threshold  = %5.3f %5.3f*%7.4f \n',Thr,Thr/StdVal,StdVal);
 disp('>>>>>>>> Pick Threshold finished');
 toc;
 
-if Plot
-    HistFH=sid_hist(FrontHigh,1,HI/5);
-    semilogy(HistFH(:,1),HistFH(:,2),'-b.');
-end;

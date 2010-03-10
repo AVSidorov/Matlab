@@ -1,4 +1,5 @@
-function TrekSet=Trek(FileName);
+% function TrekSet=Trek(FileName);
+function Trek(FileName);
 
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
@@ -9,9 +10,9 @@ TrekSet.FileType='single';      %choose file type for precision in fread functio
 TrekSet.tau=0.020;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverStStd=3;
-TrekSet.OverStThr=6.5;
+TrekSet.OverStThr=-1;
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
-TrekSet.MaxSignal=3650;
+TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
 TrekSet.StartTime=TrekSet.StartOffset;
@@ -48,7 +49,9 @@ fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
     %end;
     
     %Threshold Determination
-    TrekSet1=TrekPickThr(TrekSet1);
+    if TrekSet.OverStThr<0
+        TrekSet1=TrekPickThr(TrekSet1);
+    end;
     
     %Searching for Indexes of potential Peaks
     TrekSet1=TrekPeakSearch(TrekSet1);
