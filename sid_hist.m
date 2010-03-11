@@ -1,4 +1,4 @@
-function [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep,HistInterval);
+function [Hist,HistInterval,HistStep,HistSet]=sid_hist(InArray,X,HistStep,HistInterval);
 Step=5; %Number of min intervals for HistInterval Calculations
 A=[];
 rflag=false;
@@ -143,4 +143,10 @@ if rflag
     err=Hist(MaxHistInd,3)/MaxHist;
     [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep*err/0.1,HistInterval*err/0.1);
 end;
-
+HistSet.Hist=Hist;
+HistSet.HI=HistInterval;
+HistSet.HS=HistStep;
+HistSet.HistN=HistN;
+HistSet.RangeNI=YRange/HistInterval;
+HistSet.Max=max(Hist(:,2));
+HistSet.Min=min(Hist(:,2));

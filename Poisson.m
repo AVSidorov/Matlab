@@ -1,4 +1,4 @@
-function [A1,A2,W1,W2,K]=Poisson(FileName);
+function PoissonSet=Poisson(FileName);
 %[A1,Amain,W1,W2,K]=Poisson(FileName);  FileName is a histogram file
 %Fit calibration spectra
 %A1 - amplitude of the first peak, 
@@ -279,6 +279,24 @@ Bool=(Spectr(:,1)>=W4+Sigma1)&(Spectr(:,1)<=Wmain);
 %     fprintf(fid,'%6.2f %3.0f %5.2f %6.3f %6.4f %6.4f %6.4f %6.4f %6.4f\n' ,Spectr');
 %     fclose(fid);    
 % end;
+
+PoissonSet.W1=W1;
+PoissonSet.Wmain=Wmain;
+PoissonSet.WmainW=WmainW;
+PoissonSet.W4=W4;
+PoissonSet.W4W=W4W;
+PoissonSet.SigmaMain=SigmaMain;
+PoissonSet.SigmaMainW=SigmaMainW;
+PoissonSet.SigmaMainP=100*SigmaMain/Wmain;
+PoissonSet.Sigma1=Sigma1;
+PoissonSet.Sigma1W=Sigma1W;
+PoissonSet.Sigma1P=100*Sigma1/Wmain;
+PoissonSet.FWHM=w2-w1;
+PoissonSet.FWHMw=w2W-w1W;
+PoissonSet.FWHMp=100*(w2W-w1W)/WmainW;
+PoissonSet.K=Kmin;
+PoissonSet.KW=KminW;
+
 
 
 fprintf('begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin\n'); 
