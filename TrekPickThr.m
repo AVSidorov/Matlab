@@ -3,7 +3,7 @@ function TrekSet=TrekPickThr(TrekSetIn);
 TrekSet=TrekSetIn;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
-Plot=false;
+Plot=true;
 
 
 tic;
@@ -75,11 +75,30 @@ while size(FlatHistInd,1)>StartIntervalNum/10;
     FrontHistBool=HistFH(:,2)>HistR&HistFH(:,2)<HistL;
     TailHistBool=HistFH(:,2)<HistR&HistFH(:,2)>HistL;
     FlatHistBool=HistFH(:,2)==HistR|HistFH(:,2)==HistL;
-
+        
     FrontHistInd=find(FrontHistBool);
     TailHistInd=find(TailHistBool);
     FlatHistInd=find(FlatHistBool);
+
+    while FlatHistInd(end)>TailHistInd(end)||FlatHistInd(end)>FrontHistInd(end)
+        FlatHistInd(end)=[];
+    end;
+
+    while FlatHistInd(1)<TailHistInd(1)||FlatHistInd(1)<FrontHistInd(1)
+        FlatHistInd(1)=[];
+    end;
+
     sm=sm+2;
+   if Plot
+        HistFig=figure; 
+        semilogy(HistFH(:,1),HistFH(:,2),'-b.');
+        hold on; grid on;
+        semilogy(HistFH(TailHistBool,1),HistFH(TailHistBool,2),'ro');
+        semilogy(HistFH(FrontHistBool,1),HistFH(FrontHistBool,2),'bo');
+        semilogy(HistFH(FlatHistBool,1),HistFH(FlatHistBool,2),'mo');
+        pause;
+        close(gcf);
+   end;
 end;
 
 if  size(TailHistInd,1)>0
@@ -93,7 +112,7 @@ if  size(TailHistInd,1)>0
     if  not(isempty(FrontHistInd))
         bool=TailHistInd<FrontHistInd(1);
     else
-        bool=ones(size(TailHistInd,1));
+        bool=true(size(TailHistInd,1),1);
     end;
     
     FitInd=TailHistInd(bool);

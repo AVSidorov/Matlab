@@ -123,31 +123,47 @@ if nargin==4
 end;
 
 
-MinAmpl=min(A);
-MaxAmpl=max(A);
-YRange=max(A)-min(A);
+if size(A,1)>1
+    MinAmpl=min(A);
+    MaxAmpl=max(A);
+    YRange=max(A)-min(A);
 
-HistN=fix(YRange/HistStep)+1;  %HistNA=fix(NPeaks/AveragN);  
-if HistN==0; HistN=1; end;     % the number of intervals     
+    HistN=fix(YRange/HistStep)+1;  %HistNA=fix(NPeaks/AveragN);  
+    if HistN==0; HistN=1; end;     % the number of intervals     
 
-for i=1:HistN Hist(i,1)=MinAmpl+(i-0.5)*HistStep; end; 
+    for i=1:HistN Hist(i,1)=MinAmpl+(i-0.5)*HistStep; end; 
 
-for i=1:HistN
-        HistBool=(A(:)<Hist(i,1)+HistInterval/2)&...
-                 (A(:)>=Hist(i,1)-HistInterval/2);
-        Hist(i,2)=size(A(HistBool,1),1);  
-        Hist(i,3)=sqrt(Hist(i,2));  %error
+    for i=1:HistN
+            HistBool=(A(:)<Hist(i,1)+HistInterval/2)&...
+                     (A(:)>=Hist(i,1)-HistInterval/2);
+            Hist(i,2)=size(A(HistBool,1),1);  
+            Hist(i,3)=sqrt(Hist(i,2));  %error
+    end;
+    if rflag
+        [MaxHist,MaxHistInd]=max(Hist(:,2));
+        err=Hist(MaxHistInd,3)/MaxHist;
+        [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep*err/0.1,HistInterval*err/0.1);
+    end;
+    HistSet.Hist=Hist;
+    HistSet.HI=HistInterval;
+    HistSet.HS=HistStep;
+    HistSet.HistN=HistN;
+    HistSet.Range=YRange;
+    HistSet.RangeNI=YRange/HistInterval;
+    HistSet.Max=max(Hist(:,2));
+    HistSet.Min=min(Hist(:,2));
+else
+    HI=0;
+    HS=0;
+    Hist(1,1)=A;
+    Hist(1,2)=1;
+    Hist(1,3)=1;
+    HistSet.Hist=Hist;
+    HistSet.HI=HistInterval;
+    HistSet.HS=HistStep;
+    HistSet.HistN=1;
+    HistSet.Range=0;
+    HistSet.RangeNI=0;
+    HistSet.Max=max(Hist(:,2));
+    HistSet.Min=min(Hist(:,2));
 end;
-if rflag
-    [MaxHist,MaxHistInd]=max(Hist(:,2));
-    err=Hist(MaxHistInd,3)/MaxHist;
-    [Hist,HistInterval,HistStep]=sid_hist(InArray,X,HistStep*err/0.1,HistInterval*err/0.1);
-end;
-HistSet.Hist=Hist;
-HistSet.HI=HistInterval;
-HistSet.HS=HistStep;
-HistSet.HistN=HistN;
-HistSet.Range=YRange;
-HistSet.RangeNI=YRange/HistInterval;
-HistSet.Max=max(Hist(:,2));
-HistSet.Min=min(Hist(:,2));

@@ -127,6 +127,7 @@ OnTailInd=find(OnTailBool);
 OnTailN=size(OnTailInd,1);
 
 SelectedBool=ByFrontBool|OnTailBool|PeakOnFrontBool;
+SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
 SelectedN=size(SelectedInd,1);
 
