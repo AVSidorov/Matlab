@@ -2,7 +2,7 @@ function TrekSet=TrekPickThr(TrekSetIn);
 
 TrekSet=TrekSetIn;
 
-StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshol Search
+StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 Plot=false;
 
 
@@ -58,17 +58,29 @@ MinN=size(MinInd,1);
  HS=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
 
  [HistFH,HI]=sid_hist(FrontHigh,1,HS);
+ HS=min([HS,HI]);
+ [HistFH,HI]=sid_hist(FrontHigh,1,HS);
  
- HistR=circshift(HistFH(:,2),1);
- HistR(1)=HistFH(1,2);
- 
- HistL=circshift(HistFH(:,2),-1);
+sm=1;
 
-FrontHistBool=HistFH(:,2)>HistR&HistFH(:,2)<HistL;
-TailHistBool=HistFH(:,2)<HistR&HistFH(:,2)>HistL;
+FlatHistInd=ones(StartIntervalNum,1);
 
-FrontHistInd=find(FrontHistBool);
-TailHistInd=find(TailHistBool);
+while size(FlatHistInd,1)>StartIntervalNum/10;
+    HistFH(:,2)=smooth(HistFH(:,2),sm);
+    
+    HistR=circshift(HistFH(:,2),1);
+    HistR(1)=HistFH(1,2);
+    HistL=circshift(HistFH(:,2),-1);
+
+    FrontHistBool=HistFH(:,2)>HistR&HistFH(:,2)<HistL;
+    TailHistBool=HistFH(:,2)<HistR&HistFH(:,2)>HistL;
+    FlatHistBool=HistFH(:,2)==HistR|HistFH(:,2)==HistL;
+
+    FrontHistInd=find(FrontHistBool);
+    TailHistInd=find(TailHistBool);
+    FlatHistInd=find(FlatHistBool);
+    sm=sm+2;
+end;
 
 if  size(TailHistInd,1)>0
      if  not(isempty(FrontHistInd))
@@ -86,15 +98,17 @@ if  size(TailHistInd,1)>0
     
     FitInd=TailHistInd(bool);
 
+    if size(FitInd,1)>1
+        p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
+        p1=p;
+        p(2)=p(2)-log(HistFH(FitInd(end),2));
+        Thr=roots(p);
+    else
+        Thr=HistFH(1,1);
+    end;
+
 end;
 
-if size(FitInd,1)>1
-    p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
-    p(2)=p(2)-1;
-    Thr=roots(p);
-else
-    Thr=HistFH(1,1);
-end;
 Ind=find(HistFH(:,2)==1,1,'first');
 Thr=min([HistFH(Ind,1),Thr]);
 Thr=max([Thr,2*StdVal]);
@@ -106,7 +120,7 @@ Thr=max([Thr,2*StdVal]);
         semilogy(HistFH(:,1),HistFH(:,2),'-b.');
         hold on; grid on;
 
-        semilogy(HistFH(FitInd,1),exp(polyval(p,HistFH(FitInd,1))),'-g.','LineWidth',2);
+        semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
         plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
         
         Bool=FrontHigh>Thr;
