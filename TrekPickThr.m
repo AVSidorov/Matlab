@@ -97,6 +97,7 @@ else
 end;
 Ind=find(HistFH(:,2)==1,1,'first');
 Thr=min([HistFH(Ind,1),Thr]);
+Thr=max([Thr,2*StdVal]);
 
      
 

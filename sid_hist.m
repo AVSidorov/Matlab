@@ -147,6 +147,7 @@ HistSet.Hist=Hist;
 HistSet.HI=HistInterval;
 HistSet.HS=HistStep;
 HistSet.HistN=HistN;
+HistSet.Range=YRange;
 HistSet.RangeNI=YRange/HistInterval;
 HistSet.Max=max(Hist(:,2));
 HistSet.Min=min(Hist(:,2));
