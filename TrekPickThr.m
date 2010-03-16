@@ -3,7 +3,7 @@ function TrekSet=TrekPickThr(TrekSetIn);
 TrekSet=TrekSetIn;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
-Plot=true;
+Plot=false;
 
 
 tic;
@@ -57,65 +57,57 @@ MinN=size(MinInd,1);
 
  HS=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
 
- [HistFH,HI]=sid_hist(FrontHigh,1,HS);
+ [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh,1,HS);
  HS=min([HS,HI]);
- [HistFH,HI]=sid_hist(FrontHigh,1,HS);
+ [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh,1,HS);
+
+ if HistSet.Range/StdVal<4*TrekSet.OverStStd;
+    Thr=2*StdVal*TrekSet.OverStStd;
+    TrekSet.OverStThr=Thr/StdVal;
+    TrekSet.OverStStd=TrekSet.OverStThr/2; %/2 because Threshold is for FrontHigh, which is double amlitude
+
+    TrekSet.Thr=Thr;
+    return;
+ end;
  
-sm=1;
-
-FlatHistInd=ones(StartIntervalNum,1);
-
-while size(FlatHistInd,1)>StartIntervalNum/10;
-    HistFH(:,2)=smooth(HistFH(:,2),sm);
+ 
     
     HistR=circshift(HistFH(:,2),1);
     HistR(1)=HistFH(1,2);
     HistL=circshift(HistFH(:,2),-1);
 
-    FrontHistBool=HistFH(:,2)>HistR&HistFH(:,2)<HistL;
-    TailHistBool=HistFH(:,2)<HistR&HistFH(:,2)>HistL;
-    FlatHistBool=HistFH(:,2)==HistR|HistFH(:,2)==HistL;
+    MaxHistBool=HistFH(:,2)>HistR&HistFH(:,2)>=HistL;
+    MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<HistL;
+
         
-    FrontHistInd=find(FrontHistBool);
-    TailHistInd=find(TailHistBool);
-    FlatHistInd=find(FlatHistBool);
-
-    while FlatHistInd(end)>TailHistInd(end)||FlatHistInd(end)>FrontHistInd(end)
-        FlatHistInd(end)=[];
-    end;
-
-    while FlatHistInd(1)<TailHistInd(1)||FlatHistInd(1)<FrontHistInd(1)
-        FlatHistInd(1)=[];
-    end;
-
-    sm=sm+2;
-   if Plot
-        HistFig=figure; 
-        semilogy(HistFH(:,1),HistFH(:,2),'-b.');
-        hold on; grid on;
-        semilogy(HistFH(TailHistBool,1),HistFH(TailHistBool,2),'ro');
-        semilogy(HistFH(FrontHistBool,1),HistFH(FrontHistBool,2),'bo');
-        semilogy(HistFH(FlatHistBool,1),HistFH(FlatHistBool,2),'mo');
-        pause;
-        close(gcf);
-   end;
-end;
-
-if  size(TailHistInd,1)>0
-     if  not(isempty(FrontHistInd))
-         while FrontHistInd(1)<TailHistInd(1)
-            FrontHistInd(1)=[];
-            if isempty(FrontHistInd);  break;  end;
-         end;
-     end;
-
-    if  not(isempty(FrontHistInd))
-        bool=TailHistInd<FrontHistInd(1);
-    else
-        bool=true(size(TailHistInd,1),1);
-    end;
+    MaxHistInd=find(MaxHistBool);
+    MinHistInd=find(MinHistBool);
     
-    FitInd=TailHistInd(bool);
+
+    if size(MaxHistInd,1)>1
+        while MaxHistInd(1)<MinHistInd(1)
+            MaxHistInd(1)=[];
+        end;
+
+        while size(MaxHistInd,1)<size(MinHistInd,1)
+            MinHistInd(end)=[];
+        end;
+
+        if size(MaxHistInd,1)>1
+            TailHighHist=HistFH(MaxHistInd(1:end-1),2)-HistFH(MinHistInd(2:end),2);
+            Ind=find(TailHighHist>0,1,'first');
+            FitInd=[MaxHistInd(Ind):MinHistInd(Ind+1)]';
+        end;
+        if isempty(FitInd);
+            FitInd=[1:size(HistFH,1)]';
+        end;
+    else
+        FitInd=[1:size(HistFH,1)]';
+    end;
+
+
+
+    
 
     if size(FitInd,1)>1
         p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
@@ -126,10 +118,10 @@ if  size(TailHistInd,1)>0
         Thr=HistFH(1,1);
     end;
 
-end;
+
 
 Ind=find(HistFH(:,2)==1,1,'first');
-Thr=min([HistFH(Ind,1),Thr]);
+Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
 Thr=max([Thr,2*StdVal]);
 
      
@@ -139,12 +131,22 @@ Thr=max([Thr,2*StdVal]);
         semilogy(HistFH(:,1),HistFH(:,2),'-b.');
         hold on; grid on;
 
-        semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
-        plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
+        if not(isempty(p1))
+            semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
+            plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
+        end;
         
+        Bool=FrontHigh>Thr/2;
+        if not(isempty(find(Bool)))
+            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
+            semilogy(HistFH(:,1),HistFH(:,2),'-g.');
+        end;
+
         Bool=FrontHigh>Thr;
-        [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
-        semilogy(HistFH(:,1),HistFH(:,2),'-m.');
+        if not(isempty(find(Bool)))
+            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
+            semilogy(HistFH(:,1),HistFH(:,2),'-m.');
+        end;
 
         pause;
         close(gcf);

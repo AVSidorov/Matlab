@@ -63,6 +63,8 @@ fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
 
      TrekSet.peaks=TrekSet1.peaks;
      TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
+     TrekSet.OverStStd=TrekSet1.OverStStd;
+     TrekSet.OverStThr=TrekSet1.OverStThr;
      clear TrekSet1;
 end;
 
