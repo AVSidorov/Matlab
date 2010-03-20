@@ -145,13 +145,15 @@ fprintf('The number of selected peaks = %7.0f \n',SelectedN);
 fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 toc
 
-
-%  figure;
-%  plot(trek);
-%  grid on; hold on;
-%  plot(SelectedInd,trek(SelectedInd),'.r');
-%  plot(find(OnTailBool),trek(OnTailBool),'om');
-%  plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'dg');
+% 
+%   figure;
+%   plot(trek);
+%   grid on; hold on;
+%   plot(SelectedInd,trek(SelectedInd),'.r');
+%   plot(find(OnTailBool),trek(OnTailBool),'om');
+%   plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'dg');
+%   pause;
+%   close(gcf);
 
 
 

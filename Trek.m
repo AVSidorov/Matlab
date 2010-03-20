@@ -45,6 +45,7 @@ fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
     %Standard Deviation calulations and Peak Polarity Changing
     %if i==1                
     %calculating Standard Deviation only at first Time
+    %poka nelzja, tak kak inache net izmenenija polarnosti    
     TrekSet1=TrekStdVal(TrekSet1);
     %end;
     

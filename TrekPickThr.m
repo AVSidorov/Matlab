@@ -85,18 +85,22 @@ MinN=size(MinInd,1);
     
 
     if size(MaxHistInd,1)>1
-        while MaxHistInd(1)<MinHistInd(1)
-            MaxHistInd(1)=[];
+        if MaxHistInd(1)>MinHistInd(1)
+            MaxHistInd=[1;MaxHistInd];
+        end;
+
+        while size(MaxHistInd,1)>size(MinHistInd,1)
+            MaxHistInd(end)=[];
         end;
 
         while size(MaxHistInd,1)<size(MinHistInd,1)
             MinHistInd(end)=[];
         end;
-
+        
         if size(MaxHistInd,1)>1
-            TailHighHist=HistFH(MaxHistInd(1:end-1),2)-HistFH(MinHistInd(2:end),2);
+            TailHighHist=HistFH(MaxHistInd(1:end),2)-HistFH(MinHistInd(1:end),2);            
             Ind=find(TailHighHist>0,1,'first');
-            FitInd=[MaxHistInd(Ind):MinHistInd(Ind+1)]';
+            FitInd=[MaxHistInd(Ind):MinHistInd(Ind)]';
         end;
         if isempty(FitInd);
             FitInd=[1:size(HistFH,1)]';
