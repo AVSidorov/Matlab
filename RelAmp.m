@@ -34,7 +34,7 @@ AmpRel(bool,:)=[];
 
 StartHV=max([AmpBase(1,1),AmpRel(1,1)]);
 EndHV=min([AmpBase(end,1),AmpRel(end,1)]);
-Ratio(:,1)=[StartHV:25:EndHV];
+Ratio(:,1)=[StartHV:125:EndHV];
 bool1=AmpBase(:,1)>=StartHV&AmpBase(:,1)<=EndHV;
 bool2=AmpRel(:,1)>=StartHV&AmpRel(:,1)<=EndHV;
 A1=interp1(AmpBase(bool1,1),AmpBase(bool1,2),Ratio(:,1),'linear');
