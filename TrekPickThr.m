@@ -3,6 +3,7 @@ function TrekSet=TrekPickThr(TrekSetIn);
 TrekSet=TrekSetIn;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
+MaxOverSt=20;
 Plot=false;
 
 
@@ -57,18 +58,21 @@ MinN=size(MinInd,1);
 
  HS=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
 
- [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh,1,HS);
+ bool=FrontHigh<MaxOverSt*StdVal;
+ [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
  HS=min([HS,HI]);
- [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh,1,HS);
+ [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
 
  if HistSet.Range/StdVal<4*TrekSet.OverStStd;
     Thr=2*StdVal*TrekSet.OverStStd;
+    Ind=find(HistFH(:,2)==1,1,'first');
+    Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
+    
     TrekSet.OverStThr=Thr/StdVal;
     TrekSet.OverStStd=TrekSet.OverStThr/2; %/2 because Threshold is for FrontHigh, which is double amlitude
 
     TrekSet.Thr=Thr;
-    return;
- end;
+ else
  
  
     
@@ -85,8 +89,15 @@ MinN=size(MinInd,1);
     
 
     if size(MaxHistInd,1)>1
+        FirstNonFlatInd=1;
+        while HistFH(FirstNonFlatInd,2)<=HistFH(FirstNonFlatInd+1,2)
+            FirstNonFlatInd=FirstNonFlatInd+1;
+            if FirstNonFlatInd==size(HistFH,1)
+                break 
+            end;
+        end;
         if MaxHistInd(1)>MinHistInd(1)
-            MaxHistInd=[1;MaxHistInd];
+            MaxHistInd=[FirstNonFlatInd;MaxHistInd];
         end;
 
         while size(MaxHistInd,1)>size(MinHistInd,1)
@@ -124,10 +135,11 @@ MinN=size(MinInd,1);
 
 
 
-Ind=find(HistFH(:,2)==1,1,'first');
-Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
-Thr=max([Thr,2*StdVal]);
+    Ind=find(HistFH(:,2)==1,1,'first');
+    Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
+    Thr=max([Thr,2*StdVal]);
 
+ end;
      
 
     if Plot
@@ -135,25 +147,58 @@ Thr=max([Thr,2*StdVal]);
         semilogy(HistFH(:,1),HistFH(:,2),'-b.');
         hold on; grid on;
 
-        if not(isempty(p1))
-            semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
-            plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
+        plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
+
+        if exist('p1')
+            if not(isempty(p1))
+                semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
+            end;
         end;
-        
         Bool=FrontHigh>Thr/2;
-        if not(isempty(find(Bool)))
-            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
+        if not(isempty(find(Bool))) 
+            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS,HI);
             semilogy(HistFH(:,1),HistFH(:,2),'-g.');
         end;
 
         Bool=FrontHigh>Thr;
         if not(isempty(find(Bool)))
-            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS);
+            [HistFH,HI]=sid_hist(FrontHigh(Bool),1,HS,HI);
             semilogy(HistFH(:,1),HistFH(:,2),'-m.');
         end;
 
-        pause;
-        close(gcf);
+        fprintf(['Press ''C'' to correct the threshold or to accept the followes one as Threshold: \n',...
+        '''e'' for manual input \n']);
+        
+        Decision=input('Default is red Threshold ','s');
+        if isempty(Decision); Decision='q'; end;  
+
+        if Decision=='e'||Decision=='E'
+            Threshold=input('Input threshold ');
+            if isempty(Threshold)
+                Threshold=Thr;
+            end;
+        end;
+
+        if Decision=='c'||Decision=='C'
+                Color='m';   %Colors(1);
+                x=[]; z=[];
+                figure(HistFig);
+                [x,z]=ginput(1);
+                plot([x,x],[0,max(HistFH(:,2))],Color,'LineWidth',2);
+            disp('=====================');
+            Threshold=x;
+            disp(['Automatic Threshold is ',num2str(Thr)]);
+            disp(['Manual Threshold =',num2str(Threshold),' is taken']);
+
+        end;    
+
+        if Decision~='q'
+            Thr=Threshold;
+        end;
+        
+
+%         pause;
+%         close(gcf);
     end;
     
  

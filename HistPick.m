@@ -13,9 +13,9 @@ while isempty(answ)
     Hist10(:,2)=Hist10(:,2)/HI;
     figure(h);  
       subplot(2,1,1)
-        plot(Hist1(:,1),Hist1(:,2),'-b.');
-        grid on; hold on;
         plot(Hist10(:,1),Hist10(:,2),'-r.');
+        grid on; hold on;
+        plot(Hist1(:,1),Hist1(:,2),'-b.');
         hold off;
       subplot(2,1,2)
         plot(Hist1(:,1),Hist1(:,2),'-b.');

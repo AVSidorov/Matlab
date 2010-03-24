@@ -4,7 +4,7 @@ function Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=3e6;
+MaxBlock=1e5;
 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.020;              %ADC period
@@ -15,6 +15,7 @@ TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
+TrekSet.Threshold=0;
 TrekSet.StartTime=TrekSet.StartOffset;
 
 %??? May be Place for insertion cycle if Directory Name inputed
@@ -28,7 +29,7 @@ if TrekSet.type==0 return; end;
 TrekSet=TrekStPLoad(TrekSet);
 
 %Choosing time interval for working
-%TrekSet=TrekPickTime(TrekSet);
+TrekSet=TrekPickTime(TrekSet);
 
 
 PartN=fix(TrekSet.size/MaxBlock)+1;
@@ -36,7 +37,7 @@ for i=1:PartN
 fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
     TrekSet1=TrekSet;
 
-    TrekSet1.size=MaxBlock;
+    TrekSet1.size=min([TrekSet.size-(i-1)*MaxBlock;MaxBlock]);
     TrekSet1.StartTime=TrekSet.StartTime+(i-1)*MaxBlock*TrekSet1.tau;
     
     %Loading trek data
@@ -50,9 +51,9 @@ fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
     %end;
     
     %Threshold Determination
-    if TrekSet.OverStThr<0
+%     if TrekSet.OverStThr<0
         TrekSet1=TrekPickThr(TrekSet1);
-    end;
+%     end;
     
     %Searching for Indexes of potential Peaks
     TrekSet1=TrekPeakSearch(TrekSet1);
@@ -64,6 +65,7 @@ fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
 
      TrekSet.peaks=TrekSet1.peaks;
      TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
+     TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
      TrekSet.OverStStd=TrekSet1.OverStStd;
      TrekSet.OverStThr=TrekSet1.OverStThr;
      clear TrekSet1;

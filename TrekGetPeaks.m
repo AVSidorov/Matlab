@@ -395,8 +395,12 @@ if EndPlotBool
   
   TrekFg=figure; plot(trek); hold on; grid on;
      title([TrekName,':  tracks. Pass=', num2str(Pass)]);
-      plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4)+peaks(:,5),'r^')
+      plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4)+peaks(:,5),'r^');
       plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4),'g>');
+      plot(TrekSet.SelectedPeakInd,trek(TrekSet.SelectedPeakInd),'.r');
+      plot(trekMinus,'y'); 
+      legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
+
       dt=[];
       for i=1:NPeaksSubtr
         FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
@@ -412,9 +416,8 @@ if EndPlotBool
        
         plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point);
       end; 
-
       plot(trekMinus,'y'); 
-      legend('trek','Amplitude+Zero','Zero','trekMinus');
+
 
  
   CloseGraphs;
