@@ -4,7 +4,7 @@ function Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=1e5;
+MaxBlock=3e6;
 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.020;              %ADC period
@@ -29,12 +29,12 @@ if TrekSet.type==0 return; end;
 TrekSet=TrekStPLoad(TrekSet);
 
 %Choosing time interval for working
-TrekSet=TrekPickTime(TrekSet);
+% TrekSet=TrekPickTime(TrekSet);
 
 
 PartN=fix(TrekSet.size/MaxBlock)+1;
 for i=1:PartN 
-fprintf('==== Processing  Part %u of %s\n',i,TrekSet.name);
+fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     TrekSet1=TrekSet;
 
     TrekSet1.size=min([TrekSet.size-(i-1)*MaxBlock;MaxBlock]);
@@ -75,6 +75,7 @@ end;
  evalin('base','Treks(end+1)=TrekSet;');
 fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');
 toc;
+fprintf('\n \n');
  
 % N='17';
 % points=8000000;

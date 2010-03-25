@@ -5,6 +5,9 @@ function TrekToPoisson(TrekSet)
      HistSet.name=TrekSet.name;
      PoissonSet=Poisson(HistSet.Hist);
      PoissonSet.name=TrekSet.name;
+     PoissonSet.NPeak=size(TrekSet.peaks,1);
+     PoissonSet.HI=HistSet.HI;
+     PoissonSet.HS=HistSet.HS;
      assignin('base','PoissonSet',PoissonSet);
      evalin('base','Poissons(end+1)=PoissonSet;');
    end;
