@@ -7,7 +7,7 @@ function PoissonSet=Poisson(FileName);
 %Wmain - counts for the second peak maximum, 
 %K=2*W1/Sigma1^2=2*Wmain/SigmaMain^2;  Sigma - half width of the peaks
 
-W1Rad=5.989;
+W1Rad=5.898;
 W2Rad=5.887;
 W3Rad=6.490;
 %W4Rad=2.956;   % keV,   energy of the Ar excited line 3.203-0.247 Fe-Kalpha Ar Radiation
