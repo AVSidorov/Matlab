@@ -128,7 +128,7 @@ MaxP=max(Poisson);
 MinP=min(Poisson);
 PeakPRange=MaxP-MinP; 
 HistIntervalP=HistIntervalT;                   % interval for T
-HistP=sid_spectr(Poisson,1,HistIntervalP);
+HistP=sid_hist(Poisson,1,HistIntervalP);
 
 
 sfig=figure; 

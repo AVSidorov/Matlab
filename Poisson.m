@@ -106,7 +106,7 @@ while key=='r'|'R'
     W3=W1*W3Rad/W1Rad;
 
     FitSpec1=SpectrFit(Spectr(:,1),W1,K);
-    FitSpec2=0.5*SpectrFit(Spectr(:,1),W2,K);
+    FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,K);
     FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,K);
     FitSpec4=SpectrFit(Spectr(:,1),W4,K);
     FitSpecS=FitSpec1+FitSpec2+FitSpec3;
@@ -152,7 +152,7 @@ for j=1:Wnum
            W2=W1*W2Rad/W1Rad;
            W3=W1*W3Rad/W1Rad;
            FitSpec1=SpectrFit(Spectr(:,1),W1,Kset(i));
-           FitSpec2=0.5*SpectrFit(Spectr(:,1),W2,Kset(i));
+           FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kset(i));
            FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,Kset(i));
            FitSpec4=SpectrFit(Spectr(:,1),W4,Kset(i));         
            FitSpecS=FitSpec1+FitSpec2+FitSpec3;          
@@ -198,7 +198,7 @@ else
 end;
 
 FitSpec1=SpectrFit(Spectr(:,1),W1,Kmin);
-FitSpec2=0.5*SpectrFit(Spectr(:,1),W2,Kmin);
+FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kmin);
 FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,Kmin);
 FitSpecS=FitSpec1+FitSpec2+FitSpec3;
 A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
@@ -217,7 +217,7 @@ for j=1:Wnum
            W43=W3-Wdif;
 
            FitSpec41=SpectrFit(Spectr(:,1),W41,Kmin);
-           FitSpec42=0.5*SpectrFit(Spectr(:,1),W42,Kmin);
+           FitSpec42=0.51*SpectrFit(Spectr(:,1),W42,Kmin);
            FitSpec43=0.16*SpectrFit(Spectr(:,1),W43,Kmin);
            
            FitSpec4=FitSpec41+FitSpec42+FitSpec43;          
@@ -256,11 +256,11 @@ end;
 
  
 FitSpec1=SpectrFit(Spectr(:,1),W1,Kmin);
-FitSpec2=0.5*SpectrFit(Spectr(:,1),W2,Kmin);
+FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kmin);
 FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,Kmin);
 
 FitSpec41=SpectrFit(Spectr(:,1),W41,Kmin);
-FitSpec42=0.5*SpectrFit(Spectr(:,1),W42,Kmin);
+FitSpec42=0.51*SpectrFit(Spectr(:,1),W42,Kmin);
 FitSpec43=0.16*SpectrFit(Spectr(:,1),W43,Kmin);
 
 FitSpecS=FitSpec1+FitSpec2+FitSpec3;
@@ -293,11 +293,11 @@ FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3+A4*FitSpec4;
     WmainSet=Wst:dW:Wend;
     
     FitSpec1f=SpectrFit(WmainSet,W1,Kmin);
-    FitSpec2f=0.5*SpectrFit(WmainSet,W2,Kmin);
+    FitSpec2f=0.51*SpectrFit(WmainSet,W2,Kmin);
     FitSpec3f=0.16*SpectrFit(WmainSet,W3,Kmin);
 
     FitSpec41f=SpectrFit(WmainSet,W41,Kmin);
-    FitSpec42f=0.5*SpectrFit(WmainSet,W42,Kmin);
+    FitSpec42f=0.51*SpectrFit(WmainSet,W42,Kmin);
     FitSpec43f=0.16*SpectrFit(WmainSet,W43,Kmin);
 
 [Amain,WmainI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f)+A4*(FitSpec41f+FitSpec42f+FitSpec43f));
@@ -313,11 +313,11 @@ WmainW=W1Rad*Wmain/W1;
     WescSet=Wst:dW:Wend;
     
     FitSpec1f=SpectrFit(WescSet,W1,Kmin);
-    FitSpec2f=0.5*SpectrFit(WescSet,W2,Kmin);
+    FitSpec2f=0.51*SpectrFit(WescSet,W2,Kmin);
     FitSpec3f=0.16*SpectrFit(WescSet,W3,Kmin);
 
     FitSpec41f=SpectrFit(WescSet,W41,Kmin);
-    FitSpec42f=0.5*SpectrFit(WescSet,W42,Kmin);
+    FitSpec42f=0.51*SpectrFit(WescSet,W42,Kmin);
     FitSpec43f=0.16*SpectrFit(WescSet,W43,Kmin);
 
 [Aesc,WescI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f)+A4*(FitSpec41f+FitSpec42f+FitSpec43f));
@@ -387,7 +387,7 @@ fprintf('begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin
 % fprintf('Sigma1=%3.3f counts or %3.3f keV\n', Sigma1, Sigma1*W1Rad/W1); 
 % fprintf('A4=%3.3f\n ',A1);
 fprintf('------------\n');
-fprintf('W1=%3.3f counts or 5.989 keV\n', W1);
+fprintf('W1=%3.3f counts or %3.3f keV\n', W1,W1Rad);
 fprintf('Wmain=%3.3f counts or %3.3f keV\n',Wmain,WmainW);
 fprintf('W41=%3.3f counts or %3.3f keV\n',W41,W41W);
 fprintf('Wescape=%3.3f counts or %3.3f keV\n',Wesc,WescW);

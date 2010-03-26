@@ -4,6 +4,7 @@ TrekSet=TrekSetIn;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 MaxOverSt=20;
+MinOverSt=1.1;
 Plot=false;
 
 
@@ -64,7 +65,7 @@ MinN=size(MinInd,1);
  [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
 
  if HistSet.Range/StdVal<4*TrekSet.OverStStd;
-    Thr=2*StdVal*TrekSet.OverStStd;
+    Thr=MinOverSt*StdVal*TrekSet.OverStStd;
     Ind=find(HistFH(:,2)==1,1,'first');
     Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
     
@@ -137,7 +138,7 @@ MinN=size(MinInd,1);
 
     Ind=find(HistFH(:,2)==1,1,'first');
     Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
-    Thr=max([Thr,2*StdVal]);
+    Thr=max([Thr,MinOverSt*StdVal]);
 
  end;
      
@@ -204,7 +205,7 @@ MinN=size(MinInd,1);
  
 
 TrekSet.OverStThr=Thr/StdVal;
-TrekSet.OverStStd=TrekSet.OverStThr/2; %/2 because Threshold is for FrontHigh, which is double amlitude
+TrekSet.OverStStd=max([TrekSet.OverStThr/2,MinOverSt]); %/2 because Threshold is for FrontHigh, which is double amlitude
 
 TrekSet.Thr=Thr;
 

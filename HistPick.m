@@ -14,11 +14,13 @@ while isempty(answ)
     figure(h);  
       subplot(2,1,1)
         plot(Hist10(:,1),Hist10(:,2),'-r.');
+        set(gca,'YScale','log');
         grid on; hold on;
         plot(Hist1(:,1),Hist1(:,2),'-b.');
         hold off;
       subplot(2,1,2)
         plot(Hist1(:,1),Hist1(:,2),'-b.');
+        set(gca,'YScale','log');
         grid on; hold on;
         plot(Hist10(:,1),Hist10(:,2),'-r.');
 
@@ -38,8 +40,10 @@ while isempty(answ)
     subplot(2,1,1)
         plot(Hist1(:,1),Hist1(:,2),'-b.');
         grid on; 
+        set(gca,'YScale','log');
       subplot(2,1,2)
         plot(Hist1(:,1),Hist1(:,2),'-b.');
+        set(gca,'YScale','log');
         grid on; hold on;
 
     answ=input('Continue if input is empty\n','s');

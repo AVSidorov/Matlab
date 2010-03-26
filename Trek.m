@@ -4,7 +4,7 @@ function Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=3e6;
+MaxBlock=4.5e6;
 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.020;              %ADC period
@@ -54,6 +54,11 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 %     if TrekSet.OverStThr<0
         TrekSet1=TrekPickThr(TrekSet1);
 %     end;
+   
+    TrekSet1.StartTime=15000;
+    TrekSet1.size=2.85e6;
+    TrekSet1=TrekLoad(FileName,TrekSet1);
+    TrekSet1=TrekStdVal(TrekSet1);
     
     %Searching for Indexes of potential Peaks
     TrekSet1=TrekPeakSearch(TrekSet1);
