@@ -24,7 +24,7 @@ Ind=find(Amain==Spectr(:,2));
 Ind=fix(mean(Ind)); 
 
 W1=Spectr(Ind,1); 
-Sigma1=0.15*W1; 
+Sigma1=0.1*W1; 
 
 W4=W1*W4Rad/W1Rad;
 

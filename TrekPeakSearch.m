@@ -29,7 +29,8 @@ StdVal=TrekSet.StdVal;
 trSize=TrekSet.size;
 OverSt=TrekSet.OverStThr;
 
-Threshold=StdVal*OverSt;
+% Threshold=StdVal*OverSt;
+Threshold=TrekSet.Threshold;
 
 % trekS=smooth(trek,SmoothPar);
 

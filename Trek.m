@@ -4,18 +4,18 @@ function Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=4.5e6;
+MaxBlock=3e6;
 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.020;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverStStd=3;
-TrekSet.OverStThr=-1;
+TrekSet.OverStThr=11;
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=0;
+TrekSet.Threshold=500;
 TrekSet.StartTime=TrekSet.StartOffset;
 
 %??? May be Place for insertion cycle if Directory Name inputed
@@ -52,28 +52,29 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     
     %Threshold Determination
 %     if TrekSet.OverStThr<0
-        TrekSet1=TrekPickThr(TrekSet1);
+%        TrekSet1=TrekPickThr(TrekSet1);
 %     end;
+    TrekSet1.Threshold=500;
    
-    TrekSet1.StartTime=15000;
-    TrekSet1.size=2.85e6;
-    TrekSet1=TrekLoad(FileName,TrekSet1);
-    TrekSet1=TrekStdVal(TrekSet1);
-    
-    %Searching for Indexes of potential Peaks
-    TrekSet1=TrekPeakSearch(TrekSet1);
-
-    %!!!Searching for Standard Pulse
-
-    %Getting Peaks
-     TrekSet1=TrekGetPeaks(TrekSet1);
-
-     TrekSet.peaks=TrekSet1.peaks;
-     TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
-     TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
-     TrekSet.OverStStd=TrekSet1.OverStStd;
-     TrekSet.OverStThr=TrekSet1.OverStThr;
-     clear TrekSet1;
+%     TrekSet1.StartTime=15000;
+%     TrekSet1.size=2.85e6;
+%     TrekSet1=TrekLoad(FileName,TrekSet1);
+%     TrekSet1=TrekStdVal(TrekSet1);
+%     
+%     %Searching for Indexes of potential Peaks
+      TrekSet1=TrekPeakSearch(TrekSet1);
+% 
+%     %!!!Searching for Standard Pulse
+% 
+%     %Getting Peaks
+      TrekSet1=TrekGetPeaks(TrekSet1);
+  
+      TrekSet.peaks=TrekSet1.peaks;
+      TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
+      TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
+      TrekSet.OverStStd=TrekSet1.OverStStd;
+      TrekSet.OverStThr=TrekSet1.OverStThr;
+      clear TrekSet1;
 end;
 
  assignin('base','TrekSet',TrekSet);
