@@ -72,7 +72,7 @@ MinN=size(MinInd,1);
     TrekSet.OverStThr=Thr/StdVal;
     TrekSet.OverStStd=TrekSet.OverStThr/2; %/2 because Threshold is for FrontHigh, which is double amlitude
 
-    TrekSet.Thr=Thr;
+    TrekSet.Threshold=Thr;
  else
  
  
@@ -83,7 +83,7 @@ MinN=size(MinInd,1);
 
     MaxHistBool=HistFH(:,2)>HistR&HistFH(:,2)>=HistL;
     MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<HistL;
-
+    MinHistBool(1)=false;
         
     MaxHistInd=find(MaxHistBool);
     MinHistInd=find(MinHistBool);
@@ -91,13 +91,14 @@ MinN=size(MinInd,1);
 
     if size(MaxHistInd,1)>1
         FirstNonFlatInd=1;
-        while HistFH(FirstNonFlatInd,2)<=HistFH(FirstNonFlatInd+1,2)
+        while HistFH(FirstNonFlatInd,2)==HistFH(FirstNonFlatInd+1,2)
             FirstNonFlatInd=FirstNonFlatInd+1;
             if FirstNonFlatInd==size(HistFH,1)
                 break 
             end;
         end;
-        if MaxHistInd(1)>MinHistInd(1)
+        
+        if MaxHistInd(1)>MinHistInd(1)          
             MaxHistInd=[FirstNonFlatInd;MaxHistInd];
         end;
 
@@ -207,7 +208,7 @@ MinN=size(MinInd,1);
 TrekSet.OverStThr=Thr/StdVal;
 TrekSet.OverStStd=max([TrekSet.OverStThr/2,MinOverSt]); %/2 because Threshold is for FrontHigh, which is double amlitude
 
-TrekSet.Thr=Thr;
+TrekSet.Threshold=Thr;
 
 fprintf('The Threshold  = %5.3f %5.3f*%7.4f \n',Thr,Thr/StdVal,StdVal);
 

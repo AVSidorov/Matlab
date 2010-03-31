@@ -1,4 +1,4 @@
-function TrekSet=TrekGetPeaks(TrekSetIn,PassNumber);
+function TrekSet=TrekGetPeaks(TrekSetIn,Pass);
 
 disp('>>>>>>>>Get Peaks started');
 
@@ -25,11 +25,11 @@ OverSt=TrekSet.OverStStd;      % noise regection threshold, in standard deviatio
 TrekName=TrekSet.name;
 trekSize=TrekSet.size;
 StandardPulseNorm=TrekSet.StandardPulse;
-PeakN=size(TrekSet.SelectedPeakInd,1);
 MaxSignal=TrekSet.MaxSignal;
+PeakN=size(TrekSet.SelectedPeakInd,1);    
 
-if nargin<2||isempty(PassNumber)
-    PassNumber=1;
+if nargin<2
+    Pass=1;
 end;
 
 
@@ -96,7 +96,9 @@ PulseInterpFineShifted=PulseInterpFine;
 
 
 trekMinus=trek;
-i=0;  peaks=[];  
+i=0;  
+peaks=zeros(PeakN,7);  
+
 KhiCoeff(1)=1/FitN;     %/TrekSet.Threshold^2;      %full fit
 KhiCoeff(2)=1/(FitN-1); %/TrekSet.Threshold^2;  %middle fit
 KhiCoeff(3)=1/(FitN-2); %/TrekSet.Threshold^2;  %short fit
@@ -106,7 +108,6 @@ StartFitPoint=FitPulseInterval(1);
 NPeaksSubtr=0; 
 
 
-for Pass=1:PassNumber
 %figure; plot(trek(1:1000,2));
 if not(isempty(TrekSet.SelectedPeakInd))
     FitSignalStart=TrekSet.SelectedPeakInd+StartFitPoint;
@@ -341,44 +342,25 @@ end;  %while
 %   close(TrekFg);  
 % 
 
-disp(['=======Pass #',num2str(Pass),' finished. Elapsed time is ', num2str(toc),' sec']);
+disp(['=======Search Peak finished. Elapsed time is ', num2str(toc),' sec']);
 
-if (Pass<PassNumber&PassNumber>1)&&not(isempty(TrekSet.SelectedPeakInd)); 
-    TrekSet=TrekPeakSearch(TrekSet);
-end;
 
-if size(peaks,1)>0
-  PeakNumber(Pass)=size(find(peaks(:,end)==Pass),1);
-else
-  PeakNumber(Pass)=0;    
-end;
 
-end; % for Pass=1:PassNumber
-
-  
-  PeakN=size(peaks,1);
+Ind=[NPeaksSubtr+1:PeakN];
+peaks(Ind,:)=[]; 
+PeakN=NPeaksSubtr;
   
 if PeakN>1
   peaks=sortrows(peaks,2); 
   peaks(1:end-1,3)=diff(peaks(:,3)); peaks(end,3)=trek(end)-peaks(end,2); 
  
-  NPeaksSubtr=size(peaks,1);
+  TrekSet.peaks=[TrekSet.peaks;peaks];
 
-     
-      for Pass=1:PassNumber
-        PeakNumber(Pass)=size(find(peaks(:,end)==Pass),1);
-      end; 
-       
-      TrekSet.peaks=[TrekSet.peaks;peaks];
-
-end;
+end; 
 
 fprintf('=====  Found pulses      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trekSize,trekSize*tau);
 fprintf('The total number of peaks = %7.0f \n',PeakN);
-for Pass=1:PassNumber
-    disp(['   The number of peaks found in pass # ', num2str(Pass), '  = ',num2str(PeakNumber(Pass))]);
-end;
 
 
 fprintf('Last threshold = %7.0f \n',TrekSet.Threshold);
@@ -387,40 +369,40 @@ fprintf('Last threshold = %7.0f \n',TrekSet.Threshold);
 if EndPlotBool  
  if PeakN>1
   
- figure; hold on; 
-    title([TrekName,': Chi^2 versus peak amplitude. Pass=', num2str(Pass)]);
-      plot(peaks(:,5),peaks(:,6),'r.');
-      xlabel('Peak Amplitude');  ylabel('Chi^2');
+    figure; hold on; 
+        title([TrekName,': Chi^2 versus peak amplitude. Pass=', num2str(Pass)]);
+          plot(peaks(:,5),peaks(:,6),'r.');
+          xlabel('Peak Amplitude');  ylabel('Chi^2');
   
   
-  TrekFg=figure; plot(trek); hold on; grid on;
-     title([TrekName,':  tracks. Pass=', num2str(Pass)]);
-      plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4)+peaks(:,5),'r^');
-      plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4),'g>');
-      plot(TrekSet.SelectedPeakInd,trek(TrekSet.SelectedPeakInd),'.r');
-      plot(trekMinus,'y'); 
-      legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
+     TrekFg=figure; plot(trek); hold on; grid on;
+         title([TrekName,':  tracks. Pass=', num2str(Pass)]);
+          plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4)+peaks(:,5),'r^');
+          plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4),'g>');
+          plot(TrekSet.SelectedPeakInd,trek(TrekSet.SelectedPeakInd),'.r');
+          plot(trekMinus,'y'); 
+          legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
 
-      dt=[];
-      for i=1:NPeaksSubtr
-        FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
-        dtau=peaks(i,2)-TrekSet.StartTime-peaks(i,1)*tau;
-        FineShift=round(dtau/tau*FineInterpN);
-        PulseInterpFineShifted=circshift(PulseInterpFine(:,2),FineShift);
-        
-        mark='.';    
-        point=['k',mark];
+          dt=[];
+          for i=1:NPeaksSubtr
+            FitIdx=peaks(i,1)+PulseInterpFine(1:FineInterpN:end,1);
+            dtau=peaks(i,2)-TrekSet.StartTime-peaks(i,1)*tau;
+            FineShift=round(dtau/tau*FineInterpN);
+            PulseInterpFineShifted=circshift(PulseInterpFine(:,2),FineShift);
 
-        if dtau<-tau; point=['b',mark]; end;
-        if dtau>tau; point=['r',mark]; end;
-       
-        plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point);
-      end; 
-      plot(trekMinus,'y'); 
+            mark='.';    
+            point=['k',mark];
+
+            if dtau<-tau; point=['b',mark]; end;
+            if dtau>tau; point=['r',mark]; end;
+
+            plot(FitIdx,peaks(i,5)*PulseInterpFineShifted(1:FineInterpN:end)+peaks(i,4),point);
+          end; 
+            plot(trekMinus,'y'); 
 
 
  
-  CloseGraphs;
+    CloseGraphs;
 
  end;
 end;

@@ -4,13 +4,13 @@ function Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=3e6;
+MaxBlock=2.5e6;
 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.020;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverStStd=3;
-TrekSet.OverStThr=11;
+TrekSet.OverStThr=-1;
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
@@ -31,6 +31,10 @@ TrekSet=TrekStPLoad(TrekSet);
 %Choosing time interval for working
 % TrekSet=TrekPickTime(TrekSet);
 
+dT=TrekSet.tau*size(TrekSet.StandardPulse,1);
+
+trek=[];
+LastInd=0;
 
 PartN=fix(TrekSet.size/MaxBlock)+1;
 for i=1:PartN 
@@ -43,18 +47,29 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     %Loading trek data
     TrekSet1=TrekLoad(FileName,TrekSet1);
 
-    %Standard Deviation calulations and Peak Polarity Changing
-    %if i==1                
-    %calculating Standard Deviation only at first Time
-    %poka nelzja, tak kak inache net izmenenija polarnosti    
-    TrekSet1=TrekStdVal(TrekSet1);
-    %end;
+    %Standard Deviation calulations and/or Peak Polarity Changing    
+    %calculating Standard Deviation only at first Time   
+    if isfield(TrekSet1,'MeanVal')
+        if TrekSet1.MeanVal~=0
+            TrekSet1.trek=TrekSet1.PeakPolarity*(TrekSet1.trek-TrekSet1.MeanVal);
+        else
+            TrekSet1=TrekStdVal(TrekSet1);
+            TrekSet.MeanVal=TrekSet1.MeanVal;
+            TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
+        end;
+    else
+        TrekSet1=TrekStdVal(TrekSet1);
+        TrekSet.MeanVal=TrekSet1.MeanVal;
+        TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
+    end;
     
     %Threshold Determination
-%     if TrekSet.OverStThr<0
-%        TrekSet1=TrekPickThr(TrekSet1);
-%     end;
-    TrekSet1.Threshold=500;
+     if TrekSet.OverStThr<0
+        TrekSet1=TrekPickThr(TrekSet1);
+     else
+        TrekSet1.Threshold=TrekSet1.Threshold*2;   
+     end;
+%     TrekSet1.Threshold=500;
    
 %     TrekSet1.StartTime=15000;
 %     TrekSet1.size=2.85e6;
@@ -68,14 +83,54 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 % 
 %     %Getting Peaks
       TrekSet1=TrekGetPeaks(TrekSet1);
-  
+
+    %making trek whithout noise spaces
+    if not(isempty(TrekSet1.peaks))>0
+        bool=(TrekSet1.peaks(:,2)>(TrekSet1.StartTime+dT))&...
+             (TrekSet1.peaks(:,2)<(TrekSet1.StartTime+TrekSet1.size*TrekSet1.tau-2*dT));
+        StartTime=TrekSet1.peaks(bool,2)-dT;
+        EndTime=TrekSet1.peaks(bool,2)+2*dT;
+        if not(isempty(StartTime))
+            NCross=1;
+
+            while NCross>0
+                StartTimeSh=circshift(StartTime,-1);
+                StartTimeSh(end)=[];
+                delta=EndTime(1:end-1)-StartTimeSh;
+                Ind=find(delta>=0);
+                NCross=size(Ind,1);
+                EndTime(Ind)=[];
+                StartTime(Ind+1)=[];
+            end;
+
+            StartInd=fix((StartTime-TrekSet1.StartTime)/TrekSet1.tau);
+            EndInd=fix((EndTime-TrekSet1.StartTime)/TrekSet1.tau);
+            Intervs=EndInd-StartInd;
+            Intervs=Intervs+5;
+            NInterv=size(StartInd,1);
+            NPoints=sum(Intervs);
+            trek=[trek;zeros(NPoints,1)];
+            for ii=1:NInterv
+                trek(LastInd+2)=StartTime(ii)/1e6;
+                trek(LastInd+3:LastInd+Intervs(ii)-2)=TrekSet1.trek(StartInd(ii):EndInd(ii));
+                trek(LastInd+Intervs(ii)-1)=EndTime(ii)/1e6;
+                LastInd=LastInd+Intervs(ii);
+            end;
+        end;
+    end;
+
       TrekSet.peaks=TrekSet1.peaks;
       TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
       TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
       TrekSet.OverStStd=TrekSet1.OverStStd;
       TrekSet.OverStThr=TrekSet1.OverStThr;
-      clear TrekSet1;
+    clear StartTime EndTime StartInd EndInd bool StartTimeSh delta Ind TrekSet1 ii NCross;
 end;
+
+FileName=['shr',FileName];
+fid=fopen(FileName,'w');
+fwrite(fid,trek,'single');
+fclose(fid);
 
  assignin('base','TrekSet',TrekSet);
  evalin('base','Treks(end+1)=TrekSet;');
