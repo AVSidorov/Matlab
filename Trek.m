@@ -1,17 +1,20 @@
 % function TrekSet=Trek(FileName);
-function Trek(FileName);
+function TrekSet=Trek(FileName);
 
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
 MaxBlock=2.5e6;
 
-TrekSet.FileType='single';      %choose file type for precision in fread function 
-TrekSet.tau=0.020;              %ADC period
+% TrekSet.FileType='single';      %choose file type for precision in fread function 
+% TrekSet.tau=0.020;              %ADC period
+TrekSet.FileType='int16';      %choose file type for precision in fread function 
+TrekSet.tau=0.025;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverStStd=3;
-TrekSet.OverStThr=-1;
-TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
+TrekSet.OverStThr=15;
+% TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
+ TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
@@ -46,6 +49,7 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     
     %Loading trek data
     TrekSet1=TrekLoad(FileName,TrekSet1);
+    
 
     %Standard Deviation calulations and/or Peak Polarity Changing    
     %calculating Standard Deviation only at first Time   
@@ -65,11 +69,13 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     
     %Threshold Determination
      if TrekSet.OverStThr<0
-        TrekSet1=TrekPickThr(TrekSet1);
+%         TrekSet1=TrekPickThr(TrekSet1);
+        TrekSet1.Threshold=750;
      else
-        TrekSet1.Threshold=TrekSet1.Threshold*2;   
+%         TrekSet1.Threshold=TrekSet1.Threshold*2;   
+        TrekSet1.Threshold=750;
      end;
-%     TrekSet1.Threshold=500;
+
    
 %     TrekSet1.StartTime=15000;
 %     TrekSet1.size=2.85e6;
@@ -103,8 +109,8 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
                 StartTime(Ind+1)=[];
             end;
 
-            StartInd=fix((StartTime-TrekSet1.StartTime)/TrekSet1.tau);
-            EndInd=fix((EndTime-TrekSet1.StartTime)/TrekSet1.tau);
+            StartInd=fix((StartTime-TrekSet1.StartTime)/TrekSet1.tau)+1;
+            EndInd=fix((EndTime-TrekSet1.StartTime)/TrekSet1.tau)+1;
             Intervs=EndInd-StartInd;
             Intervs=Intervs+5;
             NInterv=size(StartInd,1);

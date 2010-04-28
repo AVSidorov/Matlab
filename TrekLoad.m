@@ -4,15 +4,18 @@ tic;
 TrekSet=TrekSetIn;
 
 switch TrekSet.FileType;
- case 'single','int16';
+ case 'single';
     fid=fopen(FileName);
     StartPosition=(TrekSet.StartTime-TrekSet.StartOffset)/TrekSet.tau;
-     switch TrekSet.FileType
-       case 'single'
-            StartPosition=StartPosition*4;
-       case 'int16'
-            StartPosition=StartPosition*2;
-        end;
+    StartPosition=StartPosition*4;
+    fseek(fid,StartPosition,'bof');
+    [TrekSet.trek,count]=fread(fid,TrekSet.size,TrekSet.FileType);
+    fclose(fid);
+    TrekSet.size=count;
+ case 'int16';
+    fid=fopen(FileName);
+    StartPosition=(TrekSet.StartTime-TrekSet.StartOffset)/TrekSet.tau;
+    StartPosition=StartPosition*2;
     fseek(fid,StartPosition,'bof');
     [TrekSet.trek,count]=fread(fid,TrekSet.size,TrekSet.FileType);
     fclose(fid);

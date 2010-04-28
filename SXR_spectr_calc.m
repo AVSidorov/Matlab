@@ -1,6 +1,6 @@
 function [Spectr,Ni]=SXR_spectr_calc(ne,Te,Ni);
 
-Ew_arr=100:10:10000;
+Ew_arr=100:39.8:3000;
 
 if nargin<3
     %[Ni,Zeff]=Zeff_calc_manual(ne);

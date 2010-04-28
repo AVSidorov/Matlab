@@ -236,16 +236,19 @@ end;
  
  [MinKhi2_4,MinKhi2_4Ind]=min(S4);
  W41=W4set(MinKhi2_4Ind);
- poly4=polyfit(W4set(MinKhi2_4Ind-2:MinKhi2_4Ind+2)-W41,S4(MinKhi2_4Ind-2:MinKhi2_4Ind+2),4);
- W4fit=[W4set(MinKhi2_4Ind-1)-W41:Wstep/20:W4set(MinKhi2_4Ind+1)-W41];
- S4fine=polyval(poly4,W4fit);
- [AbsMinKhi2_4,MinKhi2_4Ind]=min(S4fine);
+ if MinKhi2_4Ind>2&MinKhi2_4Ind<max(size(S4))-2;
+     poly4=polyfit(W4set(MinKhi2_4Ind-2:MinKhi2_4Ind+2)-W41,S4(MinKhi2_4Ind-2:MinKhi2_4Ind+2),4);
+     W4fit=[W4set(MinKhi2_4Ind-1)-W41:Wstep/20:W4set(MinKhi2_4Ind+1)-W41];
+     S4fine=polyval(poly4,W4fit);
+     [AbsMinKhi2_4,MinKhi2_4Ind]=min(S4fine);
  
- if (AbsMinKhi2_4<0)|(AbsMinKhi2_4>min(MinKhi2_4)) 
-    AbsMinKhi2_4=MinKhi2_4;
- else
-       W41=W4fit(MinKhi2_4Ind)+W41;
+     if (AbsMinKhi2_4<0)|(AbsMinKhi2_4>min(MinKhi2_4)) 
+        AbsMinKhi2_4=MinKhi2_4;
+     else
+           W41=W4fit(MinKhi2_4Ind)+W41;
+     end;
  end;
+
     W41W=W1Rad*W41/W1;
 
     Wdif=W1-W41;
