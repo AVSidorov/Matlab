@@ -5,20 +5,27 @@ TrekSet=TrekSetIn;
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 MaxOverSt=20;
 MinOverSt=1.1;
-Plot=false;
+Plot=true;
 
 
 tic;
 disp('>>>>>>>> Pick Threshold started');
 
 trek=TrekSet.trek;
-StdVal=TrekSet.StdVal;
+if isempty(TrekSet.StdVal)
+    StdVal=std(trek);
+else
+    if TrekSet.StdVal==0
+        StdVal=std(trek);
+    else
+        StdVal=TrekSet.StdVal;       
+    end;
+end;
 trSize=TrekSet.size;
 OverSt=TrekSet.OverStThr;
 
 
 
-FrontInd=[];
 FrontHigh=zeros(trSize,1);
 
 
@@ -64,39 +71,29 @@ MinN=size(MinInd,1);
  HS=min([HS,HI]);
  [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
 
- if HistSet.Range/StdVal<4*TrekSet.OverStStd;
-    Thr=MinOverSt*StdVal*TrekSet.OverStStd;
-    Ind=find(HistFH(:,2)==1,1,'first');
-    Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
-    
-    TrekSet.OverStThr=Thr/StdVal;
-    TrekSet.OverStStd=TrekSet.OverStThr/2; %/2 because Threshold is for FrontHigh, which is double amlitude
-
-    TrekSet.Threshold=Thr;
- else
+ FirstNonFlatInd=1;
  
+ while HistFH(FirstNonFlatInd,2)==HistFH(FirstNonFlatInd+1,2)    
+     FirstNonFlatInd=FirstNonFlatInd+1;      
+     if FirstNonFlatInd==size(HistFH,1)            
+         break         
+     end;   
+ end;
+
+    
+ HistR=circshift(HistFH(:,2),1);
+ HistR(1)=HistFH(1,2);
+ HistL=circshift(HistFH(:,2),-1);
+
+ MaxHistBool=HistFH(:,2)>HistR&HistFH(:,2)>=HistL;
+ MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<HistL;
+ MinHistBool(1)=false;
+      
+ MaxHistInd=find(MaxHistBool);
+ MinHistInd=find(MinHistBool);
  
-    
-    HistR=circshift(HistFH(:,2),1);
-    HistR(1)=HistFH(1,2);
-    HistL=circshift(HistFH(:,2),-1);
 
-    MaxHistBool=HistFH(:,2)>HistR&HistFH(:,2)>=HistL;
-    MinHistBool=HistFH(:,2)<=HistR&HistFH(:,2)<HistL;
-    MinHistBool(1)=false;
-        
-    MaxHistInd=find(MaxHistBool);
-    MinHistInd=find(MinHistBool);
-    
-
-    if size(MaxHistInd,1)>1
-        FirstNonFlatInd=1;
-        while HistFH(FirstNonFlatInd,2)==HistFH(FirstNonFlatInd+1,2)
-            FirstNonFlatInd=FirstNonFlatInd+1;
-            if FirstNonFlatInd==size(HistFH,1)
-                break 
-            end;
-        end;
+ if size(MaxHistInd,1)>1
         
         if MaxHistInd(1)>MinHistInd(1)          
             MaxHistInd=[FirstNonFlatInd;MaxHistInd];
@@ -109,39 +106,43 @@ MinN=size(MinInd,1);
         while size(MaxHistInd,1)<size(MinHistInd,1)
             MinHistInd(end)=[];
         end;
-        
-        if size(MaxHistInd,1)>1
-            TailHighHist=HistFH(MaxHistInd(1:end),2)-HistFH(MinHistInd(1:end),2);            
-            Ind=find(TailHighHist>0,1,'first');
-            FitInd=[MaxHistInd(Ind):MinHistInd(Ind)]';
-        end;
-        if isempty(FitInd);
-            FitInd=[1:size(HistFH,1)]';
-        end;
-    else
-        FitInd=[1:size(HistFH,1)]';
-    end;
-
-
-
-    
-
-    if size(FitInd,1)>1
-        p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
-        p1=p;
-        p(2)=p(2)-log(HistFH(FitInd(end),2));
-        Thr=roots(p);
-    else
-        Thr=HistFH(1,1);
-    end;
-
-
-
-    Ind=find(HistFH(:,2)==1,1,'first');
-    Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
-    Thr=max([Thr,MinOverSt*StdVal]);
-
+ else
+     MaxHistInd=FirstNonFlatInd;
+     MinHistInd=HistSet.HistN;
+ end;       
+ 
+ MinHistN=size(MinHistInd,1);
+ 
+ StdValInd=find(HistFH(:,1)>=StdVal,1,'first');
+ StartInd=min([MaxHistInd(1),StdValInd]);
+ Ind=find(MinHistInd(:)>StdValInd,1,'first');
+ 
+ 
+ if isempty(Ind)
+    EndInd=StdValInd; 
+ else
+    EndInd=MinHistInd(Ind);
  end;
+ 
+  FitInd=[StartInd:EndInd];  
+  if max(size(FitInd))>1
+        d=2;
+        while d>=1; 
+            FitInd=[StartInd:EndInd];  
+            p=polyfit(HistFH(FitInd,1),log(HistFH(FitInd,2)),1);
+            Ind=find(HistFH(:,1)>=(1-p(2))/p(1),1,'first');
+            if not(isempty(Ind))
+                Ind=find(abs(HistFH(StdValInd:Ind,2)-HistFH(StdValInd:Ind,3)-exp(polyval(p,HistFH(StdValInd:Ind,1))))>0,1,'first');
+                EndInd=StdValInd+Ind-1;
+            end;
+            d=EndInd-FitInd(end);
+        end;
+    end;
+Thr=HistFH(FitInd(end),1);
+
+Ind=find(HistFH(:,2)==1,1,'first');
+Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
+
      
 
     if Plot
@@ -151,9 +152,9 @@ MinN=size(MinInd,1);
 
         plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
 
-        if exist('p1')
-            if not(isempty(p1))
-                semilogy(HistFH(FitInd,1),exp(polyval(p1,HistFH(FitInd,1))),'-g.','LineWidth',2);
+        if exist('p')
+            if not(isempty(p))
+                semilogy(HistFH(FitInd,1),exp(polyval(p,HistFH(FitInd,1))),'-g.','LineWidth',2);
             end;
         end;
         Bool=FrontHigh>Thr/2;
