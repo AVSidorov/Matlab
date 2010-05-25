@@ -11,8 +11,9 @@ TrekSet.charge=zeros(NPeak,1);
      % StartInd=ones(NPeak,1);
      for i=1:NPeak
          StartInd=find(TrekSet.peaks(:,2)>StartTime(i),1,'first');
-         t=TrekSet.peaks(StartInd:i,2)-TrekSet.peaks(i,2);     
-         TrekSet.charge(i)=sum(TrekSet.peaks(StartInd:i,5).*exp(t/(Tdr/5)));
+%          t=TrekSet.peaks(StartInd:i,2)-TrekSet.peaks(i,2);     
+%          TrekSet.charge(i)=sum(TrekSet.peaks(StartInd:i,5).*exp(t/(Tdr/5)));
+          TrekSet.charge(i)=sum(TrekSet.peaks(StartInd:i,5));
      end;
  end;
 toc;

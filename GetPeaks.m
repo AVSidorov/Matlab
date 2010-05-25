@@ -455,7 +455,7 @@ end; % for Pass=1:PassNumber
   [Max,MaxKhiInd]=max(HistKhi(:,2));
 %   KhiThreshold=10^(HistKhi(MaxKhiInd,2)+1);  
 %   KhiThreshold=0.01;  
-  KhiThreshold=Max*10;  
+  KhiThreshold=Max*100;  
   plot(log10([KhiThreshold,KhiThreshold]),[0,Max/2],'-r','LineWidth',2);
   legend('Chi^2 threshold');
   errorbar(HistKhi(:,1),HistKhi(:,2),HistKhi(:,3),'-b.'); grid on; 

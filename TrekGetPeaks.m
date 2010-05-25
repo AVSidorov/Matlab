@@ -14,7 +14,7 @@ InterpN=8;        %number of extra intervals for interpolation of Standard Pulse
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
 
 PulsePlotBool= false;   % Plot fitting pulses or not
-EndPlotBool=false;       % Plot after proccessing
+EndPlotBool=true;       % Plot after proccessing
 
 TrekSet=TrekSetIn;
 
