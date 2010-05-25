@@ -79,13 +79,16 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
     
    
-     TrekSet1.StartTime=20000;
-     TrekSet1.size=1e6;
+     TrekSet1.StartTime=25000;
+     TrekSet1.size=2.5e5;
      TrekSet1=TrekLoad(FileName,TrekSet1);
      TrekSet1=TrekStdVal(TrekSet1);
 %     
 %     %Searching for Indexes of potential Peaks
-      TrekSet1=TrekPeakSearch(TrekSet1);
+
+%       TrekSet1=TrekPeakSearch(TrekSet1);
+        TrekSet1=TrekTops(TrekSet1);
+      
 % 
 %     %!!!Searching for Standard Pulse
 % 
