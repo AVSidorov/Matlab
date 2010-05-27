@@ -7,7 +7,7 @@ disp('>>>>>>>>Search by Front started');
 
 BckgFitN=2;
 OnTailBorder=0.1;
-
+Plot=TrekSet.Plot;
 % SmoothPar=5;
 
 
@@ -120,14 +120,16 @@ A=zeros(trSize,1);
 A(IndMaxAfterByFront)=IndMaxAfterByFront-ByFrontInd;
 IntervalAfterByFront=A;
 
-A=zeros(trSize,1);
-A(MaxInd)=FrontHigh;
-FrontHigh=A;
-OnTailBool=IntervalAfterByFront<OnTailN&IntervalAfterByFront>0&FrontHigh>StdVal&not(ByFrontBool);
-OnTailInd=find(OnTailBool);
-OnTailN=size(OnTailInd,1);
+% A=zeros(trSize,1);
+% A(MaxInd)=FrontHigh;
+% FrontHigh=A;
+% OnTailBool=IntervalAfterByFront<OnTailN&IntervalAfterByFront>0&FrontHigh>StdVal&not(ByFrontBool);
+% OnTailInd=find(OnTailBool);
+% OnTailN=size(OnTailInd,1);
 
-SelectedBool=ByFrontBool|OnTailBool|PeakOnFrontBool;
+% SelectedBool=ByFrontBool|OnTailBool|PeakOnFrontBool;
+SelectedBool=ByFrontBool|PeakOnFrontBool;
+
 SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
 SelectedN=size(SelectedInd,1);
@@ -140,22 +142,22 @@ fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSiz
 fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',OverSt,StdVal,Threshold);
 fprintf('The total number of maximum = %7.0f \n',MaxN);
 fprintf('The number peaks selected by FrontHigh = %7.0f \n',ByFrontN);
-fprintf('The number peaks selected on tail= %7.0f \n',OnTailN);
+% fprintf('The number peaks selected on tail= %7.0f \n',OnTailN);
 fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
 fprintf('The number of selected peaks = %7.0f \n',SelectedN);
 fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 toc
 
-% 
-%   figure;
-%   plot(trek);
-%   grid on; hold on;
-%   plot(SelectedInd,trek(SelectedInd),'.r');
-%   plot(find(OnTailBool),trek(OnTailBool),'om');
-%   plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'dg');
-%   pause;
+ if Plot
+   figure;
+   plot(trek);
+   grid on; hold on;
+   plot(SelectedInd,trek(SelectedInd),'.r');
+%  plot(find(OnTailBool),trek(OnTailBool),'om');
+   plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'dg');
+%     pause;
 %   close(gcf);
-
+ end;
 
 
 

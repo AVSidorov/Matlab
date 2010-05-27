@@ -6,8 +6,9 @@ fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
 MaxBlock=4.2e6;
 
+%TrekSet.FileType='int16';      %choose file type for precision in fread function 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
-TrekSet.tau=0.020;              %ADC period
+TrekSet.tau=0.02;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverStStd=3;
 TrekSet.OverStThr=-1;
@@ -18,6 +19,8 @@ TrekSet.peaks=[];
 TrekSet.StdVal=0;
 TrekSet.Threshold=500;
 TrekSet.StartTime=TrekSet.StartOffset;
+TrekSet.Plot=true;
+Pass=3;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -79,21 +82,29 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
     
    
-     TrekSet1.StartTime=25000;
-     TrekSet1.size=2.5e5;
+     TrekSet1.StartTime=15000;
+     TrekSet1.size=1e6;
      TrekSet1=TrekLoad(FileName,TrekSet1);
+
+assignin('base','trek',TrekSet1.trek);
+for passI=1:Pass
      TrekSet1=TrekStdVal(TrekSet1);
 %     
 %     %Searching for Indexes of potential Peaks
 
-%       TrekSet1=TrekPeakSearch(TrekSet1);
-        TrekSet1=TrekTops(TrekSet1);
+    
+      TrekSet1=TrekPeakSearch(TrekSet1);
+%     TrekSet1=TrekTops(TrekSet1);
       
 % 
 %     %!!!Searching for Standard Pulse
 % 
 %     %Getting Peaks
-      TrekSet1=TrekGetPeaks(TrekSet1);
+    TrekSet1=TrekGetPeaks(TrekSet1,passI);
+    TrekSet1.Threshold=TrekSet1.Threshold*2;
+end;
+ assignin('base','trekM',TrekSet1.trek);
+
 
     %making trek whithout noise spaces
 %     if not(isempty(TrekSet1.peaks))>0
@@ -143,6 +154,8 @@ end;
 % fwrite(fid,trek,'single');
 % fclose(fid);
 
+TrekSet=rmfield(TrekSet,'Plot');
+TrekSet=TrekCharge(TrekSet);
  assignin('base','TrekSet',TrekSet);
  evalin('base','Treks(end+1)=TrekSet;');
 fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');

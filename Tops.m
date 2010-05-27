@@ -27,7 +27,7 @@ function PeakSet=Tops(FileName,Plot)
 Text  = false;    % switch between text and bin files
 
 % SXR in FT-2
-tau=0.02;          % us digitizing time % tau=0.025; in the beginning
+tau=0.025;          % us digitizing time % tau=0.025; in the beginning
 MinFront=0.05;    % minimal peak front, us
 MaxFront=0.125;   % maximal peak front, us
 MinTail=0.05;     % minimal peak tail, us

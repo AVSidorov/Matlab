@@ -1,5 +1,7 @@
 function TrekSet=TrekGetPeaks(TrekSetIn,Pass);
 
+TrekSet=TrekSetIn;
+
 disp('>>>>>>>>Get Peaks started');
 
 MinFront=0.05;    % minimal peak front, us
@@ -14,9 +16,9 @@ InterpN=8;        %number of extra intervals for interpolation of Standard Pulse
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
 
 PulsePlotBool= false;   % Plot fitting pulses or not
-EndPlotBool=true;       % Plot after proccessing
+EndPlotBool=TrekSet.Plot;       % Plot after proccessing
 
-TrekSet=TrekSetIn;
+
 
 
 trek=TrekSet.trek;
@@ -350,12 +352,14 @@ Ind=[NPeaksSubtr+1:PeakN];
 peaks(Ind,:)=[]; 
 PeakN=NPeaksSubtr;
   
+TrekSet.trek=trekMinus;
+
 if PeakN>1
   peaks=sortrows(peaks,2); 
   peaks(1:end-1,3)=diff(peaks(:,3)); peaks(end,3)=trek(end)-peaks(end,2); 
  
   TrekSet.peaks=[TrekSet.peaks;peaks];
-
+  TrekSet.peaks=sortrows(TrekSet.peaks,2); 
 end; 
 
 fprintf('=====  Found pulses      ==========\n');

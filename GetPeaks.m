@@ -26,7 +26,7 @@ InterpN=8;        %number of extra intervals for interpolation of Standard Pulse
 FineInterpN=40;   %number of extra intervals for fine interpolation of Standard Pulse in fitting
 
 %StandardPulseFile='D:\MK\matlab\SXR\Standard Pulse.dat';    % tact 25 ns
-StandardPulseFile= 'D:\MK\matlab\SXR\Standard Pulse20.dat';  % tact 20 ns
+StandardPulseFile= 'D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';  % tact 20 ns
 
 PulsePlotBool= false;   % Plot fitting pulses or not
 

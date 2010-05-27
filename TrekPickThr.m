@@ -5,7 +5,7 @@ TrekSet=TrekSetIn;
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 MaxOverSt=20;
 MinOverSt=1.1;
-Plot=true;
+Plot=TrekSet.Plot;
 
 
 tic;
