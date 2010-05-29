@@ -10,14 +10,13 @@ MaxBlock=4.2e6;
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.02;              %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
-TrekSet.OverStStd=3;
-TrekSet.OverStThr=-1;
+TrekSet.OverSt=3;
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=500;
+TrekSet.Threshold=-1;
 TrekSet.StartTime=TrekSet.StartOffset;
 TrekSet.Plot=true;
 Pass=3;
@@ -53,33 +52,20 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     
 
     %Standard Deviation calulations and/or Peak Polarity Changing    
-    %calculating Standard Deviation only at first Time   
-    if isfield(TrekSet1,'MeanVal')
-        if TrekSet1.MeanVal~=0
-            TrekSet1.trek=TrekSet1.PeakPolarity*(TrekSet1.trek-TrekSet1.MeanVal);
-        else
-            TrekSet1=TrekStdVal(TrekSet1);
-            TrekSet.MeanVal=TrekSet1.MeanVal;
-            TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
-        end;
-    else
-        TrekSet1=TrekStdVal(TrekSet1);
-        TrekSet.MeanVal=TrekSet1.MeanVal;
-        TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
-    end;
+%     TrekSet1=TrekStdVal(TrekSet1);
+%     TrekSet.MeanVal=TrekSet1.MeanVal;
+%     TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
 
     
 %     TrekSet.trek=TrekSet1.trek; return;
     
     
     %Threshold Determination
-     if TrekSet.OverStThr<0
+     if TrekSet.Threshold<0
          TrekSet1=TrekPickThr(TrekSet1);
-%         TrekSet1.Threshold=750;
-     else
-         TrekSet1.Threshold=TrekSet1.Threshold*2;   
-%         TrekSet1.Threshold=750;
+         TrekSet.Threshold=TrekSet1.Threshold;
      end;
+
     
    
      TrekSet1.StartTime=15000;
@@ -89,6 +75,9 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 assignin('base','trek',TrekSet1.trek);
 for passI=1:Pass
      TrekSet1=TrekStdVal(TrekSet1);
+     TrekSet.MeanVal=TrekSet1.MeanVal;
+     TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
+
 %     
 %     %Searching for Indexes of potential Peaks
 
@@ -144,8 +133,6 @@ end;
       TrekSet.peaks=TrekSet1.peaks;
       TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
       TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
-      TrekSet.OverStStd=TrekSet1.OverStStd;
-      TrekSet.OverStThr=TrekSet1.OverStThr;
     clear StartTime EndTime StartInd EndInd bool StartTimeSh delta Ind TrekSet1 ii NCross;
 end;
 

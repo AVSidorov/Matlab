@@ -1,38 +1,103 @@
 function TrekSet=TrekStdVal(TrekSetIn);
 
+tic;
 
-
+fprintf('>>>>>>>>>TrekStdVal Started>>>>>>>>>\n');
 TrekSet=TrekSetIn;
 
 
-tic;
 
-i=2;
-MeanVal(1)=0;
-MeanVal(2)=1;
-while abs(MeanVal(i)-MeanVal(i-1))>1e-4
-    i=i+1;
-    [MeanVal(i),StdVal,PeakPolarity(i),NoiseArray]=MeanSearch(TrekSet.trek,TrekSet.OverStStd,0);  
-    TrekSet.trek=PeakPolarity(i)*(TrekSet.trek-MeanVal(i));
+
+trek=TrekSet.trek;
+
+OverSt=3;
+MeanVal=mean(trek);
+M=MeanVal;
+StdVal=std(trek);
+St=StdVal;
+Thr=OverSt*StdVal; 
+
+
+
+if isfield(TrekSet,'OverSt');
+    if TrekSet.OverSt>0
+        OverSt=TrekSet.OverSt;
+    end;
 end;
-fprintf('First mean search   = %7.4f  sec\n', toc); 
-fprintf('Standard deviat     = %7.4f\n', StdVal);
 
+if isfield(TrekSet,'MeanVal')
+        if TrekSet.MeanVal~=0
+            MeanVal=TrekSet.MeanVal;
+        end;
+end;
 
-if PeakPolarity<0
-    bool=(TrekSet.trek(:)>4095)|(TrekSet.trek(:)<0); OutRangeN=size(find(bool),1); 
-    if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
-    TrekSet.trek(bool,:)=[];  clear bool; 
+if isfield(TrekSet,'StdVal')
+        if TrekSet.StdVal>0
+            StdVal=TrekSet.StdVal;
+        end;
+end;
+
+if isfield(TrekSet,'Threshold')
+      if TrekSet.Threshold>0
+          Thr=TrekSet.Threshold/2; %/2 because Threshold is for FrontHigh,
+                                   % which is generaly double noise amlitude.
+      end;
+end;
+
+Positive=size(find(trek-(M+Thr)>0),1);  
+Negative=size(find(trek-(M-Thr)<0),1); 
+
+if Positive>Negative 
+    PeakPolarity=1;
 else
-    bool=(TrekSet.trek(:)>TrekSet.MaxSignal); OutRangeN=size(find(bool),1); 
-    if OutRangeN>0; fprintf('%7.0f  points out of Amplifier Range  \n',OutRangeN); end; 
-    TrekSet.trek(bool,:)=TrekSet.MaxSignal;  clear bool; 
+    PeakPolarity=-1;   
+end; 
+
+
+if (abs(M)<Thr)
+    Noise=abs(trek)<Thr;
+    StdVal=std(trek(Noise));
+else
+    trek=PeakPolarity*(trek-MeanVal);
+    if M==MeanVal
+        dSt=1;
+        dM=1;
+        while (dSt>0.1)||(dM>1e-4)
+           Noise=abs(trek)<Thr;
+           St=[St;std(trek(Noise))];
+           M=[M;mean(trek(Noise))];           
+           dM=abs(M(end)-M(end-1));
+           dSt=abs(St(end)-St(end-1));
+           trek=trek-M(end);
+           if Thr==OverSt*St(end-1);
+               Thr=OverSt*St(end);
+           end;
+        end;
+        MeanVal=sum(M);
+        fprintf('MeanVal is          = %7.4f\n', MeanVal);       
+        fprintf('First mean search   = %7.4f  sec\n', toc); 
+    end;
+       Noise=abs(trek)<Thr;
+       StdVal=std(trek(Noise));    
 end;
 
-TrekSet.MeanVal=sum(MeanVal(3:end));
-TrekSet.PeakPolarity=PeakPolarity(3);
+TrekSet.trek=trek;
+TrekSet.size=size(TrekSet.trek,1);  
+TrekSet.MeanVal=MeanVal;
+if not(isfield(TrekSet,'PeakPolarity'))
+    TrekSet.PeakPolarity=PeakPolarity;
+end;
 TrekSet.StdVal=StdVal;
-TrekSet.size=size(TrekSet.trek,1);
+
+
+
+
+fprintf('Standard deviat     = %7.4f\n', StdVal);
+fprintf('>>>>>>>>>TrekStdVal Finished>>>>>>>>>\n');
+toc;
+
+
+
 
 
 

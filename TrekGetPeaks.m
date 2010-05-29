@@ -23,7 +23,7 @@ EndPlotBool=TrekSet.Plot;       % Plot after proccessing
 
 trek=TrekSet.trek;
 tau=TrekSet.tau;
-OverSt=TrekSet.OverStStd;      % noise regection threshold, in standard deviations
+OverSt=TrekSet.OverSt;      % noise regection threshold, in standard deviations
 TrekName=TrekSet.name;
 trekSize=TrekSet.size;
 StandardPulseNorm=TrekSet.StandardPulse;
@@ -307,7 +307,7 @@ while (i<PeakN)&&not(isempty(TrekSet.SelectedPeakInd))
         MinusOk=false;
         
         if (Ampl>TrekSet.Threshold)&((Ampl+B)<MaxSignal)&...
-             (abs(trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)<OverSt*TrekSet.Threshold)           %%%&&((Ampl/TrekSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
+             (abs(trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)<TrekSet.Threshold)           %%%&&((Ampl/TrekSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
             MinusOk=true;
         end;
 %          if (Ampl>TrekSet.Threshold)&((Ampl+B)<MaxSignal)&not(MinusOk)&...

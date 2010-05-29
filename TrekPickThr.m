@@ -4,9 +4,8 @@ TrekSet=TrekSetIn;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 MaxOverSt=20;
-MinOverSt=1.1;
 Plot=TrekSet.Plot;
-
+OverSt=TrekSet.OverSt;
 
 tic;
 disp('>>>>>>>> Pick Threshold started');
@@ -22,7 +21,6 @@ else
     end;
 end;
 trSize=TrekSet.size;
-OverSt=TrekSet.OverStThr;
 
 
 
@@ -57,19 +55,20 @@ MinN=size(MinInd,1);
 
  
  FrontHigh=trek(MaxInd)-trek(MinInd);
-
+ TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
  
  Thr=0;
 
  MinFrontHigh=min(FrontHigh);
  MaxFrontHigh=max(FrontHigh);
 
- HS=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
+ HI=(MaxFrontHigh-MinFrontHigh)/StartIntervalNum;
 
  bool=FrontHigh<MaxOverSt*StdVal;
- [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
+ [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HI);
  HS=min([HS,HI]);
  [HistFH,HI,HS,HistSet]=sid_hist(FrontHigh(bool),1,HS);
+ [HistTH,HI,HS,HistSet1]=sid_hist(TailHigh(bool(1:end-1)),1,HS,HI);
 
  FirstNonFlatInd=1;
  
@@ -113,7 +112,7 @@ MinN=size(MinInd,1);
  
  MinHistN=size(MinHistInd,1);
  
- StdValInd=find(HistFH(:,1)>=StdVal,1,'first');
+ StdValInd=find(HistFH(:,1)>=StdVal*OverSt,1,'first');
  StartInd=min([MaxHistInd(1),StdValInd]);
  Ind=find(MinHistInd(:)>StdValInd,1,'first');
  
@@ -149,6 +148,7 @@ Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
         HistFig=figure; 
         semilogy(HistFH(:,1),HistFH(:,2),'-b.');
         hold on; grid on;
+        plot(HistTH(:,1),HistTH(:,2),'-k.');
 
         plot([Thr,Thr],[1,max(HistFH(:,2))],'-r','LineWidth',2);
 
@@ -205,9 +205,6 @@ Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
     end;
     
  
-
-TrekSet.OverStThr=Thr/StdVal;
-TrekSet.OverStStd=max([TrekSet.OverStThr/2,MinOverSt]); %/2 because Threshold is for FrontHigh, which is double amlitude
 
 TrekSet.Threshold=Thr;
 
