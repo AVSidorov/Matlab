@@ -68,8 +68,8 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 
     
    
-     TrekSet1.StartTime=15000;
-     TrekSet1.size=1e6;
+     TrekSet1.StartTime=18000;
+     TrekSet1.size=5e5;
      TrekSet1=TrekLoad(FileName,TrekSet1);
 
 assignin('base','trek',TrekSet1.trek);

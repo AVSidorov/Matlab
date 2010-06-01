@@ -44,8 +44,8 @@ if isfield(TrekSet,'Threshold')
       end;
 end;
 
-Positive=size(find(trek-(M+Thr)>0),1);  
-Negative=size(find(trek-(M-Thr)<0),1); 
+Positive=size(find(trek-(M+2*Thr)>0),1);  
+Negative=size(find(trek-(M-2*Thr)<0),1); 
 
 if Positive>Negative 
     PeakPolarity=1;

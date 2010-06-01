@@ -7,6 +7,7 @@ disp('>>>>>>>>Search by Front started');
 
 BckgFitN=2;
 OnTailBorder=0.1;
+DoubleFrontK=1.5;
 Plot=TrekSet.Plot;
 % SmoothPar=5;
 
@@ -120,15 +121,25 @@ ByFrontBool(ByFrontInd)=true;
 ByFrontN=size(ByFrontInd,1);
 
 ByHighBool=(trek>Threshold)&MaxBool; % It is necessary for small peaks, wich
-ByHighBool(ByFrontBool)=false;
-ByHighInd=find(ByHighBool);          % have noise maximum on front. As result
-ByHighN=size(ByHighInd,1);          % both noise and signal Maximums
-                                     % don't match FrontHigh Conditions                                                                      
+ByHighBool(ByFrontBool)=false;       % have noise maximum on front. As result
+ByHighInd=find(ByHighBool);          % both noise and signal Maximums 
+ByHighN=size(ByHighInd,1);           % don't match FrontHigh Conditions
+                                     % This work only if NullLine is "zero"
+                                     % This work because Threshold is for
+                                     % FronHigh. And if value of trek is
+                                     % higher than "Threshold" it means trek
+                                     % value is higher than double noise magnitude
                                    
 FrontHighSh=circshift(FrontHigh,-1); % Another way to searching such pulses
 FrontHighSh(end)=0;
 %Searching 
-ByDoubleFrontBool=(FrontHigh(1:end-1)+FrontHighSh(1:end-1)-TailHigh)>Threshold;
+ByDoubleFrontBool=(FrontHigh(1:end-1)+FrontHighSh(1:end-1)-TailHigh)>Threshold*DoubleFrontK;
+%"DoubleFrontK" is neccesary because It is most probable two noise fronts
+% have magnitude close to threshold and if tail between is small the
+% condition can be satisfied. In case of noise maximum on Front of pulse both
+% Fronts must have almost Threshold "FrontHigh" value and small Tail high
+% between. So sum must have almost double Threshold magnitude
+
 %pick points there first Front is higher;
 IndFirst=MaxInd(find(ByDoubleFrontBool&(FrontHigh(1:end-1)>=FrontHighSh(1:end-1))));
 %pick points there second Front is higher;
