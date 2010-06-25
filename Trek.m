@@ -8,9 +8,9 @@ MaxBlock=4.2e6;
 
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
-TrekSet.tau=0.02;              %ADC period
+TrekSet.tau=0.02;               %ADC period
 TrekSet.StartOffset=0;          %in us old system was Tokamak delay + 1.6ms
-TrekSet.OverSt=3;
+TrekSet.OverSt=3;               %uses in StdVal
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4000;
@@ -19,7 +19,7 @@ TrekSet.StdVal=0;
 TrekSet.Threshold=-1;
 TrekSet.StartTime=TrekSet.StartOffset;
 TrekSet.Plot=true;
-Pass=3;
+Pass=1;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -66,7 +66,7 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
          TrekSet.Threshold=TrekSet1.Threshold;
      end;
 
-    
+ 
    
      TrekSet1.StartTime=18000;
      TrekSet1.size=5e5;
@@ -89,8 +89,8 @@ for passI=1:Pass
 %     %!!!Searching for Standard Pulse
 % 
 %     %Getting Peaks
-    TrekSet1=TrekGetPeaks(TrekSet1,passI);
-    TrekSet1.Threshold=TrekSet1.Threshold*2;
+%     TrekSet1=TrekGetPeaks(TrekSet1,passI);
+%     TrekSet1.Threshold=TrekSet1.Threshold*2;
 end;
  assignin('base','trekM',TrekSet1.trek);
 
@@ -148,7 +148,7 @@ TrekSet=TrekCharge(TrekSet);
 fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');
 toc;
 fprintf('\n \n');
- 
+CloseGraphs; 
 % N='17';
 % points=8000000;
 % tau=0.02;

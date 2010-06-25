@@ -17,7 +17,7 @@ for i=1:max(size(Ni))
     Jr(:)=Jr(:)+jr(:,i);
 end;    
 
-figure;
+% figure;
     semilogy(Ew_arr,Jb(:),'-g','LineWidth',2);
     hold on; grid on;
     semilogy(Ew_arr,Jr(:),'-b','LineWidth',2);
