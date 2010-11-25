@@ -356,7 +356,7 @@ TrekSet.trek=trekMinus;
 
 if PeakN>1
   peaks=sortrows(peaks,2); 
-  peaks(1:end-1,3)=diff(peaks(:,3)); peaks(end,3)=trek(end)-peaks(end,2); 
+  peaks(2:end,3)=diff(peaks(:,3)); peaks(1,3)=0; 
  
   TrekSet.peaks=[TrekSet.peaks;peaks];
   TrekSet.peaks=sortrows(TrekSet.peaks,2); 

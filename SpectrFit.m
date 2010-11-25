@@ -44,7 +44,7 @@ Wb=0.5*(spectr1(WbInd-1,1)+spectr1(WbInd,1));
 continue_str='d';
 while continue_str~='y'
 
-MaxwFitLn=Interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:EndFitPntInd,1),'spline');
+MaxwFitLn=interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:EndFitPntInd,1),'spline');
 MaxwFit=exp(MaxwFitLn(1:end));
 
 Amp=sum(MaxwFit(:).*spectr1(StFitPntInd:EndFitPntInd,2))/sum(MaxwFit(:).*MaxwFit(:));
@@ -115,7 +115,7 @@ for k=kSt:dk:kEnd
  i=i+1;
  spectr1=Spectr;
  spectr1(:,1)=Spectr(:,1)*k;
-  MaxwFitLn=Interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:EndFitPntInd,1),'spline');
+  MaxwFitLn=interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:EndFitPntInd,1),'spline');
   MaxwFit=exp(MaxwFitLn(1:end));
  A(i)=sum(MaxwFit(:).*spectr1(StFitPntInd:EndFitPntInd,2))/sum(MaxwFit(:).*MaxwFit(:));
  MaxwFit=MaxwFit*A(i);
@@ -131,7 +131,7 @@ MaxwSp(:,2)=MaxwSp(:,2)*K_Amp;
  % MaxwFit=interp1(MaxwSp(:,1),MaxwSp(:,2),spectr1(StFitPntInd:EndFitPntInd,1),'spline');
   maxW=min([spectr1(end,1),MaxwSp(end,1)]);
   FitEndI=find(spectr1(:,1)<=maxW,1,'last');
-  MaxwFitLn=Interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:FitEndI,1),'spline');
+  MaxwFitLn=interp1(MaxwSp(:,1),log(MaxwSp(:,2)),spectr1(StFitPntInd:FitEndI,1),'spline');
   MaxwFit=exp(MaxwFitLn);
   WbInd=find((spectr1(StFitPntInd:FitEndI,2)-MaxwFit)>spectr1(StFitPntInd:FitEndI,3));
   WbInd=WbInd(find(WbInd>(EndFitPntInd-StFitPntInd)));

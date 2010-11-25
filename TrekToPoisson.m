@@ -10,6 +10,9 @@ function TrekToPoisson(TrekSet)
      PoissonSet.HS=HistSet.HS;
      assignin('base','PoissonSet',PoissonSet);
      evalin('base','Poissons(end+1)=PoissonSet;');
+   else
+       disp('Too few peaks. Less than 100.');
    end;
+   
  end;
  

@@ -1,4 +1,4 @@
-function PoissonSet=Poisson(FileName);
+function [PoissonSet,INs]=Poisson(FileName,IN);
 %[A1,Amain,W1,W2,K]=Poisson(FileName);  FileName is a histogram file
 %Fit calibration spectra
 %A1 - amplitude of the first peak, 
@@ -37,47 +37,108 @@ LowerBorder1=min(Spectr(:,1)); HighBorder1=max(Spectr(:,1));
 
 
 
-
 key='s';
 hp=figure; 
 if isstr(FileName); 
     set(hp,'name',FileName );
 end;
+
+if nargin<2
+    IN(1:7)=-1;
+else
+  if IN(1)>0 W1=IN(1); end;
+  if IN(2)>0 Sigma1=IN(2); end;
+  if IN(3)>0 LowerBorder=IN(3); end;
+  if IN(4)>0 HighBorder=IN(4); end;
+  if IN(5)>0 W4=IN(5); end;
+  if IN(6)>0 LowerBorder1=IN(6); end;
+  if IN(7)>0 HighBorder1=IN(7); end;
+end;
+INs=IN;
+
 while key=='r'|'R'
     if key~='s'
 %         fprintf('A1=%3.0f:   ', A1);
 %         Inp= input('Insert the main peak amplitude\n');  
 %         if not(isempty(Inp)) A1=Inp ;    end;
         
-        fprintf('W1=%3.0f:   ', W1);        
-        Inp = input('Insert the main peak position\n');  
-        if not(isempty(Inp)) W1=Inp ;    end;
+        fprintf('W1=%3.0f:   \n', W1);        
+
+
+            Inp = input('Insert the main peak position\n');  
+            if not(isempty(Inp)) 
+                W1=Inp;
+                INs(1)=Inp;
+            else
+                INs(1)=0;  
+            end;
+                
+        fprintf('Sigma1=%3.0f:   \n', Sigma1);        
         
-        fprintf('Sigma1=%3.0f:   ', Sigma1);        
-        Inp = input('Insert main peak halfwidth\n'); 
-        if not(isempty(Inp)) Sigma1=Inp ;    end;
+           Inp = input('Insert main peak halfwidth\n'); 
+           if not(isempty(Inp)) 
+               Sigma1=Inp ;    
+               INs(2)=Inp;
+           else
+               INs(2)=0;
+           end;
 
 
 
-        fprintf('Lower border=%3.0f:   ', LowerBorder);                
-        Inp = input('Insert lower border for fitting\n'); 
-        if not(isempty(Inp)) LowerBorder=Inp ;    end;
+        fprintf('Lower border=%3.0f:   \n', LowerBorder);                
 
-        fprintf('High border =%3.0f:   ', HighBorder);                
-        Inp = input('Insert lower border for fitting\n'); 
-        if not(isempty(Inp)) HighBorder=Inp ;    end;
+           Inp = input('Insert lower border for fitting\n'); 
+           if not(isempty(Inp)) 
+               LowerBorder=Inp ;    
+               INs(3)=Inp;
+           else
+               INs(3)=0;
+           end;
 
-        fprintf('W4=%3.0f:   ', W4);        
-        Inp = input('Insert the escape peak position\n');  
-        if not(isempty(Inp)) W4=Inp ;    end;
         
-        fprintf('Lower border=%3.0f:   ', LowerBorder1);                
-        Inp = input('Insert lower border for fitting escape\n'); 
-        if not(isempty(Inp)) LowerBorder1=Inp ;    end;
+        fprintf('High border =%3.0f:   \n', HighBorder);                
 
-        fprintf('High border =%3.0f:   ', HighBorder1);                
-        Inp = input('Insert lower border for fitting escape\n'); 
-        if not(isempty(Inp)) HighBorder1=Inp ;    end;
+           Inp = input('Insert high border for fitting\n'); 
+           if not(isempty(Inp)) 
+               HighBorder=Inp ;    
+               INs(4)=Inp;
+           else
+               INs(4)=0;
+           end;
+
+        
+        
+        fprintf('W4=%3.0f:   \n', W4);        
+
+           Inp = input('Insert the escape peak position\n');  
+           if not(isempty(Inp)) 
+               W4=Inp ;    
+               INs(5)=Inp;
+           else
+               INs(5)=0;
+           end;
+        
+
+        
+        fprintf('Lower border=%3.0f:   \n', LowerBorder1);                
+
+            Inp = input('Insert lower border for fitting escape\n'); 
+           if not(isempty(Inp)) 
+               LowerBorder1=Inp ;    
+               INs(6)=Inp;
+           else
+               INs(6)=0;
+           end;
+
+        fprintf('High border =%3.0f:   \n', HighBorder1);                
+
+            Inp = input('Insert high border for fitting escape\n'); 
+           if not(isempty(Inp)) 
+               HighBorder1=Inp ;    
+               INs(7)=Inp;
+           else
+               INs(7)=0;
+           end;
 
  %         fprintf('A4=%3.0f:   ', A4);                
 %         Inp = input('Insert the second peak amplitude\n');  
@@ -184,6 +245,9 @@ W1=Wset(Ind);
     W3=W1*W3Rad/W1Rad;
 
            
+if Ind<2 Ind=3; end;
+%nuzhno izmenit' rasshiriv interval
+% takzhe nuzhno sdelat' esli minKhi blizko k krayu intervala fitinga
 poly = polyfit(Wset(Ind-2:Ind+2)-W1,MinKhi2(Ind-2:Ind+2),4); 
 WsetP=(W1-Wstep:Wstep/20:W1+Wstep);
 polyset=poly(1)*(WsetP-W1).^4+poly(2)*(WsetP-W1).^3+poly(3)*(WsetP-W1).^2+poly(4)*(WsetP-W1)+poly(5);
@@ -310,8 +374,8 @@ WmainW=W1Rad*Wmain/W1;
 
 [Aesc,WescI]=max(FitSpecS(BorderBool1));
     IndEsc=find(BorderBool1);
-    Wst=Spectr(IndEsc(WescI-1),1);
-    Wend=Spectr(IndEsc(WescI+1),1);
+    Wst=Spectr(IndEsc(max([WescI-1,1])),1);
+    Wend=Spectr(IndEsc(min([WescI+1,size(IndEsc,1)])),1);
     dW=(Wend-Wst)/20;
     WescSet=Wst:dW:Wend;
     

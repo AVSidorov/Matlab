@@ -1,4 +1,5 @@
 function TrekClear(TrekSet);
+%cuting of noise intervals from trek
 
 MaxBlock=3e6;
 

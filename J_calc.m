@@ -12,10 +12,12 @@ i=1;
 jb=zeros(size(Ew));
 jr=zeros(size(Ew));
 
-jb(:)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(:)/Te);       
+% jb(:)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(:)/Te);
+  jb(:)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(:)/Te)./Ew(:);
 
 for i=1:max(size(Ew))
      if round(sqrt(Z^2*Ry/Ew(i)))<=N
-         jr(i)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(i)/Te)*sum(RecH(max([1,ceil(sqrt(Z^2*Ry/Ew(i)))]):N));       
+%          jr(i)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(i)/Te)*sum(RecH(max([1,ceil(sqrt(Z^2*Ry/Ew(i)))]):N));       
+          jr(i)=8e-55*ne*ni*Z^2*(1/sqrt(Te))*exp(-Ew(i)/Te)./Ew(i)*sum(RecH(max([1,ceil(sqrt(Z^2*Ry/Ew(i)))]):N));       
      end;
 end;
