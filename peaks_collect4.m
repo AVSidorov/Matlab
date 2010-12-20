@@ -1,21 +1,18 @@
-function peaks=peaks_collect(TrekSet,AmpHV,AmpPVQ);
-a=0.005;
-b=0.9;
-A=2.3319e-004;
-B=0.0058;
-Ampdef=10.3333;
+function peaks1=peaks_collect4(TrekSet,AmpHV,AmpPVQ);
+Ampdef=94.3333;
 Ns=TrekSet.name(1:2);
 N=str2num(Ns);
 IndHV=find(AmpHV(:,1)==N);
 disp(Ns);
 if isempty(IndHV)    
-   Amp=input('Input Amplification 1, 1.123, 10.333, 32.85, 94.3333 \n');
+   Amp=input('Input Amplification 1, 1.123, 3.3333, 10.333, 32.85, 94.3333 \n');
    if isempty(Amp)
        Amp=Ampdef;
    end;
 else
     Amp=AmpHV(IndHV(1),10);
 end;
+   fprintf('Amp=%7.4f\n',Amp);   
 
 IndPVQ=find(AmpPVQ(:,2)==N);
 if isempty(IndPVQ)   
@@ -24,16 +21,18 @@ if isempty(IndPVQ)
    if isempty(Date)
        Date=100405;
    end;
+   fprintf('P=%6.0f\n',Date);   
    
    P=input('Input P 0=1atm \n');
    if isempty(P)
-       P=-0.22;
+       P=0.1;
    end;
-   
+   fprintf('P=%4.3f\n',P);   
    HV=input('Input HV xxxxV\n');
    if isempty(HV)
        HV=1700;
    end;
+   fprintf('HV=%4.0f\n',HV);
 
 %    Gmean=input('Input Gmean \n');
 %    if isempty(Gmean)
@@ -46,24 +45,23 @@ else
 %     Gmean=AmpPVQ(IndPVQ,6);
 end;
 NPeak=size(TrekSet.peaks,1);
-peaks=zeros(NPeak,7);
-peaks(:,1)=Date;
-peaks(:,2)=N;
-peaks(:,3)=P;
-peaks(:,4)=HV;
-% peaks(:,8)=TrekSet.charge/5.9/Amp;
-peaks(:,9)=TrekSet.peaks(:,5)/5.9/Amp;
-x=DriftTime(HV,P+1,3e3);
-Td=x(end,1);
+if NPeak==0 return; end;
+TrekSet.charge=zeros(NPeak,1);
+peaks=TrekSet.peaks;
 
-TrekSet1=TrekChargeT(TrekSet,60,Td/1e-6);
-peaks(:,5)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,70,Td/1e-6);
-peaks(:,6)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,80,Td/1e-6);
-peaks(:,7)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,90,Td/1e-6);
-peaks(:,8)=TrekSet1.charge/5.9/Amp;
+if peaks(1,3)~=0
+    peaks(2:end,3)=diff(peaks(:,2)); peaks(1,3)=0; 
+end;
 
-assignin('base','peaks1',peaks);
+
+peaks1=zeros(NPeak,6);
+peaks1(:,1)=Date;
+peaks1(:,2)=N;
+peaks1(:,3)=P;
+peaks1(:,4)=HV;
+TrekSet=TrekChargeQX(TrekSet,HV,P+1);
+peaks1(:,5)=TrekSet.charge/Amp/5.9;
+peaks1(:,6)=peaks(:,5)/Amp/5.9;
+
+assignin('base','peaks1',peaks1);
 evalin('base','peaks=[peaks;peaks1];');

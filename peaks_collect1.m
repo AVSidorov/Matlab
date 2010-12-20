@@ -1,4 +1,4 @@
-function peaks=peaks_collect(TrekSet,AmpHV,AmpPVQ);
+function peaks=peaks_collect1(TrekSet,AmpHV,AmpPVQ);
 a=0.005;
 b=0.9;
 A=2.3319e-004;
@@ -51,19 +51,11 @@ peaks(:,1)=Date;
 peaks(:,2)=N;
 peaks(:,3)=P;
 peaks(:,4)=HV;
-% peaks(:,8)=TrekSet.charge/5.9/Amp;
-peaks(:,9)=TrekSet.peaks(:,5)/5.9/Amp;
-x=DriftTime(HV,P+1,3e3);
-Td=x(end,1);
+peaks(:,6)=TrekSet.peaks(:,5)/5.9/Amp; % mult because in Qt 'charge' is devided to Amp
 
-TrekSet1=TrekChargeT(TrekSet,60,Td/1e-6);
-peaks(:,5)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,70,Td/1e-6);
-peaks(:,6)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,80,Td/1e-6);
-peaks(:,7)=TrekSet1.charge/5.9/Amp;
-TrekSet1=TrekChargeT(TrekSet,90,Td/1e-6);
-peaks(:,8)=TrekSet1.charge/5.9/Amp;
+
+TrekSet1=TrekChargeQt(TrekSet);
+peaks(:,5)=TrekSet1.charge*5.9*Amp; % mult because in Qt 'charge' is devided to peaks amplitude 
 
 assignin('base','peaks1',peaks);
 evalin('base','peaks=[peaks;peaks1];');

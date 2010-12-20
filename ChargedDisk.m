@@ -13,7 +13,7 @@ eps0=8.854187817e-12; % F/m
 q=1.602e-19; % coulombs, ion charge
 mH=1.673e-27; % proton mass
 mAr=mH*40;    % Argon mass
-d=0.05; % diameter of the central wire, mm
+d=0.025; % (was diameter) radius of the central wire, mm
 
 Shape='G'; %  G- Gaussian, R-Rectangular
 
@@ -54,7 +54,7 @@ tic;
 for i=1:NC; 
   x=r/Charge(i,1);  
   x(r==Charge(i,1))=x0;
-  Er(:,i)=Coeff1(i)*x./(1+x.^2).^1.5.*(pi+Sqrt2./(x-1));
+  Er(:,i)=-Coeff1(i)*x./(1+x.^2).^1.5.*(pi+Sqrt2./(x-1));
   U(:,i)=cumsum(Er(:,i))*Step/1000;
 end;
 
@@ -79,7 +79,7 @@ for i=1:NC;
   end;
   EK(Bool)=(ElliptE(Bool)./(x(Bool)-1)+ElliptK(Bool)./(x(Bool)+1)./(x(Bool).^2+1));
   EK(not(Bool))=0;
-  ErExact(:,i)=2*Coeff1(i)*EK;
+  ErExact(:,i)=-2*Coeff1(i)*EK;
   UExact(:,i)=cumsum(ErExact(:,i))*Step/1000;
 end;
 toc
@@ -97,11 +97,14 @@ RelErExact=mean(ErExact(HighErInd))/mean(Er0(HighErInd));
 t=cumsum((mAr/2/q./abs(U0(2:end))).^0.5)*Step*1e6; % ns
 t=[0;t]; 
 
+
 figure; subplot(2,1,1);
        semilogx(r,Er0,'-k.'); hold on; semilogx(r,Er0+Er,'-b.'); semilogx(r,Er0+ErExact,'-r.');grid on; 
-       semilogx(Charge(:,1),Charge(:,2)/max(abs(Charge(:,2)))*max(abs([Er0;Er]))/2,'-g.'); axis tight; 
+       semilogx([d,B],[-4.8e3,-4.8e3],'-m'); %Ecrit
+       semilogx(Charge(:,1),Charge(:,2)/max(abs(Charge(:,2)))*max(abs([Er0;Er]))/2,'-g.'); axis tight;
+       
        title(['V=',num2str(V),' V, r=',num2str(R),' mm. ',num2str(W),' mm, Ni= ',num2str(Ni)]);
-       ylabel('E, V/m');
+       ylabel('E, V/mm');
 subplot(2,1,2);
        semilogx(r,U0,'-k.'); hold on; semilogx(r,U0+U,'-b.'); semilogx(r,U0+UExact,'-r.'); 
        semilogx(r,t,'-g.'); 

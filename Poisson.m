@@ -353,7 +353,9 @@ Sigma1W=Sigma1*W1Rad/W1;
 
 FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3+A4*FitSpec4;
 
-[Amain,WmainI]=max(FitSpecS);
+Bool=Spectr(:,1)>=W4+Sigma1;
+[Amain,WmainI]=max(FitSpecS(Bool));
+    WmainI=find(Bool,1,'first')+WmainI;
     Wst=Spectr(WmainI-1,1);
     Wend=Spectr(WmainI+1,1);
     dW=(Spectr(WmainI+1)-Spectr(WmainI-1))/20;
@@ -370,7 +372,7 @@ FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3+A4*FitSpec4;
 [Amain,WmainI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f)+A4*(FitSpec41f+FitSpec42f+FitSpec43f));
  
 Wmain=WmainSet(WmainI);
-WmainW=W1Rad*Wmain/W1;
+  WmainW=W1Rad*Wmain/W1;
 
 [Aesc,WescI]=max(FitSpecS(BorderBool1));
     IndEsc=find(BorderBool1);

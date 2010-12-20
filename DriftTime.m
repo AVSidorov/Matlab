@@ -3,7 +3,7 @@ function x=DriftTime(Vo,P,N);
 if nargin==2 N=1000; end;
 Plot=false;
 
-a=0.005; %50um in cm
+a=0.0025; %50um in cm is diameter r is 25um
 b=0.9;    %R of counter in cm
 
 
