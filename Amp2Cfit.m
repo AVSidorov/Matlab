@@ -1,7 +1,7 @@
 function [C,dVPVQ]=Amp2Cfit(Amp);
 A=0.00023088005376
 B=0.005852816303349;
-a=0.005; %So A&B is fitted for this value of a, bur correct is 0.0025
+a=0.005; %So A&B is fitted for this value of a, but correct is 0.0025
 b=0.9;
 
 Date=Amp(1,1);
