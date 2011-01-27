@@ -1,4 +1,4 @@
-function [C,dVPVQ]=Amp2Cfit(Amp);
+function Koeffs=Amp2fitK(Amp);
 A00=-0.017*1e-1;
 A01=-0.513*1e-1;
 A02=0.517*1e-1;
@@ -66,56 +66,19 @@ Sfit=(Pfit*760)*a;
 
 fprintf('dP is %7.4f\n',dP(1));
 
-N=max(size(G));
-[C1o,C2o,C3o,C4o]=Gseries(Xo(1),So(1));
-for l=1:N
-    dX=roots([C4o,C3o,C2o,C1o,log(Go)/K(l)-log(G(l))./K(l)]);
-    dX=dX(imag(dX)==0);
-    dX=dX(abs(dX)<Xo(l)/2);
-    dXo(l)=dX;
-end;
-
-[C1fit,C2fit,C3fit,C4fit]=Gseries(Xfit(1),Sfit(1));
-for l=1:N
-    dX=roots([C4fit,C3fit,C2fit,C1fit,log(Go)/K(l)-log(G(l))./K(l)]);
-    dX=dX(imag(dX)==0);
-    dX=dX(abs(dX)<Xfit(l)/2);
-    dXfit(l)=dX;
-end;
-dVo=dXo'*log(b/a)*a.*Po*760;
-dVfit=dXfit'*log(b/a)*a.*Pfit*760;
-
-figure;
-plot(Qo,dVo,'*r-');
-grid on; hold on;
-plot(Qo,dVfit,'ob-');
-Co=sum(dVo)/sum(Qo);
-Cfit=sum(dVfit)/sum(Qo);
-plot([0;Qo],[0;Co*Qo],'r');
-plot([0;Qo],[0;Cfit*Qo],'b');
- C(1,1)=Date;
- C(1,2)=Po(1);
- C(1,3)=Vo(1);
- C(1,4)=Go/k;
- C(1,5)=dP(1);
- C(1,6)=Co;
- C(1,7)=Cfit;
+ Koeffs(1,1)=Date;
+ Koeffs(1,2)=Po(1);
+ Koeffs(1,3)=Vo(1);
+ Koeffs(1,4)=Go/k;
+ Koeffs(1,5)=Gfit(1)/k; 
+ Koeffs(1,6)=dP(1);
+ Koeffs(1,7:9)=p1;
+ Koeffs(1,10:12)=p4;
  
- dVPVQ(:,2)=Po;
- dVPVQ(:,1)=Date;
- dVPVQ(:,3)=Pfit;
- dVPVQ(:,4)=Vo;
- dVPVQ(:,5)=Qo;
- dVPVQ(:,6)=dVo;
- dVPVQ(:,7)=dVfit;
  
- assignin('base','C1',C);
- evalin('base','C=[C;C1];');
+ assignin('base','Koeffs1',Koeffs);
+ evalin('base','Koeffs=[Koeffs;Koeffs1];');
  
- assignin('base','dVPVQ1',dVPVQ);
- evalin('base','dVPVQ=[dVPVQ;dVPVQ1];');
-pause;
-close(gcf);
 
 
 
