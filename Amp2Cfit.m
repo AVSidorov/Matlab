@@ -20,13 +20,13 @@ Vo=Amp(:,3);
 Qo=Amp(:,4);
 G=Amp(:,5)*k;
 
-E=Vo/log(b/a)/a;
-K=E*a;
+Eo=Vo/log(b/a)/a;
+Ko=Eo*a;
 
 So=(Po*760)*a;
 Xo=E./(Po*760);
 FITo=(A00+F*A01+F^2*A02)+(A10+F*A11)*Xo+A20*Xo.^2+A30*Xo.^3+A40*Xo.^4+B00*Xo./So;
-Gfit=exp(K.*FITo);
+Gfit=exp(Ko.*FITo);
 
 figure;
 plot(Qo,Amp(:,5),'*r-');
@@ -54,8 +54,9 @@ close(gcf);
 
 
 Go=Go*k;
+
 [C1o,C2o,C3o,C4o]=Gseries(Xo(1),So(1));
-dXfit=roots([C4o,C3o,C2o,C1o,FITo(1)-log(Go)/K(1)]);
+dXfit=roots([C4o,C3o,C2o,C1o,FITo(1)-log(Go)/Ko(1)]);
 dXfit=dXfit(imag(dXfit)==0);
 dXfit=dXfit(abs(dXfit)<Xo(1)/2);
 
@@ -100,6 +101,7 @@ plot([0;Qo],[0;Cfit*Qo],'b');
  C(1,5)=dP(1);
  C(1,6)=Co;
  C(1,7)=Cfit;
+ 
  
  dVPVQ(:,2)=Po;
  dVPVQ(:,1)=Date;

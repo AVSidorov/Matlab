@@ -1,4 +1,4 @@
-function Koeffs=Amp2fitK(Amp);
+function Koeffs=Amp2fitK(Amp,fig1);
 A00=-0.017*1e-1;
 A01=-0.513*1e-1;
 A02=0.517*1e-1;
@@ -63,6 +63,8 @@ Xfit=Xo+dXfit;
 Pfit=E./Xfit/760;
 dP=Pfit-Po;
 Sfit=(Pfit*760)*a;
+p1=polyfit([0;Qo],[1;G./Go],2);
+p2=polyfit([0;Qo],log([1;G./Go]),2);
 
 fprintf('dP is %7.4f\n',dP(1));
 
@@ -73,12 +75,16 @@ fprintf('dP is %7.4f\n',dP(1));
  Koeffs(1,5)=Gfit(1)/k; 
  Koeffs(1,6)=dP(1);
  Koeffs(1,7:9)=p1;
- Koeffs(1,10:12)=p4;
+ Koeffs(1,10:12)=p2;
  
  
  assignin('base','Koeffs1',Koeffs);
  evalin('base','Koeffs=[Koeffs;Koeffs1];');
- 
+ if nargin==2
+     figure(fig1);
+     grid on; hold on;
+     plot([0;Qo],[1;G./Go],'*r-');
+ end;
 
 
 
