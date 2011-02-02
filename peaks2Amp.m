@@ -1,19 +1,28 @@
 function Amp=peaks2Amp(peaks);
 Npoint=200;
-HI=1;
+HI=0.05;
 
 Date=100319;
+N=42;
+
 P=0;
-HV=1999;
+HV=1600;
+
 
 QCol=5;
 AmpCol=6;
 
-bool=peaks(:,1)==Date&abs(peaks(:,3)-P)<=0.01&abs(peaks(:,4)-HV)<=5;
+% bool=peaks(:,1)==Date&peaks(:,2)==N&abs(peaks(:,3)-P)<=0.01&abs(peaks(:,4)-HV)<=5;
+bool=peaks(:,1)==Date&peaks(:,2)==N;
+
 Nall=size(find(bool),1);
 Nmean=max([2e3,round(Nall/Npoint)]);
 Nmean=min([1e4,Nmean]);
 if Nall<3*Nmean Amp=[]; return; end;
+
+P=mean(peaks(bool,3));
+HV=mean(peaks(bool,4));
+
 peaks=sortrows(peaks(bool,:),QCol);
     
 

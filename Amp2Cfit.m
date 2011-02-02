@@ -24,7 +24,7 @@ Eo=Vo/log(b/a)/a;
 Ko=Eo*a;
 
 So=(Po*760)*a;
-Xo=E./(Po*760);
+Xo=Eo./(Po*760);
 FITo=(A00+F*A01+F^2*A02)+(A10+F*A11)*Xo+A20*Xo.^2+A30*Xo.^3+A40*Xo.^4+B00*Xo./So;
 Gfit=exp(Ko.*FITo);
 
@@ -55,36 +55,37 @@ close(gcf);
 
 Go=Go*k;
 
-[C1o,C2o,C3o,C4o]=Gseries(Xo(1),So(1));
+[C1o,C2o,C3o,C4o]=Fseries(Xo(1),So(1));
 dXfit=roots([C4o,C3o,C2o,C1o,FITo(1)-log(Go)/Ko(1)]);
 dXfit=dXfit(imag(dXfit)==0);
 dXfit=dXfit(abs(dXfit)<Xo(1)/2);
 
 Xfit=Xo+dXfit;
-Pfit=E./Xfit/760;
+Pfit=Eo./Xfit/760;
 dP=Pfit-Po;
 Sfit=(Pfit*760)*a;
 
 fprintf('dP is %7.4f\n',dP(1));
 
 N=max(size(G));
-[C1o,C2o,C3o,C4o]=Gseries(Xo(1),So(1));
+Koeff0=Gseries(Eo(1),Po(1)*760);
 for l=1:N
-    dX=roots([C4o,C3o,C2o,C1o,log(Go)/K(l)-log(G(l))./K(l)]);
-    dX=dX(imag(dX)==0);
-    dX=dX(abs(dX)<Xo(l)/2);
-    dXo(l)=dX;
+    Koeff0(end)=1-G(l)/Go;
+    dE=roots(Koeff0);
+    dE=dE(imag(dE)==0);
+    dE=dE(abs(dE)<Eo(l)/2);
+    dEo(l)=dE;
 end;
-
-[C1fit,C2fit,C3fit,C4fit]=Gseries(Xfit(1),Sfit(1));
+KoeffFit=Gseries(Eo(1),Pfit(1)*760);
 for l=1:N
-    dX=roots([C4fit,C3fit,C2fit,C1fit,log(Go)/K(l)-log(G(l))./K(l)]);
-    dX=dX(imag(dX)==0);
-    dX=dX(abs(dX)<Xfit(l)/2);
-    dXfit(l)=dX;
+    KoeffFit(end)=1-G(l)/Go;
+    dE=roots(KoeffFit);
+    dE=dE(imag(dE)==0);
+    dE=dE(abs(dE)<Eo(l)/2);
+    dEfit(l)=dE;
 end;
-dVo=dXo'*log(b/a)*a.*Po*760;
-dVfit=dXfit'*log(b/a)*a.*Pfit*760;
+dVo=dEo'*log(b/a)*a;
+dVfit=dEfit'*log(b/a)*a;
 
 figure;
 plot(Qo,dVo,'*r-');
