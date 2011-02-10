@@ -17,7 +17,6 @@ W4Rad=3.014;      % keV,   energy escape Peak by manual fit;
 if isstr(FileName) Spectr=load(FileName);  else  Spectr=FileName;  end; 
 ZeroBool=Spectr(:,2)==0; 
 Spectr(ZeroBool,:)=[]; 
-NumPeaks=sum(Spectr(:,2)); 
 % First approximation data
 Amain=max(Spectr(:,2)); 
 Ind=find(Amain==Spectr(:,2));
@@ -425,6 +424,8 @@ Bool=(Spectr(:,1)>=W4+Sigma1)&(Spectr(:,1)<=Wmain);
 %     fclose(fid);    
 % end;
 
+Chi2=KhiSquare(Spectr,FitSpecS)/size(FitSpecS,1);
+
 PoissonSet.W1=W1;
 PoissonSet.Wmain=Wmain;
 PoissonSet.WmainW=WmainW;
@@ -448,6 +449,8 @@ PoissonSet.A1=A1;
 PoissonSet.A4=A4;
 PoissonSet.Amain=Amain;
 PoissonSet.Aesc=Aesc;
+PoissonSet.Chi2=Chi2;
+PoissonSet.Khi2=AbsMinKhi2;
 
 
 
@@ -471,6 +474,7 @@ fprintf('Amain=%3.3f\n',Amain);
 fprintf('Aesc=%3.3f\n',Aesc);
 fprintf('Escape ratio=%3.3f\n',Aesc/Amain);
 fprintf('AbsMinKhi2=%3.3f  \n',AbsMinKhi2);
+fprintf('Chi2=%3.3f  \n',Chi2);
 fprintf('++++++++++++\n');
 fprintf('PoissonCoef=%3.3f 1/count or %3.3f 1/keV\n', Kmin, KminW); 
 fprintf('++++++++++++\n');

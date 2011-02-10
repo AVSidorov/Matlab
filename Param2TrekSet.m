@@ -1,16 +1,42 @@
 function TrekSet=Param2TrekSet(TrekSetIn,AllPrms);
 TrekSet=TrekSetIn;
-Date=100611;
+% settings of AllPrms array it may be AllPrms AmpPVQ AmpHV etc
+DateCol=0;
+NCol=1;
+PCol=5;
+dPCol=6;
+HVCol=11;
+AmpCol=10;
+
+
 Ns=TrekSet.name(1:2);
 N=str2num(Ns);
-Ind=find(AllPrms(:,2)==N);
+Ind=find(AllPrms(:,NCol)==N);
 disp(Ns);
+
 if isempty(Ind) 
     return;
 else
-   Amp=AllPrms(Ind,6);
-   P=AllPrms(Ind,4)+AllPrms(Ind,5)+1;
-   HV=AllPrms(Ind,3);
+    if max(size(Ind))>1
+        return;
+    else
+        if DateCol>0 
+            Date=AllPrms(Ind,DateCol);
+        else
+            Date=100319;
+        end;
+       if AmpCol>0
+           Amp=AllPrms(Ind,AmpCol);
+       else
+           Amp=32.85;
+       end;
+       if dPCol>0
+           P=AllPrms(Ind,PCol)+AllPrms(Ind,dPCol)+1;
+       else
+           P=AllPrms(Ind,PCol)+1;   
+       end;
+       HV=AllPrms(Ind,HVCol);
+    end;
 end;
 
 peaks=TrekSet.peaks;
@@ -25,5 +51,5 @@ TrekSet.Shot=N;
 TrekSet.Amp=Amp;
 TrekSet.HV=HV;
 TrekSet.P=P;
-% TrekSet=TrekChargeQX(TrekSet,HV,P);
+TrekSet=TrekChargeQX(TrekSet);
 
