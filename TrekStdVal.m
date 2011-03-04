@@ -44,14 +44,18 @@ if isfield(TrekSet,'Threshold')
       end;
 end;
 
-Positive=size(find(trek-(M+2*Thr)>0),1);  
-Negative=size(find(trek-(M-2*Thr)<0),1); 
 
-if Positive>Negative 
-    PeakPolarity=1;
-else
-    PeakPolarity=-1;   
-end; 
+
+
+    Positive=size(find(trek-(M+2*Thr)>0),1);  
+    Negative=size(find(trek-(M-2*Thr)<0),1); 
+
+    if Positive>Negative 
+        PeakPolarity=1;
+    else
+        PeakPolarity=-1;   
+    end; 
+
 
 
 if (abs(M)<Thr)
@@ -84,11 +88,21 @@ end;
 TrekSet.trek=trek;
 TrekSet.size=size(TrekSet.trek,1);  
 TrekSet.MeanVal=MeanVal;
-if not(isfield(TrekSet,'PeakPolarity'))
-    TrekSet.PeakPolarity=PeakPolarity;
-end;
 TrekSet.StdVal=StdVal;
 
+if isfield(TrekSet,'PeakPolarity');
+    if not(isempty(TrekSet.PeakPolarity))
+        if TrekSet.PeakPolarity~=0;
+            TrekSet.PeakPolarity=TrekSet.PeakPolarity;
+        else
+           TrekSet.PeakPolarity=PeakPolarity;
+        end;
+    else
+        TrekSet.PeakPolarity=PeakPolarity;
+    end;
+else
+   TrekSet.PeakPolarity=PeakPolarity;
+end;
 
 
 

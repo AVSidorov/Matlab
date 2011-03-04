@@ -4,7 +4,7 @@ TrekSet=TrekSetIn;
 DateCol=0;
 NCol=1;
 PCol=5;
-dPCol=6;
+dPCol=7;
 HVCol=11;
 AmpCol=10;
 
@@ -23,7 +23,7 @@ else
         if DateCol>0 
             Date=AllPrms(Ind,DateCol);
         else
-            Date=100319;
+            Date=100405;
         end;
        if AmpCol>0
            Amp=AllPrms(Ind,AmpCol);
@@ -41,8 +41,10 @@ end;
 
 peaks=TrekSet.peaks;
 
-if peaks(1,3)~=0
-    peaks(2:end,3)=diff(peaks(:,2)); peaks(1,3)=0; 
+if min(size(peaks))>0
+    if peaks(1,3)~=0
+        peaks(2:end,3)=diff(peaks(:,2)); peaks(1,3)=0; 
+    end;
 end;
 
 TrekSet.peaks=peaks;

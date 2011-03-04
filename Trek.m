@@ -1,5 +1,30 @@
 % function TrekSet=Trek(FileName);
 function TrekSet=Trek(FileName);
+% Fields of struct TrekSet is take from old data. Updated 03.03.11
+% FileType
+% tau
+% StartOffset
+% OverStStd          - used in old version now only one field OverSt
+% OverStThr
+% StandardPulseFile
+% MaxSignal
+% peaks
+% StdVal
+% Threshold
+% StartTime
+% type              - output of exist function 2-means file;
+% FileName
+% size
+% name
+% StandardPulse
+% MeanVal
+% PeakPolarity
+% charge
+% Date
+% Shot
+% Amp
+% HV
+% P
 
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
@@ -9,17 +34,31 @@ MaxBlock=4.2e6;
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.02;               %ADC period
-TrekSet.StartOffset=14000       %in us old system was Tokamak delay + 1.6ms
+TrekSet.StartOffset=14000;       %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverSt=3;               %uses in StdVal
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=-1;
+TrekSet.Threshold=500;
 TrekSet.StartTime=TrekSet.StartOffset;
 TrekSet.Plot=true;
-Pass=1;
+TrekSet.type=[];              
+TrekSet.FileName=[];
+TrekSet.size=[];
+TrekSet.name=[];
+TrekSet.StandardPulse=[];
+TrekSet.MeanVal=[];
+TrekSet.PeakPolarity=[];
+TrekSet.charge=[];
+TrekSet.Date=110120;
+TrekSet.Shot=[];
+TrekSet.Amp=6;
+TrekSet.HV=1700;
+TrekSet.P=1.02;
+
+Pass=2;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -67,9 +106,11 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
 
  
-   
-     TrekSet1.StartTime=18000;
+   %Time re-setup for plasma treks. !!!!!!Think about moving this to header
+     TrekSet1.StartTime=23500;
+     TrekSet.StartTime=23500;
      TrekSet1.size=5e5;
+     TrekSet.size=5e5;
      TrekSet1=TrekLoad(FileName,TrekSet1);
 
 assignin('base','trek',TrekSet1.trek);
@@ -88,14 +129,14 @@ for passI=1:Pass
 % 
 %     %!!!Searching for Standard Pulse
 % 
-%     %Getting Peaks
-%     TrekSet1=TrekGetPeaks(TrekSet1,passI);
-%     TrekSet1.Threshold=TrekSet1.Threshold*2;
+    %Getting Peaks
+     TrekSet1=TrekGetPeaks(TrekSet1,passI);
+     TrekSet1.Threshold=TrekSet1.Threshold*2;
 end;
  assignin('base','trekM',TrekSet1.trek);
 
 
-    %making trek whithout noise spaces
+%%%%%%%%%%%%%%%making trek whithout noise spaces%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     if not(isempty(TrekSet1.peaks))>0
 %         bool=(TrekSet1.peaks(:,2)>(TrekSet1.StartTime+dT))&...
 %              (TrekSet1.peaks(:,2)<(TrekSet1.StartTime+TrekSet1.size*TrekSet1.tau-2*dT));
@@ -144,7 +185,10 @@ end;
 TrekSet=rmfield(TrekSet,'Plot');
 TrekSet=TrekChargeQX(TrekSet);
  assignin('base','TrekSet',TrekSet);
- evalin('base','Treks(end+1)=TrekSet;');
+ if not(evalin('base','exist(''Treks'')'))
+     evalin('base','Treks=[];');
+ end;
+ evalin('base','Treks=[Treks;TrekSet];');
 fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');
 toc;
 fprintf('\n \n');
