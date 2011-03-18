@@ -41,8 +41,9 @@ TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
 TrekSet.MaxSignal=4000;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=500;
+TrekSet.Threshold=-1;
 TrekSet.StartTime=TrekSet.StartOffset;
+% TrekSet.StartTime=3e4;
 TrekSet.Plot=true;
 TrekSet.type=[];              
 TrekSet.FileName=[];
@@ -52,11 +53,11 @@ TrekSet.StandardPulse=[];
 TrekSet.MeanVal=[];
 TrekSet.PeakPolarity=[];
 TrekSet.charge=[];
-TrekSet.Date=110120;
+TrekSet.Date=110317;
 TrekSet.Shot=[];
-TrekSet.Amp=6;
-TrekSet.HV=1700;
-TrekSet.P=1.02;
+TrekSet.Amp=[];
+TrekSet.HV=1750;
+TrekSet.P=1.1;
 
 Pass=2;
 
@@ -85,7 +86,7 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 
     TrekSet1.size=min([TrekSet.size-(i-1)*MaxBlock;MaxBlock]);
     TrekSet1.StartTime=TrekSet.StartTime+(i-1)*MaxBlock*TrekSet1.tau;
-    
+
     %Loading trek data
     TrekSet1=TrekLoad(FileName,TrekSet1);
     
@@ -107,11 +108,11 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-     TrekSet1.StartTime=23500;
-     TrekSet.StartTime=23500;
-     TrekSet1.size=5e5;
-     TrekSet.size=5e5;
-     TrekSet1=TrekLoad(FileName,TrekSet1);
+%      TrekSet1.StartTime=23500;
+%      TrekSet.StartTime=23500;
+%      TrekSet1.size=5e5;
+%      TrekSet.size=5e5;
+%      TrekSet1=TrekLoad(FileName,TrekSet1);
 
 assignin('base','trek',TrekSet1.trek);
 for passI=1:Pass

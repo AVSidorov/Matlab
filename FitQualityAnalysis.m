@@ -1,7 +1,7 @@
 function Khi2=FitQualityAnalysis(Specs);
 
-minE=0.5;
-maxE=4;
+minE=0.6;
+maxE=3;
 
 N=size(Specs,2);
 

@@ -64,10 +64,13 @@ if not(isstr(FileName));
         if isempty(TrekSet.HV) TrekSet.HV=1700; end;
     end;
     
+    
     if isempty(TrekSet.Amp)
         TrekSet.Amp=input('input Amplification number(1-6) or value 1,1.123,3.3333,10.3333,32.85,94.3333\n');
         if isempty(TrekSet.Amp) TrekSet.Amp=1; end;
-        switch TrekSet.Amp
+    end;
+    
+    switch TrekSet.Amp
             case 2
                 TrekSet.Amp=1.123;
             case 3
@@ -79,7 +82,6 @@ if not(isstr(FileName));
             case 6
                 TrekSet.Amp=94.3333;
         end;          
-    end;
 
     
       
