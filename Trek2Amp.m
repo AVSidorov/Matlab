@@ -19,8 +19,8 @@ peaks(:,end+1)=TrekSet.charge;
 peaks=sortrows(peaks,QCol);
     
 
-% St=0;
-% dQ=mean(peaks(bool,QCol))/(Nall/Nmean/2);
+ St=0;
+ dQ=15;
 % i=1;
 % Ex=0;
 IN=zeros(7,1);

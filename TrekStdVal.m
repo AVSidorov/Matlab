@@ -46,15 +46,45 @@ end;
 
 
 
-
+if isfield(TrekSet,'PeakPolarity');
+   if not(isempty(TrekSet.PeakPolarity))
+    if TrekSet.PeakPolarity==0
+         Positive=size(find(trek-(M+2*Thr)>0),1);  
+         Negative=size(find(trek-(M-2*Thr)<0),1); 
+        %Positive=sum(trek(trek-(M+2*Thr)>0));  
+        %Negative=sum(trek(trek-(M-2*Thr)<0)); 
+    
+        if Positive>Negative 
+            PeakPolarity=1;
+        else
+            PeakPolarity=-1;   
+        end; 
+    
+    else
+        PeakPolarity=TrekSet.PeakPolarity;        
+    end;
+   else
     Positive=size(find(trek-(M+2*Thr)>0),1);  
-    Negative=size(find(trek-(M-2*Thr)<0),1); 
+    Negative=size(find(trek-(M-2*Thr)<0),1);    
 
     if Positive>Negative 
         PeakPolarity=1;
     else
         PeakPolarity=-1;   
     end; 
+       
+   end;    
+else
+    Positive=size(find(trek-(M+2*Thr)>0),1);  
+    Negative=size(find(trek-(M-2*Thr)<0),1);    
+
+    if Positive>Negative 
+        PeakPolarity=1;
+    else
+        PeakPolarity=-1;   
+    end; 
+end;
+
 
 
 
@@ -63,6 +93,7 @@ if (abs(M)<Thr)
     StdVal=std(trek(Noise));
 else
     trek=PeakPolarity*(trek-MeanVal);
+    PeakPolarity=1;
     if M==MeanVal
         dSt=1;
         dM=1;
@@ -90,19 +121,7 @@ TrekSet.size=size(TrekSet.trek,1);
 TrekSet.MeanVal=MeanVal;
 TrekSet.StdVal=StdVal;
 
-if isfield(TrekSet,'PeakPolarity');
-    if not(isempty(TrekSet.PeakPolarity))
-        if TrekSet.PeakPolarity~=0;
-            TrekSet.PeakPolarity=TrekSet.PeakPolarity;
-        else
-           TrekSet.PeakPolarity=PeakPolarity;
-        end;
-    else
-        TrekSet.PeakPolarity=PeakPolarity;
-    end;
-else
-   TrekSet.PeakPolarity=PeakPolarity;
-end;
+TrekSet.PeakPolarity=PeakPolarity;
 
 
 

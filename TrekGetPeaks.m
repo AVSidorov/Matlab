@@ -122,6 +122,9 @@ if not(isempty(TrekSet.SelectedPeakInd))
 end;
 
 % NullLine=zeros(treksize,1);
+HighPedestalInd=[];
+LowAmpInd=[];
+HighAmpInd=[];
 
 while (i<PeakN)&&not(isempty(TrekSet.SelectedPeakInd))
     i=i+1;
@@ -307,8 +310,18 @@ while (i<PeakN)&&not(isempty(TrekSet.SelectedPeakInd))
         MinusOk=false;
         
         if (Ampl>TrekSet.Threshold)&((Ampl+B)<MaxSignal)&...
-             (abs(trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)<TrekSet.Threshold)           %%%&&((Ampl/TrekSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
-            MinusOk=true;
+              (abs(trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)<TrekSet.Threshold)           %%%&&((Ampl/TrekSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
+             MinusOk=true;
+        else
+           if  (Ampl<=TrekSet.Threshold) 
+               LowAmpInd(end+1)=TrekSet.SelectedPeakInd(i); 
+           end;
+           if  (Ampl+B)>=MaxSignal
+               HighAmpInd(end+1)=TrekSet.SelectedPeakInd(i); 
+           end;   
+%            if  abs(trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)>=TrekSet.Threshold 
+%                HighPedestalInd(end+1)=TrekSet.SelectedPeakInd(i); 
+%            end;
         end;
 %          if (Ampl>TrekSet.Threshold)&((Ampl+B)<MaxSignal)&not(MinusOk)&...
 %               ((trekMinus(TrekSet.SelectedPeakInd(i))-Ampl-B)<OverSt*TrekSet.Threshold)%%%&&((Ampl/TrekSet.Threshold)^2>*MinKhi2); %(MinKhi2<Khi2Thr)&;
@@ -384,8 +397,13 @@ if EndPlotBool
           plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4)+peaks(:,5),'r^');
           plot((peaks(:,2)-TrekSet.StartTime)/tau,peaks(:,4),'g>');
           plot(TrekSet.SelectedPeakInd,trek(TrekSet.SelectedPeakInd),'.r');
+%           plot(HighPedestalInd,trek(HighPedestalInd),'dm');
+%           plot(HighAmpInd,trek(HighAmpInd),'*r');
+%           plot(LowAmpInd,trek(LowAmpInd),'.k');          
           plot(trekMinus,'y'); 
-          legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
+%           legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','HighPedestal','Ampl>MaxSignal','Ampl<Threshold','trekMinus');
+%            legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','HighPedestal','Ampl>MaxSignal','trekMinus');
+            legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
 
           dt=[];
           for i=1:NPeaksSubtr
