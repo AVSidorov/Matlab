@@ -34,11 +34,12 @@ MaxBlock=4.2e6;
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.02;               %ADC period
-TrekSet.StartOffset=13000;       %in us old system was Tokamak delay + 1.6ms
+TrekSet.StartOffset=14000;       %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverSt=3;               %uses in StdVal
-TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_2.dat';
+TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeakAmp4_20ns_1.dat';
+% TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
-TrekSet.MaxSignal=4000;
+TrekSet.MaxSignal=2700;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
 TrekSet.Threshold=50;
@@ -53,13 +54,13 @@ TrekSet.StandardPulse=[];
 TrekSet.MeanVal=[];
 TrekSet.PeakPolarity=-1;
 TrekSet.charge=[];
-TrekSet.Date=100611;
-TrekSet.Shot=[];
-TrekSet.Amp=6;
-TrekSet.HV=1700;
-TrekSet.P=1;
+TrekSet.Date=110317;
+TrekSet.Shot=0;
+TrekSet.Amp=4;
+TrekSet.HV=1750;
+TrekSet.P=1.1;
 
-Pass=2;
+Pass=1;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -70,7 +71,6 @@ if TrekSet.type==0 return; end;
 
 %Loading Standard Pulse
 TrekSet=TrekStPLoad(TrekSet);
-
 %Choosing time interval for working
 % TrekSet=TrekPickTime(TrekSet);
 
@@ -89,7 +89,6 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 
     %Loading trek data
     TrekSet1=TrekLoad(FileName,TrekSet1);
-    
 
     %Standard Deviation calulations and/or Peak Polarity Changing    
 %     TrekSet1=TrekStdVal(TrekSet1);
@@ -107,30 +106,32 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-      TrekSet1.StartTime=31000;
-      TrekSet.StartTime=31000;
-      TrekSet1.size=1.5e5;
-      TrekSet.size=1.5e5;
-      TrekSet1=TrekLoad(FileName,TrekSet1);
+          TrekSet1.StartTime=26970;
+          TrekSet1.size=2e3;
+          TrekSet.StartTime=TrekSet1.StartTime;
+          TrekSet.size=TrekSet1.size;
+          TrekSet1=TrekLoad(FileName,TrekSet1);
 
 assignin('base','trek',TrekSet1.trek);
 for passI=1:Pass
      TrekSet1=TrekStdVal(TrekSet1);
      TrekSet.MeanVal=TrekSet1.MeanVal;
      
+    TrekSet=TrekSet1;
+   
 %     
 %     %Searching for Indexes of potential Peaks
 
     
       TrekSet1=TrekPeakSearch(TrekSet1);
-      pause;
+%     pause;
 %     TrekSet1=TrekTops(TrekSet1);
       
 % 
 %     %!!!Searching for Standard Pulse
 % 
     %Getting Peaks
-     TrekSet1=TrekGetPeaks(TrekSet1,passI);
+     TrekSet1=TrekGetPeaksSid(TrekSet1,passI);
      TrekSet1.Threshold=TrekSet1.Threshold*2;
 end;
  assignin('base','trekM',TrekSet1.trek);

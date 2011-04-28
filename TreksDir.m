@@ -8,7 +8,8 @@ end;
 s=dir([Directory,'\*sxr.dat']);
 % s=dir('*sxr.dat');
 for i=1:size(s,1)
-    Trek(s(i).name)
+%     Trek(s(i).name)
+     TrekStandardPulseSearch(s(i).name)
 end;
 fprintf('>>>>>TreksDir finished\n' );
 s=clock;

@@ -44,7 +44,7 @@ trR=circshift(trek,1);
 trL=circshift(trek,-1);
 
 FrontBool=trek>=trR&trek<=trL;
-TailBool=trek>=trL&trek<=trL;
+TailBool=trek>=trL&trek<=trR;
 MaxBool=trek>trR&trek>=trL;
 MinBool=trek<=trR&trek<trL;
 MaxBool(1)=false;    MaxBool(end)=false;
@@ -78,7 +78,7 @@ MinN=size(MinInd,1);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
 
  
-%====== PeakOnFront Search
+%% ====== PeakOnFront Search
 trD=diff(trek,1);
 trD(end+1)=0;
 trD(MaxInd)=0;
@@ -99,9 +99,13 @@ IndSh=circshift(Ind,1);
 IndSh(1)=Ind(1);
 %array of gaps
 Difer=trek(Ind)-trek(IndSh);
-%excluding points whith small gap
-bool=Difer<Threshold;
+%array of size gaps in points
+DiferN=Ind-IndSh;
+%excluding points whith small gap or size gap in points is short or long
+bool=Difer<Threshold;%|abs(MaxFrontN-DiferN)>=2;
+
 Ind(bool)=[];
+
 PeakOnFrontBool=false(trSize,1); 
 PeakOnFrontBool(Ind)=true;
 % excluding minimums
@@ -112,9 +116,9 @@ TrekSet.PeakOnFrontInd=PeakOnFrontInd;
 PeakOnFrontN=size(PeakOnFrontInd,1);
 
 
-%===============Main Search
+%% ===============Main Search
 
-ByFrontBool=FrontHigh>=Threshold&FrontN>=2;
+ByFrontBool=FrontHigh>=Threshold&abs(MaxFrontN-FrontN)<=2; %first conditon is for front high, second means that front couldn't be shorter or longer  
 ByFrontInd=MaxInd(find(ByFrontBool));
 ByFrontBool=false(trSize,1);
 ByFrontBool(ByFrontInd)=true;
@@ -126,7 +130,7 @@ ByHighInd=find(ByHighBool);          % both noise and signal Maximums
 ByHighN=size(ByHighInd,1);           % don't match FrontHigh Conditions
                                      % This work only if NullLine is "zero"
                                      % This work because Threshold is for
-                                     % FronHigh. And if value of trek is
+                                     % FrontHigh. And if value of trek is
                                      % higher than "Threshold" it means trek
                                      % value is higher than double noise magnitude
                                    
@@ -153,7 +157,17 @@ ByDoubleFrontBool(ByHighBool)=false;
 ByDoubleFrontInd=find(ByDoubleFrontBool);
 ByDoubleFrontN=size(ByDoubleFrontInd,1);
 
-% =========== Search PeakOnTail
+%% =========== Search PeakOnTail
+bool=trek~=0;
+A=trek;
+A(bool)=abs(trD(bool))./trek(bool);
+A(trek<Threshold)=0;
+Ar=circshift(A,1);
+Al=circshift(A,-1);
+
+OnTailBool=Ar>A&Al>A&TailBool&A<0.01;
+OnTailBool(MinBool)=false;
+OnTailBool(MaxBool)=false;
 % MaxIndSh=circshift(MaxInd,-1);
 % IndMaxAfter=zeros(trSize,1);
 % IndMaxAfter(MaxInd)=MaxIndSh;
@@ -167,12 +181,12 @@ ByDoubleFrontN=size(ByDoubleFrontInd,1);
 % A(MaxInd)=FrontHigh;
 % FrontHigh=A;
 % OnTailBool=IntervalAfterByFront<OnTailN&IntervalAfterByFront>0&FrontHigh>StdVal&not(ByFrontBool);
-% OnTailInd=find(OnTailBool);
-% OnTailN=size(OnTailInd,1);
+ OnTailInd=find(OnTailBool);
+ OnTailN=size(OnTailInd,1);
+ TrekSet.OnTailInd=OnTailInd;
 
-% SelectedBool=ByFrontBool|OnTailBool|PeakOnFrontBool;
-%============ Combine All
-SelectedBool=ByFrontBool|PeakOnFrontBool|ByDoubleFrontBool|ByHighBool;
+%% ============ Combine All
+SelectedBool=ByFrontBool|PeakOnFrontBool|ByDoubleFrontBool|ByHighBool|OnTailBool;
 
 SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
@@ -183,7 +197,7 @@ TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
                                % which is generaly double noise amlitude. And in GetPeaks
                                % Amplitude of pulse is used
                                     
-
+%% end information
 fprintf('=====  Search of peak tops      ==========\n');
 fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
 fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',Threshold/StdVal,StdVal,Threshold);
@@ -192,12 +206,13 @@ fprintf('The total number of maximum = %7.0f \n',MaxN);
 fprintf('The number peaks selected by FrontHigh = %7.0f \n',ByFrontN);
 fprintf('The number peaks selected by High = %7.0f \n',ByHighN);
 fprintf('The number peaks selected by DoubleFrontHigh = %7.0f \n',ByDoubleFrontN);
-% fprintf('The number peaks selected on tail= %7.0f \n',OnTailN);
+fprintf('The number peaks selected on tail= %7.0f \n',OnTailN);
 fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
 fprintf('The number of selected peaks = %7.0f \n',SelectedN);
 fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 toc
 
+%% end plot
  if Plot
    figure;
    plot(trek);
@@ -205,10 +220,13 @@ toc
    plot(SelectedInd,trek(SelectedInd),'.r');
    plot(ByHighInd,trek(ByHighInd),'mo');
    plot(ByDoubleFrontInd,trek(ByDoubleFrontInd),'ro');   
-%  plot(find(OnTailBool),trek(OnTailBool),'om');
+   plot(find(OnTailBool),trek(OnTailBool),'sk');
    plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'dg');
-%     pause;
-%   close(gcf);
+   warning off; 
+   legend('trek','Selected','ByHigh','ByFront','OnTail','OnFront');
+   warning on;
+%    pause;
+%    close(gcf);
  end;
 
 

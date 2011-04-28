@@ -200,6 +200,7 @@ Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
         end;
         
 
+         plot([Thr,Thr],[1,max(HistFH(:,2))],'-m','LineWidth',2);
 %         pause;
 %         close(gcf);
     end;

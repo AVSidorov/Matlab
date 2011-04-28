@@ -1,5 +1,5 @@
 % function TrekSet=Trek(FileName);
-function TrekSet=TrekStandardPulseSearch(FileName);
+function TrekStandardPulseSearch(FileName);
 % Fields of struct TrekSet is take from old data. Updated 03.03.11
 % FileType
 % tau
@@ -44,7 +44,7 @@ TrekSet.StdVal=0;
 TrekSet.Threshold=50;
 TrekSet.StartTime=TrekSet.StartOffset;
 % TrekSet.StartTime=3e4;
-TrekSet.Plot=true;
+TrekSet.Plot=false;
 TrekSet.type=[];              
 TrekSet.FileName=[];
 TrekSet.size=[];
@@ -91,14 +91,6 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     TrekSet1=TrekLoad(FileName,TrekSet1);
     
 
-    %Standard Deviation calulations and/or Peak Polarity Changing    
-%     TrekSet1=TrekStdVal(TrekSet1);
-%     TrekSet.MeanVal=TrekSet1.MeanVal;
-%     TrekSet.PeakPolarity=TrekSet1.PeakPolarity;           
-
-    
-%     TrekSet.trek=TrekSet1.trek; return;
-    
     
     %Threshold Determination
      if TrekSet.Threshold<0
@@ -106,14 +98,6 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
          TrekSet.Threshold=TrekSet1.Threshold;
      end;
  
-   %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-%       TrekSet1.StartTime=31000;
-%       TrekSet.StartTime=31000;
-%       TrekSet1.size=1.5e5;
-%       TrekSet.size=1.5e5;
-%       TrekSet1=TrekLoad(FileName,TrekSet1);
-
-    assignin('base','trek',TrekSet1.trek);
 
     TrekSet1=TrekStdVal(TrekSet1);
     TrekSet.MeanVal=TrekSet1.MeanVal;
@@ -123,30 +107,8 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
 
     
      TrekSet1=TrekPeakSearch(TrekSet1);
-     TrekSet1=TrekAlonePeakSearch(TrekSet1);
-     return;
-     TrekSet1.Threshold=TrekSet1.Threshold*2;
-
-
-
-
-      TrekSet.peaks=TrekSet1.peaks;
-      TrekSet.StdVal=(TrekSet.StdVal*(i-1)+TrekSet1.StdVal)/i;
-      TrekSet.Threshold=(TrekSet.Threshold*(i-1)+TrekSet1.Threshold)/i;
-    clear StartTime EndTime StartInd EndInd bool StartTimeSh delta Ind TrekSet1 ii NCross;
+     TrekAlonePeakSearch(TrekSet1);
 end;
 
-
-TrekSet=rmfield(TrekSet,'Plot');
-TrekSet=TrekChargeQX(TrekSet);
- assignin('base','TrekSet',TrekSet);
- if not(evalin('base','exist(''Treks'')'))
-     evalin('base','Treks=[];');
- end;
- evalin('base','Treks=[Treks;TrekSet];');
-fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');
-toc;
-fprintf('\n \n');
-CloseGraphs; 
 
 
