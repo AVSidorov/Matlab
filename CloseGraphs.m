@@ -9,7 +9,7 @@ for i=1:figN
         figure(H(i));
         close(gcf);
     else
-      if decision=='Y'||decision=='y'
+      if decision=='Y'|decision=='y'
         figure(H(i));
         close(gcf);
       end;

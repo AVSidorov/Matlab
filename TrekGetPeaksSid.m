@@ -6,7 +6,7 @@ disp('>>>>>>>>Get Peaks started');
 Nfit=10;
 
 EndPlotBool=true;
-PulsePlot=true;
+PulsePlot=false;
 FitPlot=false;
 
 PulseN=size(TrekSet.StandardPulse,1);
@@ -14,10 +14,12 @@ MaxInd=find(TrekSet.StandardPulse==1); %Standard Pusle must be normalized by Amp
 BckgFitInd=find(TrekSet.StandardPulse==0);%Standard Pulse must have several zero point at front end and las zero point
 BckgFitInd(end)=[];
 BckgFitN=size(BckgFitInd,1); 
+FrontN=MaxInd-BckgFtiN;
 TailInd=find(TrekSet.StandardPulse<=0);
 TailInd(TailInd<MaxInd)=[];
 TailInd=TailInd(1);
 NPeaksSubtr=0;
+
 
 if nargin<2
     Pass=1;
@@ -47,7 +49,7 @@ while i<PeakN %
 %not just i=i+1 because can be jump if PeakOnFront and next pulse fitted in
 %GetDoublePeaks
  if NPeaksSubtr>0    
-    i=find(TrekSet.SelectedPeakInd(:)>peaks(NPeaksSubtr,1),1,'first');
+    i=max([find(TrekSet.SelectedPeakInd(:)>peaks(NPeaksSubtr,1),1,'first'),i+1]);
  else
      i=1;
  end;
@@ -67,6 +69,9 @@ while i<PeakN %
     if trek(TrekSet.SelectedPeakInd(i))<TrekSet.Threshold; %after subtracting previous peak the next can be noise
         continue;
     end;
+%%
+%it can be vere long front without PeakOnFront marker
+if TrekSet.SelectedPeakInd(i)-find(trek(1:TrekSet.SelectedPeakInd(i))<TrekSet.Threshold,1,'last')>
 
 %% =========search points suitable for fitting
 
