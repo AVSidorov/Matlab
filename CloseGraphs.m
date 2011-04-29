@@ -6,9 +6,11 @@ for i=1:figN
     decision='Y';
     decision=input('Close figure Y(default)/(other key)','s');
     if isempty(decision)
+        figure(H(i));
         close(gcf);
     else
       if decision=='Y'||decision=='y'
+        figure(H(i));
         close(gcf);
       end;
     end;
