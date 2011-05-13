@@ -9,8 +9,8 @@ fprintf('Initial Ind - Time is %4d - %5.3fus\n',TrekSet.SelectedPeakInd(I),TrekS
 Nfit=7;
 FitPassN=2;
 
-EndPlot=false;
-PulsePlot=false;
+EndPlot=true;
+PulsePlot=true;
 FitPlot=false;
 
 
@@ -45,10 +45,11 @@ dI=0;
      if(TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I))<=(MaxInd-BckgFitN)
  %      if isempty(find(TrekSet.SelectedPeakInd(I+1)==TrekSet.PeakOnFrontInd(:)))
           dI=1;
-          sh=[1/Nfit:((MaxInd-BckgFitN)-1/Nfit)/Nfit:Nfit];
-          shN=numel(sh);
  %      end;
      end;
+ end;
+ if numel(find(TrekSet.SelectedPeakInd(I)==TrekSet.LongFrontInd(:)))>0
+     dI=1;
  end;
 
 %%
@@ -93,7 +94,7 @@ for shi=1:shN
 
 
         %Reduce points which overlaped to next pulse only after front
-        if I<PeakN
+        if I+dI<PeakN
             %BorderInd is index there next pulse can be over Threshold.
             BorderInd=max([TrekSet.SelectedPeakInd(I+dI+1)-MaxInd+find(trek(TrekSet.SelectedPeakInd(I+dI+1))*TrekSet.StandardPulse>TrekSet.Threshold,1,'first'),...
                 TrekSet.SelectedPeakInd(I+dI+1)-(MaxInd-BckgFitN)]); %if next pulse to small, to avoid empty BorderInd
@@ -186,7 +187,7 @@ for shi=1:shN
                     Khi(1:3)=inf;
                     shTi=1;
                     FineInd=[];
-                    while Khi(end)<=Khi(end-1)|Khi(end-1)<=Khi(end-2)&shT>=-1
+                    while (Khi(end)<=Khi(end-1)|Khi(end-1)<=Khi(end-2))&(shT>=-1)
                         FineInd(end+1)=shT;
                         FitPulse=interp1([1:PulseN],Stp,[1:PulseN]+shT,'spline',0);
                         p=polyfit(FitPulse(FitIndPulse),Yi',1);
@@ -219,7 +220,9 @@ for shi=1:shN
                 shTi=shTi-1;
                 StInd=max([1,KhiMinInd-2]);
                 EndInd=min([shTi,KhiMinInd+2]);
-
+                if KhiMinInd>shTi-2
+                    continue;
+                end;
                 
                 KhiFit=polyfit(FineInd(StInd:EndInd),Khi(StInd:EndInd),2);
                 Shift=-KhiFit(2)/(2*KhiFit(1));
@@ -240,7 +243,7 @@ for shi=1:shN
                     end;
 
 %%
-if PulsePlot
+        if PulsePlot
             PulseSubtract=p(1)*PulseFine+p(2);
 
             SubtractInd=[1:PulseN]+TrekSet.SelectedPeakInd(I+dI)-mi;
@@ -325,7 +328,7 @@ if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract
                                     TrekSet1.size=numel(TrekSet1.trek);
                                     TrekSet1.SelectedPeakInd=[];
                                     TrekSet1.PeakOnFrontInd=[];
-                                    TrekSet1.OnTailInd=[];
+                                    TrekSet1.PeakOnTailInd=[];
                                     TrekSet1.Threshold=2*TrekSet.Threshold;
                                     TrekSet1=TrekPeakSearch(TrekSet1);
                                     bool=TrekSet.SelectedPeakInd>=SubtractInd(mi+1)&TrekSet.SelectedPeakInd<=SubtractInd(end);
@@ -333,7 +336,7 @@ if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract
                                         
                                         TrekSet1.SelectedPeakInd=TrekSet1.SelectedPeakInd-1+SubtractInd(mi+1)-3;
                                         TrekSet1.PeakOnFrontInd=TrekSet1.PeakOnFrontInd-1+SubtractInd(mi+1)-3;
-                                        TrekSet1.OnTailInd=TrekSet1.OnTailInd-1+SubtractInd(mi+1)-3;
+                                        TrekSet1.PeakOnTailInd=TrekSet1.PeakOnTailInd-1+SubtractInd(mi+1)-3;
                                         
                                         for IndI=1:numel(TrekSet1.SelectedPeakInd)
                                             if isempty(find(TrekSet1.SelectedPeakInd(IndI)==TrekSet.SelectedPeakInd(:)))
@@ -349,10 +352,10 @@ if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract
                                             end;
                                         end;
                                         
-                                        for IndI=1:numel(TrekSet1.OnTailInd)
-                                            if isempty(find(TrekSet1.OnTailInd(IndI)==TrekSet.OnTailInd(:)))
-                                                TrekSet.OnTailInd(end+1)=TrekSet1.OnTailInd(IndI);
-                                                TrekSet.OnTailInd=sortrows(TrekSet.PeakOnFrontInd);
+                                        for IndI=1:numel(TrekSet1.PeakOnTailInd)
+                                            if isempty(find(TrekSet1.PeakOnTailInd(IndI)==TrekSet.PeakOnTailInd(:)))
+                                                TrekSet.PeakOnTailInd(end+1)=TrekSet1.PeakOnTailInd(IndI);
+                                                TrekSet.PeakOnTailInd=sortrows(TrekSet.PeakOnFrontInd);
                                             end;
                                         end;
                                             

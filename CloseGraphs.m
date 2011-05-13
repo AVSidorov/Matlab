@@ -1,7 +1,8 @@
 function CloseGraphs;
 H=findobj('Type','figure');
 figN=size(H,1);
-for i=1:figN
+i=1;
+while figN>0&i<=figN
     figure(H(i));
     decision='Y';
     decision=input('Close figure Y(default)/(other key)','s');
@@ -13,5 +14,8 @@ for i=1:figN
         figure(H(i));
         close(gcf);
       end;
+      i=i+1;
     end;
+  H=findobj('Type','figure');
+  figN=size(H,1);
 end;
