@@ -337,7 +337,7 @@ while i<PeakN %
                             end;
 %                        end;
                        
-                 if p(1)>TrekSet.Threshold&p(2)<TrekSet.Threshold %&(p(1)+p(2)-trek(TrekSet.SelectedPeakInd(i)))<TrekSet.Threshold
+                 if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold %&(p(1)+p(2)-trek(TrekSet.SelectedPeakInd(i)))<TrekSet.Threshold
 
                         trek(SubtractInd)=trek(SubtractInd)-PulseSubtract(SubtractIndPulse)'; 
                         NPeaksSubtr=NPeaksSubtr+1;

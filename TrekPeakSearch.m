@@ -137,7 +137,7 @@ for i=1:NCombinedMax %this cycle is allowed because have small number of repeati
     LFrontInd=MinInd+i*MaxFrontN;
     
     LFrontInd=LFrontInd(LFrontInd<MaxInd...                                         %first condition means that front more than i*MaxFrontN, 
-                        &(MaxInd-LFrontInd)>(MaxFrontN-1));                         %second that after found Ind are not only several(one/two) points in other words front is more than i*MaxFrontN+MaxFrontN-1, i.e. more than 2/3/4*MaxFrontN
+                        &(MaxInd-LFrontInd)>=(MaxFrontN-1));                         %second that after found Ind are not only several(one/two) points in other words front is more than i*MaxFrontN+MaxFrontN-1, i.e. more than 2/3/4*MaxFrontN
     LFrontInd=LFrontInd((trek(LFrontInd)-trek(LFrontInd-MaxFrontN))>Threshold);     %Means that gap between previous minimum(i=1)/marker(i>1) is more than Threshold
                    
 
