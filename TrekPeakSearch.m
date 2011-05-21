@@ -178,6 +178,7 @@ ByFrontBool=false(trSize,1);
 ByFrontBool(ByFrontInd)=true;
 ByFrontN=size(ByFrontInd,1);
 
+%% ==============By High
 ByHighBool=(trek>Threshold)&MaxBool; % It is necessary for small peaks, wich
 ByHighBool(ByFrontBool)=false;       % have noise maximum on front. As result
 ByHighInd=find(ByHighBool);          % both noise and signal Maximums 
@@ -188,6 +189,7 @@ ByHighN=size(ByHighInd,1);           % don't match FrontHigh Conditions
                                      % higher than "Threshold" it means trek
                                      % value is higher than double noise magnitude
                                    
+%% =============Double Front
 FrontHighSh=circshift(FrontHigh,-1); % Another way to searching such pulses
 FrontHighSh(end)=0;
 %Searching 
@@ -309,8 +311,8 @@ toc
    warning off; 
    legend(s);
    warning on;
-%     pause;
-%     close(gcf);
+%      pause;
+%      close(gcf);
  end;
 
 
