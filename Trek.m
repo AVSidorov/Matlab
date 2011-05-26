@@ -107,7 +107,7 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
            TrekSet1.StartTime=15000;
-           TrekSet1.size=7.5e5;
+           TrekSet1.size=1e6;
            TrekSet.StartTime=TrekSet1.StartTime;
            TrekSet.size=TrekSet1.size;
            TrekSet1=TrekLoad(FileName,TrekSet1);

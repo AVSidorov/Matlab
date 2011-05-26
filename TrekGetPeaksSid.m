@@ -44,19 +44,18 @@ MaxCurve=[StpL(1:MaxInd-1);TrekSet.StandardPulse(MaxInd);StpR(MaxInd+1:end)]';
 
 
 
-i=0;
+i=1;
 while i<PeakN %
     DoubleFit=false;
     OscilFit=false;
     ExcelentFit=false;
     GoodFit=false;
+    BadFit=false;
 
 %not just i=i+1 because can be jump if PeakOnFront and next pulse fitted in
-%GetDoublePeaks
+%GetDoublePeaks 
  if NPeaksSubtr>0    
-    i=max([find(TrekSet.SelectedPeakInd(:)>peaks(NPeaksSubtr,1),1,'first'),i+1]);
- else
-     i=1;
+    i=max([find(TrekSet.SelectedPeakInd(:)>peaks(NPeaksSubtr,1),1,'first'),i]);
  end;
 %%
     %if Peak marked by LongFront and not marked as PeakOnFront start
@@ -74,6 +73,7 @@ while i<PeakN %
             end;
     end;
     if trek(TrekSet.SelectedPeakInd(i))<TrekSet.Threshold; %after subtracting previous peak the next can be noise
+        i=i+1;
         continue;
     end;
 
@@ -132,7 +132,7 @@ while i<PeakN %
              end;
         end;
         %reduce points on tail which greater then max
-        if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))==0
+        if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))==0&numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd(:)))==0
             FitInd((trek(FitInd)'>=trek(TrekSet.SelectedPeakInd(i)))&FitIndPulse>MaxInd)=[];
             FitIndPulse=FitInd-TrekSet.SelectedPeakInd(i)+MaxInd;
         end;
@@ -269,7 +269,12 @@ while i<PeakN %
                         DisturbIndPulse=find(PulseSubtract>TrekSet.Threshold);
                         DisturbInd=DisturbIndPulse+TrekSet.SelectedPeakInd(i)-MaxInd;
                         DisturbInd=DisturbInd(DisturbInd<=TrekSet.size&DisturbInd>=1);
+                        DisturbBool=false(TrekSet.size,1);
+                        DisturbBool(DisturbInd)=true;
+                        DisturbBool(FitInd)=false;
+                        DisturbInd=find(DisturbBool);
                         DisturbIndPulse=DisturbInd-TrekSet.SelectedPeakInd(i)+MaxInd;
+
 
 
 
@@ -297,17 +302,25 @@ while i<PeakN %
                              close(gcf);
                         end;
 %%
+                        if p(1)<TrekSet.Threshold
+                            i=i+1;
+                            continue;
+                        end;
                         if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
                                 (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
                                 min(trek(DisturbInd))>-TrekSet.Threshold
                             ExcelentFit=true;
                         else
-                            if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
-                                GoodFit=true;
-                            end;
-                            if abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
-                                OscilFit=true;
-                            end;
+                                if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
+                                    GoodFit=true;
+                                end;
+                                if abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
+                                    OscilFit=true;
+                                end;
+                        end;
+
+                        if not(ExcelentFit|(GoodFit|OscilFit))
+                            BadFit=true;
                         end;
 
                         if not(ExcelentFit)
@@ -332,6 +345,12 @@ while i<PeakN %
                         peaks(NPeaksSubtr,7)=Pass;                     % number of Pass in which peak finded
 
                         if  (max(trek(DisturbInd))-min(trek(DisturbInd)))>2*TrekSet.Threshold
+
+                            TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
+                            TrekSet.PeakOnFrontInd(TrekSet.PeakOnFrontInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
+                            TrekSet.PeakOnTailInd(TrekSet.PeakOnTailInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.PeakOnTailInd<=SubtractInd(end))=[];
+                            TrekSet.LongFrontInd(TrekSet.LongFrontInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.LongFrontInd<=SubtractInd(end))=[];
+
                             TrekSet1=TrekSet;
                             TrekSet1.Plot=false;
                             TrekSet1.trek=[TrekSet.StdVal;-TrekSet.StdVal;0;trek(SubtractInd(SubtractIndPulse>MaxInd))];
@@ -344,44 +363,41 @@ while i<PeakN %
                             TrekSet1.LongFrontInd=[];
                             TrekSet1.Threshold=2*TrekSet.Threshold;
                             TrekSet1=TrekPeakSearch(TrekSet1);
-                            bool=TrekSet.SelectedPeakInd>=SubtractInd(MaxInd+1)&TrekSet.SelectedPeakInd<=SubtractInd(end);
-                            if numel(TrekSet1.SelectedPeakInd)~=numel(find(TrekSet.SelectedPeakInd>=SubtractInd(MaxInd+1)&TrekSet.SelectedPeakInd<=SubtractInd(end)))
 
-                                TrekSet1.SelectedPeakInd=TrekSet1.SelectedPeakInd-1+SubtractInd(MaxInd+1)-3;
-                                TrekSet1.PeakOnFrontInd=TrekSet1.PeakOnFrontInd-1+SubtractInd(MaxInd+1)-3;
-                                TrekSet1.PeakOnTailInd=TrekSet1.PeakOnTailInd-1+SubtractInd(MaxInd+1)-3;
-                                TrekSet1.LongFrontInd=TrekSet1.LongFrontInd-1+SubtractInd(MaxInd+1)-3;
+                            TrekSet1.SelectedPeakInd=TrekSet1.SelectedPeakInd-1+SubtractInd(MaxInd+1)-3;
+                            TrekSet1.PeakOnFrontInd=TrekSet1.PeakOnFrontInd-1+SubtractInd(MaxInd+1)-3;
+                            TrekSet1.PeakOnTailInd=TrekSet1.PeakOnTailInd-1+SubtractInd(MaxInd+1)-3;
+                            TrekSet1.LongFrontInd=TrekSet1.LongFrontInd-1+SubtractInd(MaxInd+1)-3;
 
-                                for IndI=1:numel(TrekSet1.SelectedPeakInd)
-                                    if isempty(find(TrekSet1.SelectedPeakInd(IndI)==TrekSet.SelectedPeakInd(:)))
-                                        TrekSet.SelectedPeakInd(end+1)=TrekSet1.SelectedPeakInd(IndI);
-                                        TrekSet.SelectedPeakInd=sortrows(TrekSet.SelectedPeakInd);
-                                    end;
+                            for IndI=1:numel(TrekSet1.SelectedPeakInd)
+                                if isempty(find(TrekSet1.SelectedPeakInd(IndI)==TrekSet.SelectedPeakInd(:)))
+                                    TrekSet.SelectedPeakInd(end+1)=TrekSet1.SelectedPeakInd(IndI);
+                                    TrekSet.SelectedPeakInd=sortrows(TrekSet.SelectedPeakInd);
                                 end;
-
-                                for IndI=1:numel(TrekSet1.PeakOnFrontInd)
-                                    if isempty(find(TrekSet1.PeakOnFrontInd(IndI)==TrekSet.PeakOnFrontInd(:)))
-                                        TrekSet.PeakOnFrontInd(end+1)=TrekSet1.PeakOnFrontInd(IndI);
-                                        TrekSet.PeakOnFrontInd=sortrows(TrekSet.PeakOnFrontInd);
-                                    end;
-                                end;
-
-                                for IndI=1:numel(TrekSet1.PeakOnTailInd)
-                                    if isempty(find(TrekSet1.PeakOnTailInd(IndI)==TrekSet.PeakOnTailInd(:)))
-                                        TrekSet.PeakOnTailInd(end+1)=TrekSet1.PeakOnTailInd(IndI);
-                                        TrekSet.PeakOnTailInd=sortrows(TrekSet.PeakOnFrontInd);
-                                    end;
-                                end;
-
-                                for IndI=1:numel(TrekSet1.LongFrontInd)
-                                  if isempty(find(TrekSet1.LongFrontInd(IndI)==TrekSet.LongFrontInd(:)))
-                                        TrekSet.LongFrontInd(end+1)=TrekSet1.LongFrontInd(IndI);
-                                        TrekSet.LongFrontInd=sortrows(TrekSet.LongFrontInd);
-                                    end;
-                                end;
-
-
                             end;
+
+                            for IndI=1:numel(TrekSet1.PeakOnFrontInd)
+                                if isempty(find(TrekSet1.PeakOnFrontInd(IndI)==TrekSet.PeakOnFrontInd(:)))
+                                    TrekSet.PeakOnFrontInd(end+1)=TrekSet1.PeakOnFrontInd(IndI);
+                                    TrekSet.PeakOnFrontInd=sortrows(TrekSet.PeakOnFrontInd);
+                                end;
+                            end;
+
+                            for IndI=1:numel(TrekSet1.PeakOnTailInd)
+                                if isempty(find(TrekSet1.PeakOnTailInd(IndI)==TrekSet.PeakOnTailInd(:)))
+                                    TrekSet.PeakOnTailInd(end+1)=TrekSet1.PeakOnTailInd(IndI);
+                                    TrekSet.PeakOnTailInd=sortrows(TrekSet.PeakOnFrontInd);
+                                end;
+                            end;
+
+                            for IndI=1:numel(TrekSet1.LongFrontInd)
+                              if isempty(find(TrekSet1.LongFrontInd(IndI)==TrekSet.LongFrontInd(:)))
+                                    TrekSet.LongFrontInd(end+1)=TrekSet1.LongFrontInd(IndI);
+                                    TrekSet.LongFrontInd=sortrows(TrekSet.LongFrontInd);
+                                end;
+                            end;
+                            PeakN=size(TrekSet.SelectedPeakInd,1); %because number of markers can change if TrekPeakSearch will be called
+
                         end;
 
                  else
@@ -403,8 +419,12 @@ while i<PeakN %
                     PeakN=size(TrekSet.SelectedPeakInd,1); 
                     trek=TrekSet1.trek;
                     NPeaksSubtr=NPeaksSubtr+2;
-                    peaks([NPeaksSubtr-1,NPeaksSubtr],:)=TrekSet1.peaks;
-                    peaks(end+1,:)=zeros(1,7);
+                    if not(isempty(TrekSet1.peaks)) %may be empty if fit Amplitude too small
+                        peaks([NPeaksSubtr-1,NPeaksSubtr],:)=TrekSet1.peaks;
+                        peaks(end+1,:)=zeros(1,7);
+                    else
+                        i=i+1;
+                    end;
                     continue;
                 end;
                 

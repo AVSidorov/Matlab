@@ -190,24 +190,19 @@ ByHighN=size(ByHighInd,1);           % don't match FrontHigh Conditions
                                      % value is higher than double noise magnitude
                                    
 %% =============Double Front
-FrontHighSh=circshift(FrontHigh,-1); % Another way to searching such pulses
-FrontHighSh(end)=0;
-%Searching 
-ByDoubleFrontBool=(FrontHigh(1:end-1)+FrontHighSh(1:end-1)-TailHigh)>Threshold*DoubleFrontK;
-%"DoubleFrontK" is neccesary because It is most probable two noise fronts
-% have magnitude close to threshold and if tail between is small the
-% condition can be satisfied. In case of noise maximum on Front of pulse both
-% Fronts must have almost Threshold "FrontHigh" value and small Tail high
-% between. So sum must have almost double Threshold magnitude
-
-%pick points there first Front is higher;
-IndFirst=MaxInd(find(ByDoubleFrontBool&(FrontHigh(1:end-1)>=FrontHighSh(1:end-1))));
-%pick points there second Front is higher;
-IndSecond=MaxInd(find(ByDoubleFrontBool&(FrontHigh(1:end-1)<FrontHighSh(1:end-1)))+1);
-
+MinIndSh=circshift(MinInd,1); %Search small peaks with noise peak on front
+MinIndSh(1)=MinInd(1);
+MaxIndSh=circshift(MaxInd,1);
+MaxIndSh(1)=MaxInd(1);
+DoubleFrontHigh=trek(MaxInd)-trek(MinIndSh);
+DoubleFrontN=trek(MaxInd)-trek(MinIndSh);
+ByDoubleFrontBool=(trek(MaxInd)>Threshold/2&trek(MaxInd)<=Threshold)... %only for small, but higher than noise
+                  &(FrontHigh>Threshold/2|DoubleFrontHigh>Threshold/2)...  %conditions similiar to ordinar pulse but Threshold/2 & taking in acount two fronts
+                  &(abs(MaxFrontN-FrontN)<=2|abs(MaxFrontN-DoubleFrontN)<=2)...
+                  &trek(MaxInd)>trek(MaxIndSh);
+ByDoubleFrontInd=MaxInd(ByDoubleFrontBool);
 ByDoubleFrontBool=false(trSize,1);
-ByDoubleFrontBool(IndFirst)=true;
-ByDoubleFrontBool(IndSecond)=true;
+ByDoubleFrontBool(ByDoubleFrontInd)=true;
 ByDoubleFrontBool(ByFrontBool)=false;
 ByDoubleFrontBool(ByHighBool)=false;
 ByDoubleFrontInd=find(ByDoubleFrontBool);
@@ -248,7 +243,7 @@ PeakOnTailBool(MaxBool)=false;
 %% ============ Combine All
 SelectedBool=ByFrontBool|PeakOnFrontBool|ByDoubleFrontBool|ByHighBool|PeakOnTailBool|LongFrontBool;
 
-SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
+% SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
 SelectedN=size(SelectedInd,1);
 

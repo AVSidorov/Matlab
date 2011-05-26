@@ -41,23 +41,23 @@ goodfit=[];
 MinKhiOld=inf;
 dI=0;
 %dI is Need to bind peak of double pulse to next Selected Pulse
- if numel(find(TrekSet.SelectedPeakInd(I)==TrekSet.PeakOnFrontInd(:)))>0
-     if(TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I))<=(MaxInd-BckgFitN)
- %      if isempty(find(TrekSet.SelectedPeakInd(I+1)==TrekSet.PeakOnFrontInd(:)))
-          dI=1;
-          sh=[TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)-2:4/Nfit:TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)+2];
-          shN=numel(sh);
-          B1=mean(trek(TrekSet.SelectedPeakInd(I)-MaxInd+BckgFitInd));
-          A1=trek(TrekSet.SelectedPeakInd(I))-B1;         
-          B2=A1*TrekSet.StandardPulse(MaxInd+(TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)))+B1;
-          A2=trek(TrekSet.SelectedPeakInd(I+1))-B2;
-          amMin=1+(A2/A1-1)/2;
-          amMax=A2/A1+(A2/A1-1)/2;
-          am=[amMin:(amMax-amMin)/Nfit:amMax];
-          amN=numel(am);
- %      end;
-     end;
- end;
+%  if numel(find(TrekSet.SelectedPeakInd(I)==TrekSet.PeakOnFrontInd(:)))>0
+%      if(TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I))<=(MaxInd-BckgFitN)
+%  %      if isempty(find(TrekSet.SelectedPeakInd(I+1)==TrekSet.PeakOnFrontInd(:)))
+%           dI=1;
+%           sh=[TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)-2:4/Nfit:TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)+2];
+%           shN=numel(sh);
+%           B1=mean(trek(TrekSet.SelectedPeakInd(I)-MaxInd+BckgFitInd));
+%           A1=trek(TrekSet.SelectedPeakInd(I))-B1;         
+%           B2=A1*TrekSet.StandardPulse(MaxInd+(TrekSet.SelectedPeakInd(I+1)-TrekSet.SelectedPeakInd(I)))+B1;
+%           A2=trek(TrekSet.SelectedPeakInd(I+1))-B2;
+%           amMin=1+(A2/A1-1)/2;
+%           amMax=A2/A1+(A2/A1-1)/2;
+%           am=[amMin:(amMax-amMin)/Nfit:amMax];
+%           amN=numel(am);
+%  %      end;
+%      end;
+%  end;
  if numel(find(TrekSet.SelectedPeakInd(I)==TrekSet.LongFrontInd(:)))>0
     dI=1;
 
@@ -80,6 +80,7 @@ while isempty(peaks)|FitPass<FitPassN; %second condition to avoid too coarse fit
 OscilFit=false;
 ExcelentFit=false;
 GoodFit=false;
+BadFit=false;
 
 FitPass=FitPass+1;    
 MinKhi=inf;
@@ -297,6 +298,7 @@ for shi=1:shN
 end;
 %% ================= trek cleaning and data saving        p=polyfit(Stp(FitIndPulse),trek(FitInd),1);
 
+if isempty(pAm)|isempty(pSh) return; end;
 Stp=(TrekSet.StandardPulse+pAm*interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]-pSh,'spline',0)');
 [m,mi]=max(Stp);
 Stp=interp1([1:PulseN],Stp,[1:PulseN]+mShift,'spline',0);
@@ -312,10 +314,44 @@ FitInd=FitIndPulse+TrekSet.SelectedPeakInd(I+dI)-mi;
 DisturbIndPulse=find(PulseSubtract>TrekSet.Threshold);
 DisturbInd=DisturbIndPulse+TrekSet.SelectedPeakInd(I+dI)-mi;
 DisturbInd=DisturbInd(DisturbInd<=TrekSet.size&DisturbInd>=1);
+DisturbBool=false(TrekSet.size,1);
+DisturbBool(DisturbInd)=true;
+DisturbBool(FitInd)=false;
+DisturbInd=find(DisturbBool);
 DisturbIndPulse=DisturbInd-TrekSet.SelectedPeakInd(I+dI)+mi;
 
+if Amp<TrekSet.Threshold
+    return;
+end;
 
-if FitPass>=FitPassN|(max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
+if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold&...
+        (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
+        min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold
+    ExcelentFit=true;
+else
+        if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
+            GoodFit=true;
+        end;
+        if abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
+                GoodFit=true;
+        end;
+end;   
+if GoodFit
+    if min(trek(FitInd)-PulseSubtract(FitIndPulse)')<=TrekSet.Threshold&max(trek(FitInd)-PulseSubtract(FitIndPulse)')>=TrekSet.Threshold
+        OscilFit=true;
+    end;
+end;
+
+if not(ExcelentFit|GoodFit)
+    BadFit=true;
+end;
+
+
+
+if FitPass>=FitPassN|not(BadFit)
+
+
+
     if EndPlot
         figure;
             grid on; hold on;
@@ -331,24 +367,7 @@ if FitPass>=FitPassN|(max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(Fit
         if abs(MinKhiOld-MinKhi)<0.05 goodfit='q'; end;
     end;
 
-if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold&...
-        (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-        min(trek(DisturbInd))>-TrekSet.Threshold
-    ExcelentFit=true;
-else
-    if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
-        GoodFit=true;
-    end;
-    if abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
-            OscilFit=true;
-    end;
-    
-end;
-
-
-if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold|not(isempty(goodfit))|...
-        abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold;
-    if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold|not(isempty(goodfit))
+if not(BadFit)|not(isempty(goodfit))
                             trek(SubtractInd)=trek(SubtractInd)-PulseSubtract(SubtractIndPulse)'; 
                             if max(abs(trek(SubtractInd)-Bckg))<TrekSet.Threshold   %may be need more weak condition (for oscilations) 
                                 trek(SubtractInd)=trek(SubtractInd)-Bckg;           %abs(sum(trek(SubtractInd)-Bckg)/SubtractIndN)<TrekSet.Threshold
@@ -370,7 +389,7 @@ if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract
                             peaks(2,6)=MinKhi/Amp ;%MinKhi2;% /Ampl;% KhiMin
                             peaks(2,7)=0;                     % number of Pass in which peak finded
                             TrekSet.peaks=peaks;
-                            if  (max(trek(DisturbInd))-min(trek(DisturbInd)))>2*TrekSet.Threshold&not(OscilFit)
+                            if  (max(trek(DisturbInd))-min(trek(DisturbInd)))>2*TrekSet.Threshold
                                 TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>SubtractInd(SubtractIndPulse==mi)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
                                 TrekSet.PeakOnFrontInd(TrekSet.PeakOnFrontInd>SubtractInd(SubtractIndPulse==mi)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
                                 TrekSet.PeakOnTailInd(TrekSet.PeakOnTailInd>SubtractInd(SubtractIndPulse==mi)&TrekSet.PeakOnTailInd<=SubtractInd(end))=[];
@@ -425,8 +444,6 @@ if (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract
                             end;
                            
         break; %to avoid second pass if good fit at first
-    end;
-else
 end;
 end;%end of if FitPass>=FitPassN
 %%
