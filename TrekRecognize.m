@@ -16,15 +16,19 @@ if not(isstr(FileName));
         return;
     case 8,1;
         disp('Variable');
-        TrekSet.name=inputname(1);
-        TrekSet.FileName='unknown';
-        if min(size(FileName))>2
-            disp('Wrong array size');
-            TrekSet.type=0;
-        else
-            TrekSet.size=max(size(FileName));
-            TrekSet.Shot=input('input shot(file) number\n');
-       end;
+        if isstruct(FileName)
+            TrekSet=FileName;            
+        else %in case FileName is trek array
+            TrekSet.name=inputname(1);
+            TrekSet.FileName='unknown';
+            if min(size(FileName))>2 % if in trek there are not only signal and time
+                disp('Wrong array size');
+                TrekSet.type=0;
+            else
+                TrekSet.size=max(size(FileName));
+                TrekSet.Shot=input('input shot(file) number\n');
+            end;
+        end;
     case 2
         fprintf('File %s\n',FileName);
         TrekSet.FileName=FileName;

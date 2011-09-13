@@ -28,7 +28,8 @@ end;
 PeakN=size(TrekSet.SelectedPeakInd,1);  
 trek=TrekSet.trek;
 tau=TrekSet.tau;
-peaks=zeros(PeakN,7);
+%peaks=zeros(PeakN,7); %if works bad because may be hidden peaks
+peaks=[];
 peaksBad=[];
 ShortFrontInd=[];
 
@@ -47,10 +48,7 @@ MaxCurve=[StpL(1:MaxInd-1);TrekSet.StandardPulse(MaxInd);StpR(MaxInd+1:end)]';
 i=1;
 while i<PeakN %
     DoubleFit=false;
-    OscilFit=false;
     ExcelentFit=false;
-    GoodFit=false;
-    BadFit=false;
 
 %not just i=i+1 because can be jump if PeakOnFront and next pulse fitted in
 %GetDoublePeaks 
@@ -306,21 +304,17 @@ while i<PeakN %
                             i=i+1;
                             continue;
                         end;
-                        if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
-                                (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-                                min(trek(DisturbInd))>-TrekSet.Threshold
-                            ExcelentFit=true;
+                        if not(isempty(DisturbInd)) %if FitInd whole pulse DisturbInd is empty
+                            if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
+                                    (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
+                                    min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold
+                                ExcelentFit=true;
+                            end;
                         else
-                                if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
-                                    GoodFit=true;
-                                end;
-                                if abs(sum(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
-                                    OscilFit=true;
-                                end;
-                        end;
-
-                        if not(ExcelentFit|(GoodFit|OscilFit))
-                            BadFit=true;
+                            if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
+                                    (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
+                                ExcelentFit=true;
+                            end;
                         end;
 
                         if not(ExcelentFit)
@@ -334,8 +328,10 @@ while i<PeakN %
                  if ExcelentFit %&(p(1)+p(2)-trek(TrekSet.SelectedPeakInd(i)))<TrekSet.Threshold
 
                         trek(SubtractInd)=trek(SubtractInd)-PulseSubtract(SubtractIndPulse)'; 
+                        
                         NPeaksSubtr=NPeaksSubtr+1;
-
+                        peaks=[peaks;zeros(1,7)];
+                        
                         peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
                         peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
                         peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
@@ -418,10 +414,10 @@ while i<PeakN %
                     TrekSet.LongFrontInd=TrekSet1.LongFrontInd;
                     PeakN=size(TrekSet.SelectedPeakInd,1); 
                     trek=TrekSet1.trek;
-                    NPeaksSubtr=NPeaksSubtr+2;
                     if not(isempty(TrekSet1.peaks)) %may be empty if fit Amplitude too small
+                        NPeaksSubtr=NPeaksSubtr+2;
+                        peaks=[peaks;zeros(2,7)];
                         peaks([NPeaksSubtr-1,NPeaksSubtr],:)=TrekSet1.peaks;
-                        peaks(end+1,:)=zeros(1,7);
                     else
                         i=i+1;
                     end;

@@ -324,11 +324,20 @@ if Amp<TrekSet.Threshold
     return;
 end;
 
-if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold&...
-        (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-        min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold
-    ExcelentFit=true;
+if not(isempty(DisturbInd)) %if FitInd whole pulse DisturbInd is empty
+    if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold&...
+            (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
+            min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold
+        ExcelentFit=true;
+    end;   
 else
+    if Amp>TrekSet.Threshold&abs(Bckg)<TrekSet.Threshold&...
+            (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold
+        ExcelentFit=true;
+    end;   
+end;
+
+if not(ExcelentFit)
         if abs(mean(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=TrekSet.Threshold
             GoodFit=true;
         end;
@@ -336,6 +345,7 @@ else
                 GoodFit=true;
         end;
 end;   
+
 if GoodFit
     if min(trek(FitInd)-PulseSubtract(FitIndPulse)')<=TrekSet.Threshold&max(trek(FitInd)-PulseSubtract(FitIndPulse)')>=TrekSet.Threshold
         OscilFit=true;

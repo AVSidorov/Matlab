@@ -27,7 +27,7 @@ ProcIntTime=input(['Input Process Interval Times [...,...]\n Default is whole tr
     end;
 
 ProcIntTime=[TrekSet.StartOffset+(ProcInt(1)-1)*TrekSet.tau,TrekSet.StartOffset+(ProcInt(end)-1)*TrekSet.tau];
-fprintf('Process Inteval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]\n',ProcIntTime(1),ProcIntTime(end),(ProcIntTime(end)-ProcIntTime(1)),ProcInt(1),ProcInt(end));
+fprintf('Process Interval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]\n',ProcIntTime(1),ProcIntTime(end),(ProcIntTime(end)-ProcIntTime(1)),ProcInt(1),ProcInt(end));
 
 TrekSet.StartTime=ProcIntTime(1);
 TrekSet.size=ProcInt(end)-ProcInt(1)+1;

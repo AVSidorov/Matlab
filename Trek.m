@@ -29,20 +29,22 @@ function TrekSet=Trek(FileName);
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
-MaxBlock=4.2e6;
+
+MaxBlock=4.3e6;
 
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.02;               %ADC period
-TrekSet.StartOffset=14000;       %in us old system was Tokamak delay + 1.6ms
+TrekSet.StartOffset=0;       %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverSt=3;               %uses in StdVal
 TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeakAmp4_20ns_1.dat';
 % TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
-TrekSet.MaxSignal=2700;
+TrekSet.MaxSignal=4095;
+TrekSet.MinSignal=0;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=50;
+TrekSet.Threshold=400;
 TrekSet.StartTime=TrekSet.StartOffset;
 % TrekSet.StartTime=3e4;
 TrekSet.Plot=true;
@@ -54,11 +56,13 @@ TrekSet.StandardPulse=[];
 TrekSet.MeanVal=[];
 TrekSet.PeakPolarity=-1;
 TrekSet.charge=[];
-TrekSet.Date=110317;
+TrekSet.Date=110405;
 TrekSet.Shot=0;
-TrekSet.Amp=4;
-TrekSet.HV=1750;
-TrekSet.P=1.1;
+TrekSet.Amp=6;
+TrekSet.HV=1400;
+TrekSet.P=1;
+TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
+
 
 Pass=1;
 
@@ -66,6 +70,8 @@ Pass=1;
 
 %Checking for existing and initialization
 TrekSet=TrekRecognize(FileName,TrekSet);
+
+
 
 if TrekSet.type==0 return; end;
 
@@ -76,7 +82,8 @@ TrekSet=TrekStPLoad(TrekSet);
 
 dT=TrekSet.tau*size(TrekSet.StandardPulse,1);
 
-trek=[];
+% neccessary for noise reduction in calibration treks
+trek=[]; 
 LastInd=0;
 
 PartN=fix(TrekSet.size/MaxBlock)+1;
@@ -100,24 +107,33 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
     
     
     %Threshold Determination
-     if TrekSet.Threshold<0
+     if isempty(TrekSet.Threshold)
          TrekSet1=TrekPickThr(TrekSet1);
          TrekSet.Threshold=TrekSet1.Threshold;
+     else    
+         if TrekSet.Threshold<0
+             TrekSet1=TrekPickThr(TrekSet1);
+             TrekSet.Threshold=TrekSet1.Threshold;
+         end;
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-           TrekSet1.StartTime=15000;
-           TrekSet1.size=1e6;
+           TrekSet1.StartTime=25000;
+           TrekSet1.size=2.5e5;
            TrekSet.StartTime=TrekSet1.StartTime;
            TrekSet.size=TrekSet1.size;
            TrekSet1=TrekLoad(FileName,TrekSet1);
 
 assignin('base','trek',TrekSet1.trek);
 for passI=1:Pass
-     TrekSet1=TrekStdVal(TrekSet1);
+
+     TrekSet1=TrekStdVal(TrekSet1);  
+     TrekSet1=TrekMerge(TrekSet1);
+
      TrekSet.MeanVal=TrekSet1.MeanVal;
+     TrekSet=TrekSet1;
      
-    TrekSet=TrekSet1;
+
    
 %     
 %     %Searching for Indexes of potential Peaks
@@ -184,6 +200,9 @@ end;
 % fclose(fid);
 
 TrekSet=rmfield(TrekSet,'Plot');
+if isfield(TrekSet,'trek')
+    TrekSet=rmfield(TrekSet,'trek');
+end;
 TrekSet=TrekChargeQX(TrekSet);
  assignin('base','TrekSet',TrekSet);
  if not(evalin('base','exist(''Treks'')'))

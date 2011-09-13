@@ -1,5 +1,6 @@
 function TrekSet=TrekMerge(TrekSetIn);
 TrekSet=TrekSetIn;
+if TrekSet.Merged return; end;
 %This function merges two treks written in differen ADC channels with
 %different ranges. MainTrek must be in wider ADC range written
 %Also calculates Min/MaxSignal
@@ -7,8 +8,8 @@ TrekSet=TrekSetIn;
 %subtraction in main trek.
 MaxAmpV=2;    %Maximum amplifier signal
 MaxAmpK=0.85; %This Koeff is necessary because MaxAmpV is saturation voltage. Deviations start earlier
-ADC1ampV=1.25; 
-ADC2ampV=0.312;
+ADC1ampV=2.5; 
+ADC2ampV=2.5;
 
 TrekSet2=TrekSet;
 FileName=[TrekSet.name,'2.dat'];
@@ -62,5 +63,4 @@ end;
 %% merge treks
 bool=TrekSet2.trek<TrekSet2.MaxSignal&TrekSet2.trek>TrekSet2.MinSignal;
 TrekSet.trek(bool)=TrekSet2.trek(bool)*ADC2ampV/ADC1ampV;
-
-
+TrekSet.Merged=true;

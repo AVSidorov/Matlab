@@ -2,6 +2,21 @@ function TrekSet=TrekLoad(FileName,TrekSetIn);
 
 tic;
 TrekSet=TrekSetIn;
+if isstruct(FileName)
+            %!!!!!!!!!!!!!!!!Dopisat' pro to esli net treka vnutri
+            %structury ili proverat' v TrekRecognize;
+           if not(isfield(TrekSet,'trek'))
+               TrekSet.trek=[];
+           end;
+           if isempty(TrekSet.trek)
+               TrekSet=TrekRecognize(TrekSet.FileName+'.dat',TrekSet);    
+           end;
+
+ StartPosition=round((TrekSet.StartTime-FileName.StartTime)/TrekSet.tau)+1; 
+ TrekSet.trek=FileName.trek(StartPosition:StartPosition+TrekSet.size-1);
+ return;
+end;
+
 switch TrekSet.type
     case 2
         switch TrekSet.FileType;
@@ -29,7 +44,7 @@ switch TrekSet.type
         TrekSet.trek(bool,:)=[];  clear bool
 
     case 8
-        TrekSet.trek=FileName; 
+       TrekSet.trek=FileName; %in case FileName is struct typu would be different. In changes in TrekRecognize
 end;
 
 
