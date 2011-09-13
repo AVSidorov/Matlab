@@ -15,7 +15,9 @@ MeanVal=mean(trek);
 M=MeanVal;
 StdVal=std(trek);
 St=StdVal;
-Thr=OverSt*StdVal; 
+Thr=OverSt*StdVal;
+MaxSignal=TrekSet.MaxSignal;
+MinSignal=TrekSet.MinSignal;
 
 
 
@@ -93,6 +95,9 @@ if (abs(M)<Thr)
     StdVal=std(trek(Noise));
 else
     trek=PeakPolarity*(trek-MeanVal);
+    MaxS=max([PeakPolarity*(MaxSignal-MeanVal),PeakPolarity*(MinSignal-MeanVal)]); %temporary variable beacause MaxSignal is neccesary for MinSignal determenation
+    MinSignal=min([PeakPolarity*(MaxSignal-MeanVal),PeakPolarity*(MinSignal-MeanVal)]);
+    MaxSignal=MaxS;
     PeakPolarity=1;
     if M==MeanVal
         dSt=1;
@@ -104,6 +109,8 @@ else
            dM=abs(M(end)-M(end-1));
            dSt=abs(St(end)-St(end-1));
            trek=trek-M(end);
+            MaxSignal=MaxSignal-M(end);
+            MinSignal=MinSignal-M(end);
            if Thr==OverSt*St(end-1);
                Thr=OverSt*St(end);
            end;
@@ -120,9 +127,11 @@ TrekSet.trek=trek;
 TrekSet.size=size(TrekSet.trek,1);  
 TrekSet.MeanVal=MeanVal;
 TrekSet.StdVal=StdVal;
-
+TrekSet.MaxSignal=MaxSignal;
+TrekSet.MinSignal=MinSignal;
 TrekSet.PeakPolarity=PeakPolarity;
 
+TrekSet.PeakPolarity=PeakPolarity;
 
 
 fprintf('Standard deviat     = %7.4f\n', StdVal);

@@ -38,7 +38,7 @@ if not(isstr(FileName));
         end;
         [pathstr, name, ext, versn]=fileparts(FileName);
         TrekSet.name=name;
-        if not(isempty(regexp(name,'^(\d{2})+sxr$')))
+        if not(isempty(regexp(name,'^(\d{2})+(sxr|sxr2)$')))
             TrekSet.Shot=str2num(name(1:2));
         else
             TrekSet.Shot=input('input shot(file) number\n');
