@@ -255,22 +255,23 @@ TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
 
 
 %% end information
-fprintf('=====  Search of peak tops      ==========\n');
-fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
-fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',Threshold/StdVal,StdVal,Threshold);
-fprintf('OverSt is %3.1f\n',OverSt);
-fprintf('The total number of maximum = %7.0f \n',MaxN);
-fprintf('The number peaks selected by FrontHigh = %7.0f \n',ByFrontN);
-fprintf('The number peaks selected by High = %7.0f \n',ByHighN);
-fprintf('The number peaks selected by DoubleFrontHigh = %7.0f \n',ByDoubleFrontN);
-% fprintf('The number peaks selected by LongFront = %7.0f \n',ByLongFrontN);
-fprintf('The number peaks selected by LongFront = %7.0f \n',LongFrontN);
-fprintf('The number peaks selected on tail= %7.0f \n',PeakOnTailN);
-fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
-fprintf('The number of selected peaks = %7.0f \n',SelectedN);
-fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
-toc
-
+if trSize>2*numel(TrekSet.StandardPulse) %to avoid statistic typinb in short calls
+    fprintf('=====  Search of peak tops      ==========\n');
+    fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
+    fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',Threshold/StdVal,StdVal,Threshold);
+    fprintf('OverSt is %3.1f\n',OverSt);
+    fprintf('The total number of maximum = %7.0f \n',MaxN);
+    fprintf('The number peaks selected by FrontHigh = %7.0f \n',ByFrontN);
+    fprintf('The number peaks selected by High = %7.0f \n',ByHighN);
+    fprintf('The number peaks selected by DoubleFrontHigh = %7.0f \n',ByDoubleFrontN);
+    % fprintf('The number peaks selected by LongFront = %7.0f \n',ByLongFrontN);
+    fprintf('The number peaks selected by LongFront = %7.0f \n',LongFrontN);
+    fprintf('The number peaks selected on tail= %7.0f \n',PeakOnTailN);
+    fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
+    fprintf('The number of selected peaks = %7.0f \n',SelectedN);
+    fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
+    toc
+end;
 %% end plot
  if Plot
    figure;

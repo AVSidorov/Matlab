@@ -1,5 +1,5 @@
 function Specs=Trek2Specs(TrekSet);
-Npoint=200;
+Npoint=20;
 HI=0.05;
 
 AmpCol=5;
@@ -8,8 +8,8 @@ AmpCol=5;
 
 
 
-StT=34000;
-EndT=39000;
+StT=25000;
+EndT=30000;
 peaks=TrekSet.peaks;
 QCol=size(peaks,2)+1;
 peaks(:,end+1)=TrekSet.charge;

@@ -5,12 +5,14 @@ disp('>>>>>>>>Get Peaks started');
 
 Nfit=10;
 
-EndPlotBool=true;
+EndPlotBool=false;
 PulsePlot=false;
 FitPlot=false;
-
+%%
 PulseN=size(TrekSet.StandardPulse,1);
-MaxInd=find(TrekSet.StandardPulse==1); %Standard Pusle must be normalized by Amp
+NPeaksSubtr=0;
+%%
+MaxInd=find(TrekSet.StandardPulse==1); %Standard Pulse must be normalized by Amp
 BckgFitInd=find(TrekSet.StandardPulse==0);%Standard Pulse must have several zero point at front end and las zero point
 BckgFitInd(end)=[];
 BckgFitN=size(BckgFitInd,1); 
@@ -18,7 +20,7 @@ FrontN=MaxInd-BckgFitN;
 TailInd=find(TrekSet.StandardPulse<=0);
 TailInd(TailInd<MaxInd)=[];
 TailInd=TailInd(1);
-NPeaksSubtr=0;
+%%
 
 
 if nargin<2
@@ -43,7 +45,7 @@ StpL=circshift(TrekSet.StandardPulse,-1);
 MinCurve=[StpR(1:MaxInd-1);TrekSet.StandardPulse(MaxInd);StpL(MaxInd+1:end)]';
 MaxCurve=[StpL(1:MaxInd-1);TrekSet.StandardPulse(MaxInd);StpR(MaxInd+1:end)]';
 
-
+%%
 
 i=1;
 while i<PeakN %
@@ -114,7 +116,7 @@ while i<PeakN %
             p=polyfit(TrekSet.StandardPulse(FitIndPulse),trek(FitInd),1);
             A=p(1);
             B=p(2);
-            %if B > Threshold, it can mean there are not signed Pukse on front
+            %if B > Threshold, it may be means that there are not signed Pulse on front
 
             bool=(MaxCurve(FitIndPulse)*A+B+TrekSet.Threshold-trek(FitInd)')>=0&...
                  (trek(FitInd)'-(MinCurve(FitIndPulse)*A+B-TrekSet.Threshold))>=0;
@@ -404,7 +406,13 @@ while i<PeakN %
                 end;
 
                 
-                if DoubleFit    
+                if DoubleFit
+                    breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
+                    i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
+                    fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau)                  
+                    assignin('base','peaks',peaks);
+                    assignin('base','trekM',trek);                    
+                    continue; %try to skip overlapped pulses;
                     TrekSet1=TrekSet;
                     TrekSet1.trek=trek;
                     TrekSet1=TrekGetDoublePeaks(TrekSet1,i);
@@ -431,6 +439,7 @@ end;
 disp(['=======Search Peak finished. Elapsed time is ', num2str(toc),' sec']);
 %%
 
+evalin('base','clear peaks;');
 
 peaks(peaks(:,5)<TrekSet.Threshold|peaks(:,2)<TrekSet.StartTime,:)=[];
 PeakN=NPeaksSubtr;

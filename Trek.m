@@ -47,7 +47,7 @@ TrekSet.StdVal=0;
 TrekSet.Threshold=400;
 TrekSet.StartTime=TrekSet.StartOffset;
 % TrekSet.StartTime=3e4;
-TrekSet.Plot=true;
+TrekSet.Plot=false;
 TrekSet.type=[];              
 TrekSet.FileName=[];
 TrekSet.size=[];
@@ -118,8 +118,8 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-           TrekSet1.StartTime=25000;
-           TrekSet1.size=2.5e5;
+           TrekSet1.StartTime=15000;
+           TrekSet1.size=2e6;
            TrekSet.StartTime=TrekSet1.StartTime;
            TrekSet.size=TrekSet1.size;
            TrekSet1=TrekLoad(FileName,TrekSet1);
@@ -140,6 +140,7 @@ for passI=1:Pass
 
     
       TrekSet1=TrekPeakSearch(TrekSet1);
+      TrekSet1=TrekBreakPoints(TrekSet1);
 %     pause;
 %     TrekSet1=TrekTops(TrekSet1);
       
