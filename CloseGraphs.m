@@ -6,6 +6,7 @@ while figN>0&i<=figN
     figure(H(i));
     decision='Y';
     decision=input('Close figure Y(default)/(other key)','s');
+    figure(H(i));
     if isempty(decision)
         figure(H(i));
         close(gcf);

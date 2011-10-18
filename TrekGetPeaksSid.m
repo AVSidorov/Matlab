@@ -5,8 +5,8 @@ disp('>>>>>>>>Get Peaks started');
 
 Nfit=10;
 
-EndPlotBool=false;
-PulsePlot=false;
+EndPlotBool=TrekSet.Plot;
+PulsePlot=true;
 FitPlot=false;
 %%
 PulseN=size(TrekSet.StandardPulse,1);
@@ -47,7 +47,7 @@ MaxCurve=[StpL(1:MaxInd-1);TrekSet.StandardPulse(MaxInd);StpR(MaxInd+1:end)]';
 
 %%
 
-i=1;
+i=0;
 while i<PeakN %
     DoubleFit=false;
     ExcelentFit=false;
@@ -56,6 +56,8 @@ while i<PeakN %
 %GetDoublePeaks 
  if NPeaksSubtr>0    
     i=max([find(TrekSet.SelectedPeakInd(:)>peaks(NPeaksSubtr,1),1,'first'),i]);
+ else
+     i=i+1;
  end;
 %%
     %if Peak marked by LongFront and not marked as PeakOnFront start
@@ -306,10 +308,16 @@ while i<PeakN %
                             i=i+1;
                             continue;
                         end;
-                        if not(isempty(DisturbInd)) %if FitInd whole pulse DisturbInd is empty
+                        if not(isempty(DisturbInd)) 
                             if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
                                     (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-                                    min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold
+                                    abs(min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')+TrekSet.Threshold)<p(2)
+                                  %last condition works then FitInd area is small and Amp may be moved left and more then real
+                                  % was
+                                  % min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold 
+                                  % wrong trigged if error in zero (p(2))
+                                  % determenation
+
                                 ExcelentFit=true;
                             end;
                         else
@@ -407,6 +415,18 @@ while i<PeakN %
 
                 
                 if DoubleFit
+                    %for overlapped pulse testing
+                        NPeaksSubtr=NPeaksSubtr+1;
+                        peaks=[peaks;zeros(1,7)];
+                        
+                        peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
+                        peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
+                        peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
+                        peaks(NPeaksSubtr,4)=p(2);                        %Peak Zero Level
+                        peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
+                        peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
+                        peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
+                    break;
                     breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
                     i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
                     fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau)                  
@@ -441,9 +461,9 @@ disp(['=======Search Peak finished. Elapsed time is ', num2str(toc),' sec']);
 
 evalin('base','clear peaks;');
 
-peaks(peaks(:,5)<TrekSet.Threshold|peaks(:,2)<TrekSet.StartTime,:)=[];
+peaks((peaks(:,5)<TrekSet.Threshold|peaks(:,2)<TrekSet.StartTime)&peaks(:,7)>0,:)=[];
 PeakN=NPeaksSubtr;
-if PeakN>1
+if PeakN>0
   peaks=sortrows(peaks,2); 
   peaks(2:end,3)=diff(peaks(:,3)); peaks(1,3)=0; 
  
@@ -462,7 +482,7 @@ fprintf('Last threshold = %7.0f \n',TrekSet.Threshold);
 
 %%
 if EndPlotBool  
- if PeakN>1
+ if PeakN>0
   
     figure; hold on; 
         title([TrekSet.name,': Chi^2 versus peak amplitude. Pass=', num2str(Pass)]);

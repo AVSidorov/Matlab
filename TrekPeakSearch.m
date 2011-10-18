@@ -55,11 +55,18 @@ MinBool(1)=false;    MinBool(end)=false;
 MinInd=find(MinBool);
 MinN=size(MinInd,1);
 
- %making first minimum earlier then thirst maximum
- while MaxInd(1)<MinInd(1)
-     MaxInd(1)=[];
-     MaxN=MaxN-1;
- end;
+if MinInd(1)>MaxInd(1)
+    MinInd=[1;MinInd];    
+    MinN=MinN+1;
+end;
+
+% This is not neccesary if first point can be minimum
+% This part can cause loosing of first end single pulse in short trek
+%  %making first minimum earlier then thirst maximum
+%  while MaxInd(1)<MinInd(1)
+%      MaxInd(1)=[];
+%      MaxN=MaxN-1;
+%  end;
  
 %making equal quantity of maximums and minimums
  while MinN>MaxN
