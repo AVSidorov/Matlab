@@ -58,6 +58,12 @@ TailInd=TailInd(1);
 PulseN=numel(TrekSet.StandardPulse);
 TrekSet.size=PulseN;
 
+%emulating noise Amp4 Thr~50 StdVal~10
+trek=-17+2*17*rand(PulseN,1);
+TrekSet.StdVal=std(trek);
+TrekSet.MeanVal=0;
+TrekSet.Threshold=max([(max(trek)-min(trek)),50]);
+
 
 sh=[0:0.2:FrontN+TailInd];
 % sh=[0:0.2:2*FrontN];
@@ -113,7 +119,6 @@ for ri=1:numel(rat);
                  tb(end,12)=Amp(ami);
                  tb(end,13)=Amp(ami)*rat(ri);
                  
-                    %emulating noise Amp4 Thr~50 StdVal~10
                     %for every case new noise
                     trek=-17+2*17*rand(PulseN,1);
                     TrekSet.StdVal=std(trek);

@@ -311,7 +311,7 @@ while i<PeakN %
                         if not(isempty(DisturbInd)) 
                             if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
                                     (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-                                    abs(min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')+TrekSet.Threshold)<p(2)
+                                     min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold-abs(p(2))
                                   %last condition works then FitInd area is small and Amp may be moved left and more then real
                                   % was
                                   % min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold 
