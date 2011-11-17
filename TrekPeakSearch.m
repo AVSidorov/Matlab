@@ -80,6 +80,8 @@ end;
  MinBool(MinInd)=true;
 
  FrontN=MaxInd-MinInd;
+ Fronts=zeros(trSize,1);
+ Fronts(MaxInd)=FrontN;
 
  FrontHigh=trek(MaxInd)-trek(MinInd);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
@@ -255,14 +257,17 @@ SelectedInd=find(SelectedBool);
 SelectedN=size(SelectedInd,1);
 
 TrekSet.SelectedPeakInd=SelectedInd;
+TrekSet.SelectedPeakFrontN=Fronts(SelectedInd);
 TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
                                % which is generaly double noise amlitude. And in GetPeaks
                                % Amplitude of pulse is used
-
+% ZeroFrontInd=find(TrekSet.SelectedPeakFrontN==0);
+% TrekSet.SelectedPeakInd(ZeroFrontInd)=[];
+% TrekSet.SelectedPeakFrontN(ZeroFrontInd)=[];
 
 
 %% end information
-if trSize>2*numel(TrekSet.StandardPulse) %to avoid statistic typinb in short calls
+if trSize>2*numel(TrekSet.StandardPulse) %to avoid statistic typing in short calls
     fprintf('=====  Search of peak tops      ==========\n');
     fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
     fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',Threshold/StdVal,StdVal,Threshold);

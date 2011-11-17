@@ -56,21 +56,23 @@ TailInd=TailInd(1);
 % end;
 
 PulseN=numel(TrekSet.StandardPulse);
-TrekSet.size=PulseN;
+TrekSet.size=2*PulseN;
 
 %emulating noise Amp4 Thr~50 StdVal~10
-trek=-17+2*17*rand(PulseN,1);
+trek=-17+2*17*rand(2*PulseN,1);
 TrekSet.StdVal=std(trek);
 TrekSet.MeanVal=0;
 TrekSet.Threshold=max([(max(trek)-min(trek)),50]);
 
+ShiftInTrek=100; %Number of points for shifting pulse in trek
 
-sh=[0:0.2:FrontN+TailInd];
-% sh=[0:0.2:2*FrontN];
+% sh=[0:0.2:FrontN+TailInd];
+% sh=linspace(0.5,10,21);
+sh=[0.5:0.1:10];
 %ratio of peak Amplitudes max counts is 4095/2.5(ADC range in V)* 
 %*2(Amplifier  max Amplitude in V)/20 (Threshold at Amp 3) ~=100
- rat=[0.03,0.04,0.05,0.65,0.08,0.1,0.125,0.15,0.2,0.25,0.33,0.5,0.66,0.75,1,1.5,2,3,4,5,7.5,10,15,20,25,30,40];
-% rat=[0.1,0.15,0.2,0.25,0.33,0.5,0.66,0.75,1,2,3,5,10];
+%  rat=[0.03,0.04,0.05,0.65,0.08,0.1,0.125,0.15,0.2,0.25,0.33,0.5,0.66,0.75,1,1.5,2,3,4,5,7.5,10,15,20,25,30,40];
+rat=logspace(-1,1,21);
 tb=zeros(1,13);
 tb(1:11)=[0,0,1,MaxInd,1,MaxInd,1,MaxInd,1,FrontN,TailInd-BckgFitN];
 
@@ -120,22 +122,43 @@ for ri=1:numel(rat);
                  tb(end,13)=Amp(ami)*rat(ri);
                  
                     %for every case new noise
-                    trek=-17+2*17*rand(PulseN,1);
-                    TrekSet.StdVal=std(trek);
+                    TrekSet.trek=-17+2*17*rand(2*PulseN,1);
+                    TrekSet.StdVal=std(TrekSet.trek);
                     TrekSet.MeanVal=0;
-                    TrekSet.Threshold=max([(max(trek)-min(trek)),50]);
-                   TrekSet.trek=Amp(ami)*Stp+trek;
+                    TrekSet.Threshold=max([(max(TrekSet.trek)-min(TrekSet.trek)),50]);
+                   
+                    
+                   TrekSet.trek(ShiftInTrek+1:ShiftInTrek+PulseN)=Amp(ami)*Stp+TrekSet.trek(ShiftInTrek+1:ShiftInTrek+PulseN);
                    TrekSet.peaks=[];
                    TrekSet=TrekPeakSearch(TrekSet);
-                 
+                   tb(end,14)=maxI(1)-find(Amp(ami)*Stp>=TrekSet.Threshold,1,'first'); %Front length above noise in clear pulse 
+                                                                                       %Here beacause Threshold is changed in PeakSearch
                    TrekSet=TrekBreakPoints(TrekSet);
-                   TrekSet=TrekGetPeaksSid(TrekSet);                
-     
-                                   
-                   TrekSet.Threshold=TrekSet.Threshold*2;
-                   Treks(1)=TrekSet;
-                   Treks(end+1)=TrekSet;
-%                
+                   if not(isempty(find(abs(TrekSet.SelectedPeakInd-ShiftInTrek-maxI(1))<=1)))
+                       Ind=find(abs(TrekSet.SelectedPeakInd-ShiftInTrek-maxI(1))<=1); %is neccessary if founded more one ind
+                       Ind=round(mean(Ind));
+                       tb(end,15)=TrekSet.SelectedPeakInd(Ind)-ShiftInTrek;
+                       tb(end,16)=TrekSet.SelectedPeakFrontN(Ind);
+                       tb(end,17)=TrekSet.SelectedPeakInd(Ind)-find(TrekSet.trek(1:TrekSet.SelectedPeakInd(Ind))<TrekSet.Threshold,1,'last')-1;%Front length above noise in trek
+                   else
+                       tb(end,15)=0;                      
+                   end;
+                   if not(isempty(find(abs(TrekSet.SelectedPeakInd-ShiftInTrek-maxI(end))<=1)))
+                       Ind=find(abs(TrekSet.SelectedPeakInd-ShiftInTrek-maxI(end))<=1); %is neccessary if founded more one ind
+                       Ind=round(mean(Ind));
+                       tb(end,18)=TrekSet.SelectedPeakInd(Ind)-ShiftInTrek;
+                   else
+                       tb(end,18)=0;
+                   end;
+
+                   
+%                    TrekSet=TrekGetPeaksSid(TrekSet);                
+%      
+%                                    
+                    TrekSet.Threshold=TrekSet.Threshold*2;
+                    Treks(1)=TrekSet;
+                    Treks(end+1)=TrekSet;
+                
                
 
 

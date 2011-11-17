@@ -6,7 +6,7 @@ disp('>>>>>>>>Get Peaks started');
 Nfit=10;
 
 EndPlotBool=TrekSet.Plot;
-PulsePlot=true;
+PulsePlot=false;
 FitPlot=false;
 %%
 PulseN=size(TrekSet.StandardPulse,1);
