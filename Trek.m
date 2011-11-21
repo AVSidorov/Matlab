@@ -37,7 +37,7 @@ TrekSet.FileType='single';      %choose file type for precision in fread functio
 TrekSet.tau=0.02;               %ADC period
 TrekSet.StartOffset=0;       %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverSt=3;               %uses in StdVal
-TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeakAmp4_20ns_1.dat';
+TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeakAmp4_20ns_3.dat';
 % TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4095;
@@ -118,8 +118,8 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-           TrekSet1.StartTime=15000;
-           TrekSet1.size=2e6;
+           TrekSet1.StartTime=25000;
+           TrekSet1.size=5e4;
            TrekSet.StartTime=TrekSet1.StartTime;
            TrekSet.size=TrekSet1.size;
            TrekSet1=TrekLoad(FileName,TrekSet1);

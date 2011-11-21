@@ -4,6 +4,7 @@ tic;
 disp('>>>>>>>>Get Peaks started');
 
 Nfit=10;
+FitFast=true; %if fit Fast Peak Zero Level is assumed 0.
 
 EndPlotBool=TrekSet.Plot;
 PulsePlot=false;
@@ -62,10 +63,13 @@ while i<PeakN %
 %%
     %if Peak marked by LongFront and not marked as PeakOnFront start
     %GetDoublePeaks right here
-    if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))==0&numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd(:)))>0
-        DoubleFit=true;
-    end; 
-    %after subtracting peak it can move
+    %LongFront can be caused by noise. But this will be recognized in
+    %DoubleFrontSearch
+     if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))==0&numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd(:)))>0
+         DoubleFit=true;
+     end; 
+
+  %after subtracting peak it can move
     if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))==0&numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnTailInd(:)))==0&numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd(:)))==0
             if trek(TrekSet.SelectedPeakInd(i))<trek(TrekSet.SelectedPeakInd(i)+1)
                 TrekSet.SelectedPeakInd(i)=TrekSet.SelectedPeakInd(i)+1;
@@ -74,7 +78,8 @@ while i<PeakN %
                 TrekSet.SelectedPeakInd(i)=TrekSet.SelectedPeakInd(i)-1;
             end;
     end;
-    if trek(TrekSet.SelectedPeakInd(i))<TrekSet.Threshold; %after subtracting previous peak the next can be noise
+   %after subtracting previous peak the next can be noise
+    if trek(TrekSet.SelectedPeakInd(i))<TrekSet.Threshold; 
         i=i+1;
         continue;
     end;
@@ -107,7 +112,7 @@ while i<PeakN %
         FitIndPulse=FitInd-TrekSet.SelectedPeakInd(i)+MaxInd;
         
 
-        % coarse fit for amp and backround
+        % coarse fit for amp and background
         %Is Nessesary for <short fit> Background calculates by prePulse
         %(noise) points. Not exact
         %A=trek(TrekSet.SelecetdPeakInd(i));
@@ -115,7 +120,12 @@ while i<PeakN %
         
          ex=1;
          while ex>0
-            p=polyfit(TrekSet.StandardPulse(FitIndPulse),trek(FitInd),1);
+            if FitFast
+                p(1)=sum(TrekSet.StandardPulse(FitIndPulse).*trek(FitInd))/sum(TrekSet.StandardPulse(FitIndPulse).^2);
+                p(2)=0;
+            else
+                p=polyfit(TrekSet.StandardPulse(FitIndPulse),trek(FitInd),1);
+            end;
             A=p(1);
             B=p(2);
             %if B > Threshold, it may be means that there are not signed Pulse on front
@@ -169,12 +179,6 @@ while i<PeakN %
          
 
 %% ============== fitting
-                %<SHORT FIT>
-                % Yi=trek(FitInd)-B;
-                % Xi=PulseInterp(:,FitIndPulse);
-                % A=(Xi*Yi)./(sum(Xi')'); 
-                %works bad. Gives negative amplitude.Possibly
-                % weight is nessesary
        if FitPlot 
            fp=figure; 
            subplot(2,1,1);
@@ -220,7 +224,12 @@ while i<PeakN %
                         FineInd(end+1)=shT;
                         FitPulse=interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]+shT,'spline',0);
 
-                        p=polyfit(FitPulse(FitIndPulse),Yi',1);
+                        if FitFast
+                            p(1)=sum(FitPulse(FitIndPulse).*Yi')/sum(FitPulse(FitIndPulse).^2);
+                            p(2)=0;
+                        else
+                            p=polyfit(FitPulse(FitIndPulse),Yi',1);
+                        end;
                         Khi(shTi)=sum((Yi'-(p(1)*FitPulse(FitIndPulse)+p(2))).^2)/N/trek(TrekSet.SelectedPeakInd(i));
                         if FitPlot
                             figure(fp);
@@ -415,24 +424,30 @@ while i<PeakN %
 
                 
                 if DoubleFit
-                    %for overlapped pulse testing
-                        NPeaksSubtr=NPeaksSubtr+1;
-                        peaks=[peaks;zeros(1,7)];
-                        
-                        peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
-                        peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
-                        peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
-                        peaks(NPeaksSubtr,4)=p(2);                        %Peak Zero Level
-                        peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
-                        peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
-                        peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
-                    break;
+%                     %for overlapped pulse testing
+%                         NPeaksSubtr=NPeaksSubtr+1;
+%                         peaks=[peaks;zeros(1,7)];
+%                         
+%                         peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
+%                         peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
+%                         peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
+%                         peaks(NPeaksSubtr,4)=p(2);                        %Peak Zero Level
+%                         peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
+%                         peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
+%                         peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
+%                     break;
                     breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
-                    i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
-                    fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau)                  
-                    assignin('base','peaks',peaks);
-                    assignin('base','trekM',trek);                    
-                    continue; %try to skip overlapped pulses;
+                    if not(isempty(breakI))
+                        i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
+                        fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau);
+                        assignin('base','peaks',peaks);
+                        assignin('base','trekM',trek);                    
+                        continue; %try to skip overlapped pulses;
+                    else
+                        assignin('base','peaks',peaks);
+                        assignin('base','trekM',trek);                    
+                        break; %if there are no more break points then exit
+                    end;
                     TrekSet1=TrekSet;
                     TrekSet1.trek=trek;
                     TrekSet1=TrekGetDoublePeaks(TrekSet1,i);

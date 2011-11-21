@@ -12,8 +12,10 @@ if isstruct(FileName)
                TrekSet=TrekRecognize(TrekSet.FileName+'.dat',TrekSet);    
            end;
 
- StartPosition=round((TrekSet.StartTime-FileName.StartTime)/TrekSet.tau)+1; 
- TrekSet.trek=FileName.trek(StartPosition:StartPosition+TrekSet.size-1);
+ StartPosition=round((TrekSet.StartTime-FileName.StartTime)/TrekSet.tau)+1;
+ EndPosition=min([StartPosition+TrekSet.size-1,numel(FileName.trek)]);
+ TrekSet.trek=FileName.trek(StartPosition:EndPosition);
+ TrekSet.size=numel(TrekSet.trek);
  return;
 end;
 
