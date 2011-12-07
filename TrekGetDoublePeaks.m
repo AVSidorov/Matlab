@@ -16,7 +16,7 @@ FitPlot=false;
 
 PulseN=size(TrekSet.StandardPulse,1);
 MaxInd=find(TrekSet.StandardPulse==1); %Standard Pulse must be normalized by Amp
-BckgFitInd=find(TrekSet.StandardPulse==0);%Standard Pulse must have several zero point at front end and las zero point
+BckgFitInd=find(TrekSet.StandardPulse==0);%Standard Pulse must have several zero point at front end and last zero point
 BckgFitInd(end)=[];
 BckgFitN=size(BckgFitInd,1); 
 TailInd=find(TrekSet.StandardPulse<=0);
@@ -26,6 +26,7 @@ TailInd=TailInd(1);
 if nargin<2
 return;
 end;
+
 
 sh=[1/Nfit:((MaxInd-BckgFitN)-1/Nfit)/Nfit:(MaxInd-BckgFitN)];
 shN=numel(sh);

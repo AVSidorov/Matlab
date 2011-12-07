@@ -10,13 +10,13 @@ EndPlotBool=TrekSet.Plot;
 PulsePlot=false;
 FitPlot=false;
 %%
-PulseN=size(TrekSet.StandardPulse,1);
+PulseN=numel(TrekSet.StandardPulse);
 NPeaksSubtr=0;
 %%
 MaxInd=find(TrekSet.StandardPulse==1); %Standard Pulse must be normalized by Amp
 BckgFitInd=find(TrekSet.StandardPulse==0);%Standard Pulse must have several zero point at front end and las zero point
 BckgFitInd(end)=[];
-BckgFitN=size(BckgFitInd,1); 
+BckgFitN=numel(BckgFitInd); 
 FrontN=MaxInd-BckgFitN;
 TailInd=find(TrekSet.StandardPulse<=0);
 TailInd(TailInd<MaxInd)=[];
@@ -28,7 +28,7 @@ if nargin<2
     Pass=1;
 end;
 
-PeakN=size(TrekSet.SelectedPeakInd,1);  
+PeakN=numel(TrekSet.SelectedPeakInd);  
 trek=TrekSet.trek;
 tau=TrekSet.tau;
 %peaks=zeros(PeakN,7); %if works bad because may be hidden peaks
@@ -99,7 +99,7 @@ while i<PeakN %
         if i<PeakN
             %BorderInd is index there next pulse can be over Threshold
             BorderInd=max([TrekSet.SelectedPeakInd(i+1)-MaxInd+find(trek(TrekSet.SelectedPeakInd(i+1))*TrekSet.StandardPulse>TrekSet.Threshold,1,'first'),...
-                TrekSet.SelectedPeakInd(i+1)-(MaxInd-BckgFitN)]);
+                TrekSet.SelectedPeakInd(i+1)-(MaxInd-BckgFitN)])-1;%-1 for sure. 
             
             FitInd=FitInd(FitInd<BorderInd|FitIndPulse<=MaxInd);
             FitIndPulse=FitInd-TrekSet.SelectedPeakInd(i)+MaxInd; %make Indexes same size
@@ -168,14 +168,31 @@ while i<PeakN %
         %if fit pulse points breaks in tail part we reduce FitPulse by
         %removing stand alone tail points
         
-        FitIndPulseMax=FitIndPulse(dFitIndPulse>3); % very small breaks is not important
-        FitIndPulseMax(FitIndPulseMax<TailInd)=[];  % we search breaks only on the tail
+        FitIndPulseMax=FitIndPulse(dFitIndPulse>3); % very small breaks is not important and take breaks more than
+        FitIndPulseMax=FitIndPulseMax(FitIndPulseMax>MaxInd);  % we search breaks only after Maximum
+%         FitIndPulseMax(FitIndPulseMax<TailInd)=[];  % we search breaks only on the tail
+        %it allows to skip peakon tail, that gives bad fitting conditions, but fittin was good   
         if not(isempty(FitIndPulseMax))
-            FitIndPulseMax=FitIndPulseMax(1);           % take the first break
+            FitIndPulseMax=FitIndPulseMax(1)-1;           % take the first break. -1 For sure, to avoid bad fit condition in case PeakOnTail
+                                                          % so as any FitIndPulseMax>MaxInd
+                                                          % after -1 FitIndPulseMax>=MaxInd                                                        
             FitIndPulse(FitIndPulse>FitIndPulseMax)=[]; % remove from fitting all points after break
             FitInd=FitIndPulse+TrekSet.SelectedPeakInd(i)-MaxInd;
         end;
-        N=size(FitIndPulse,2);
+        %Make Fit whithout shifting
+            if FitFast
+                p(1)=sum(TrekSet.StandardPulse(FitIndPulse).*trek(FitInd))/sum(TrekSet.StandardPulse(FitIndPulse).^2);
+                p(2)=0;
+            else
+                p=polyfit(TrekSet.StandardPulse(FitIndPulse),trek(FitInd),1);
+            end; 
+            A=p(1);
+            B=p(2);
+            % Take points that are near for unshifted StandardPulse
+            FitIndPulse=FitIndPulse(FitIndPulse<=MaxInd|abs(trek(FitInd)-A*TrekSet.StandardPulse(FitIndPulse)-B)'<TrekSet.Threshold);
+            FitInd=FitIndPulse+TrekSet.SelectedPeakInd(i)-MaxInd;
+            
+            N=numel(FitIndPulse);
          
 
 %% ============== fitting
@@ -257,7 +274,12 @@ while i<PeakN %
                 Shift=-KhiFit(2)/(2*KhiFit(1));
 
                 PulseFine=interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]+Shift,'spline',0);
-                [p,Rstruct]=polyfit(PulseFine(FitIndPulse),Yi',1);
+                if FitFast
+                     p(1)=sum(PulseFine(FitIndPulse).*Yi')/sum(PulseFine(FitIndPulse).^2);
+                     p(2)=0;
+                else
+                    [p,Rstruct]=polyfit(PulseFine(FitIndPulse),Yi',1);
+                end;
                 MinKhi2=sum((Yi'-(p(1)*PulseFine(FitIndPulse)+p(2))).^2)/N/trek(TrekSet.SelectedPeakInd(i));
                 if FitPlot
                     figure(fp);                  
@@ -299,7 +321,7 @@ while i<PeakN %
                              grid on; hold on;
                              plot(SubtractInd,trek(SubtractInd));
                              plot(TrekSet.SelectedPeakInd(i),trek(TrekSet.SelectedPeakInd(i)),'*r');
-
+                             plot(FitInd,trek(FitInd),'ob');
 
                              plot(SubtractInd,PulseSubtract(SubtractIndPulse),'.m-');
                              plot(SubtractInd,trek(SubtractInd)-PulseSubtract(SubtractIndPulse)','g');
@@ -320,7 +342,8 @@ while i<PeakN %
                         if not(isempty(DisturbInd)) 
                             if p(1)>TrekSet.Threshold&abs(p(2))<TrekSet.Threshold&...
                                     (max(trek(FitInd)-PulseSubtract(FitIndPulse)')-min(trek(FitInd)-PulseSubtract(FitIndPulse)'))<=2*TrekSet.Threshold&...
-                                     min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold-abs(p(2))
+                                     min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-2*TrekSet.Threshold-abs(p(2)) %Double Because One Threshold from Noise
+                                                                                                                          %Second Threshold error in Amp determenation  
                                   %last condition works then FitInd area is small and Amp may be moved left and more then real
                                   % was
                                   % min(trek(DisturbInd)-PulseSubtract(DisturbIndPulse)')>-TrekSet.Threshold 
@@ -411,7 +434,7 @@ while i<PeakN %
                                     TrekSet.LongFrontInd=sortrows(TrekSet.LongFrontInd);
                                 end;
                             end;
-                            PeakN=size(TrekSet.SelectedPeakInd,1); %because number of markers can change if TrekPeakSearch will be called
+                            PeakN=numel(TrekSet.SelectedPeakInd); %because number of markers can change if TrekPeakSearch will be called
 
                         end;
 
@@ -424,18 +447,19 @@ while i<PeakN %
 
                 
                 if DoubleFit
-%                     %for overlapped pulse testing
-%                         NPeaksSubtr=NPeaksSubtr+1;
-%                         peaks=[peaks;zeros(1,7)];
-%                         
-%                         peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
-%                         peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
-%                         peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
-%                         peaks(NPeaksSubtr,4)=p(2);                        %Peak Zero Level
-%                         peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
-%                         peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
-%                         peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
-%                     break;
+                      %for overlapped pulse testing
+                          NPeaksSubtr=NPeaksSubtr+1;
+                          peaks=[peaks;zeros(1,7)];
+                          
+                          peaks(NPeaksSubtr,1)=TrekSet.SelectedPeakInd(i);             %TrekSet.SelectedPeakInd Max initial
+                          peaks(NPeaksSubtr,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*tau-Shift*tau;  %Peak Max Time fitted
+                          peaks(NPeaksSubtr,3)=peaks(NPeaksSubtr,2);     % for peak-to-peak interval
+                          peaks(NPeaksSubtr,4)=p(2);                        %Peak Zero Level
+                          peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
+                          peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
+                          peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
+                      break;
+
                     breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
                     if not(isempty(breakI))
                         i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
@@ -455,7 +479,7 @@ while i<PeakN %
                     TrekSet.PeakOnFrontInd=TrekSet1.PeakOnFrontInd;
                     TrekSet.PeakOnTailInd=TrekSet1.PeakOnTailInd;
                     TrekSet.LongFrontInd=TrekSet1.LongFrontInd;
-                    PeakN=size(TrekSet.SelectedPeakInd,1); 
+                    PeakN=numel(TrekSet.SelectedPeakInd); 
                     trek=TrekSet1.trek;
                     if not(isempty(TrekSet1.peaks)) %may be empty if fit Amplitude too small
                         NPeaksSubtr=NPeaksSubtr+2;
@@ -516,10 +540,11 @@ if EndPlotBool
 %           plot(HighAmpInd,trek(HighAmpInd),'*r');
 %           plot(LowAmpInd,trek(LowAmpInd),'.k');          
           plot(trek,'k'); 
+          plot(TrekSet.BreakPointsInd,TrekSet.trek(TrekSet.BreakPointsInd),'*r');
           plot(peaks(peaks(:,6)>1,1),trek(peaks(peaks(:,6)>1,1)),'dm');
 %           legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','HighPedestal','Ampl>MaxSignal','Ampl<Threshold','trekMinus');
 %            legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','HighPedestal','Ampl>MaxSignal','trekMinus');
-            legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus');
+            legend('trek','Amplitude+Zero','Zero','Selected Peak Ind','trekMinus','Break Points');
 
 %           dt=[];
 %           for i=1:NPeaksSubtr

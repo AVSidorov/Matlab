@@ -61,6 +61,7 @@ if MinInd(1)>MaxInd(1)
 end;
 
 % This is not neccesary if first point can be minimum
+
 % This part can cause loosing of first end single pulse in short trek
 %  %making first minimum earlier then thirst maximum
 %  while MaxInd(1)<MinInd(1)
@@ -80,13 +81,30 @@ end;
  MinBool(MinInd)=true;
 
  FrontN=MaxInd-MinInd;
+ TailN=MinInd(2:end)-MaxInd(1:end-1);
  Fronts=zeros(trSize,1);
  Fronts(MaxInd)=FrontN;
 
  FrontHigh=trek(MaxInd)-trek(MinInd);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
 
- 
+%% ======= Special trek constructing
+FrontNMax=max(FrontN);
+TailNMax=max(TailN);
+trekS=zeros(trSize,1);
+for i=1:FrontNMax
+    Ind=find(FrontN>=i);
+    trekS(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
+end;
+for i=1:TailNMax
+    Ind=find(TailN>=i);
+    trekS(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
+end;
+
+trekSr=circshift(trekS,1);
+trekSl=circshift(trekS,-1);
+HighFrontStartBool=trekSl>=Threshold&trekS<Threshold;
+HighFrontStartInd=find(HighFrontStartBool);
 %% ====== PeakOnFront Search
 trD=diff(trek,1);
 trD(end+1)=0;
@@ -254,7 +272,7 @@ SelectedBool=ByFrontBool|PeakOnFrontBool|ByDoubleFrontBool|ByHighBool|PeakOnTail
 
 % SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
-SelectedN=size(SelectedInd,1);
+SelectedN=numel(SelectedInd);
 
 TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.SelectedPeakFrontN=Fronts(SelectedInd);
