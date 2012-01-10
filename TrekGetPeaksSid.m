@@ -384,10 +384,11 @@ while i<PeakN %
 
                         if  (max(trek(DisturbInd))-min(trek(DisturbInd)))>2*TrekSet.Threshold
 
+                            TrekSet.SelectedPeakFrontN(TrekSet.SelectedPeakInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
                             TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
                             TrekSet.PeakOnFrontInd(TrekSet.PeakOnFrontInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
                             TrekSet.PeakOnTailInd(TrekSet.PeakOnTailInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.PeakOnTailInd<=SubtractInd(end))=[];
-                            TrekSet.LongFrontInd(TrekSet.LongFrontInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.LongFrontInd<=SubtractInd(end))=[];
+                            TrekSet.LongFrontInd(TrekSet.LongFrontInd>SubtractInd(SubtractIndPulse==MaxInd)&TrekSet.LongFrontInd<=SubtractInd(end))=[]; 
 
                             TrekSet1=TrekSet;
                             TrekSet1.Plot=false;
@@ -396,6 +397,7 @@ while i<PeakN %
                             %minimum before pulse 
                             TrekSet1.size=numel(TrekSet1.trek);
                             TrekSet1.SelectedPeakInd=[];
+                            TrekSet1.SelectedPeakFrontN=[];
                             TrekSet1.PeakOnFrontInd=[];
                             TrekSet1.PeakOnTailInd=[];
                             TrekSet1.LongFrontInd=[];
@@ -410,7 +412,9 @@ while i<PeakN %
                             for IndI=1:numel(TrekSet1.SelectedPeakInd)
                                 if isempty(find(TrekSet1.SelectedPeakInd(IndI)==TrekSet.SelectedPeakInd(:)))
                                     TrekSet.SelectedPeakInd(end+1)=TrekSet1.SelectedPeakInd(IndI);
-                                    TrekSet.SelectedPeakInd=sortrows(TrekSet.SelectedPeakInd);
+                                    TrekSet.SelectedPeakFrontN(end+1)=TrekSet1.SelectedPeakFrontN(IndI);                                    
+                                    [TrekSet.SelectedPeakInd,index]=sortrows(TrekSet.SelectedPeakInd);
+                                    TrekSet.SelectedPeakFrontN=TrekSet.SelectedPeakFrontN(index,:);
                                 end;
                             end;
 
@@ -458,23 +462,23 @@ while i<PeakN %
                           peaks(NPeaksSubtr,5)=p(1);                     %Peak Amplitude
                           peaks(NPeaksSubtr,6)=MinKhi2 ;%MinKhi2;% /Ampl;% KhiMin
                           peaks(NPeaksSubtr,7)=-1;                     % number of Pass in which peak finded
-                      break;
+%                       break;
 
-                    breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
-                    if not(isempty(breakI))
-                        i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
-                        fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau);
-                        assignin('base','peaks',peaks);
-                        assignin('base','trekM',trek);                    
-                        continue; %try to skip overlapped pulses;
-                    else
-                        assignin('base','peaks',peaks);
-                        assignin('base','trekM',trek);                    
-                        break; %if there are no more break points then exit
-                    end;
+%                     breakI=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
+%                     if not(isempty(breakI))
+%                         i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(breakI),1,'first');
+%                         fprintf('Now Ind/Time is %4d/%5.3fus\n',TrekSet.SelectedPeakInd(i),TrekSet.StartTime+TrekSet.SelectedPeakInd(i)*TrekSet.tau);
+%                         assignin('base','peaks',peaks);
+%                         assignin('base','trekM',trek);                    
+%                         continue; %try to skip overlapped pulses;
+%                     else
+%                         assignin('base','peaks',peaks);
+%                         assignin('base','trekM',trek);                    
+%                         break; %if there are no more break points then exit
+%                     end;
                     TrekSet1=TrekSet;
                     TrekSet1.trek=trek;
-                    TrekSet1=TrekGetDoublePeaks(TrekSet1,i);
+                    TrekSet1=TrekGetDoublePeaksSid(TrekSet1,i);
                     TrekSet.SelectedPeakInd=TrekSet1.SelectedPeakInd;
                     TrekSet.PeakOnFrontInd=TrekSet1.PeakOnFrontInd;
                     TrekSet.PeakOnTailInd=TrekSet1.PeakOnTailInd;

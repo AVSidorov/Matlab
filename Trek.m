@@ -44,7 +44,7 @@ TrekSet.MaxSignal=4095;
 TrekSet.MinSignal=0;
 TrekSet.peaks=[];
 TrekSet.StdVal=0;
-TrekSet.Threshold=400;
+TrekSet.Threshold=50;
 TrekSet.StartTime=TrekSet.StartOffset;
 % TrekSet.StartTime=3e4;
 TrekSet.Plot=false;
@@ -58,10 +58,10 @@ TrekSet.PeakPolarity=-1;
 TrekSet.charge=[];
 TrekSet.Date=110405;
 TrekSet.Shot=0;
-TrekSet.Amp=6;
+TrekSet.Amp=4;
 TrekSet.HV=1400;
 TrekSet.P=1;
-TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
+TrekSet.Merged=true; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
 
 
 Pass=1;

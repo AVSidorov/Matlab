@@ -81,11 +81,11 @@ ShiftInTrek=100; %Number of points for shifting pulse in trek
 
 % sh=[0:0.2:FrontN+TailInd];
 % sh=linspace(0.5,10,21);
-sh=[0.5:0.1:9];
+sh=[0.5:0.1:15];
 %ratio of peak Amplitudes max counts is 4095/2.5(ADC range in V)* 
 %*2(Amplifier  max Amplitude in V)/20 (Threshold at Amp 3) ~=100
 %  rat=[0.03,0.04,0.05,0.65,0.08,0.1,0.125,0.15,0.2,0.25,0.33,0.5,0.66,0.75,1,1.5,2,3,4,5,7.5,10,15,20,25,30,40];
-rat=logspace(-1,1,21);
+rat=logspace(-2,2,41);
 tb=zeros(1,13);
 tb(1:11)=[0,0,1,MaxInd,1,MaxInd,1,MaxInd,1,FrontN,TailInd-BckgFitN];
 % for i=1:5
@@ -146,10 +146,10 @@ for ri=1:numel(rat);
 %                      figure(f(maxI(1)-6));
 %                      plot([1:PulseN]+StpMaxI-MaxInd,Stp./StpMax);
 %                  end;
-
+                break;
                   tb(end,12)=Amp(ami);
                   tb(end,13)=Amp(ami)*rat(ri);
- 
+                    
                   
                      %for every case new noise
                      TrekSet.trek=(-17+2*17*rand(2*PulseN,1));
@@ -161,9 +161,11 @@ for ri=1:numel(rat);
                     
                      
                     TrekSet.trek(ShiftInTrek+1:ShiftInTrek+PulseN+fix(sh(shi)))=Amp(ami)*Stp+TrekSet.trek(ShiftInTrek+1:ShiftInTrek+PulseN+fix(sh(shi)));
+                    trek=[trek;TrekSet.trek];
                     TrekSet.peaks=[];
-%                     TrekSet=TrekPeakSearch(TrekSet);
 
+                    
+%                     TrekSet=TrekPeakSearch(TrekSet);                 
                     
 %                     TrekSet.Threshold=TrekSet.Threshold/2;
 %                     tb(end,14)=maxI(1)-find(Amp(ami)*Stp>=TrekSet.Threshold,1,'first'); %Front length above noise in clear pulse 
@@ -220,10 +222,10 @@ for ri=1:numel(rat);
 %                    end;
 
 %                    if maxN==2;
-                       TrekSet=TrekPeakSearch(TrekSet);
-                       TrekSet=TrekBreakPoints(TrekSet);
-                       TrekSet=TrekGetPeaksSid(TrekSet);
-                       TrekSet.Threshold=TrekSet.Threshold*2;
+                        TrekSet=TrekPeakSearch(TrekSet);
+                        TrekSet=TrekBreakPoints(TrekSet);
+                        TrekSet=TrekGetPeaksSid(TrekSet);
+                        TrekSet.Threshold=TrekSet.Threshold*2;
 %                    end;
 %                       if numel(find(TrekSet.peaks(:,7)==1))<maxN
 %                         TrekSet.Plot=true;
@@ -233,8 +235,8 @@ for ri=1:numel(rat);
       
                                     
 %                      TrekSet.Threshold=TrekSet.Threshold*2;
-                     Treks(1)=TrekSet;
-                     Treks(end+1)=TrekSet;
+%                       Treks(1)=TrekSet;
+%                       Treks(end+1)=TrekSet;
                 
                
 
@@ -260,6 +262,9 @@ for ri=1:numel(rat);
          end;
         if exist('tb')
             assignin('base','tb',tb)
+        end;
+        if exist('trek')
+            assignin('base','trek',trek)
         end;
 
     end;

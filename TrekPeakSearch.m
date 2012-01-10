@@ -82,28 +82,31 @@ end;
 
  FrontN=MaxInd-MinInd;
  TailN=MinInd(2:end)-MaxInd(1:end-1);
- Fronts=zeros(trSize,1);
- Fronts(MaxInd)=FrontN;
 
  FrontHigh=trek(MaxInd)-trek(MinInd);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
 
 %% ======= Special trek constructing
+FrontsN=zeros(trSize,1);
+FrontsHigh=zeros(trSize,1);
+
 FrontNMax=max(FrontN);
 TailNMax=max(TailN);
 trekS=zeros(trSize,1);
 for i=1:FrontNMax
     Ind=find(FrontN>=i);
-    trekS(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
+    FrontsN(MinInd(Ind)+i)=i;
+    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
 end;
 for i=1:TailNMax
     Ind=find(TailN>=i);
-    trekS(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
+    FrontsN(MaxInd(Ind)+i)=-i;
+    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
 end;
 
-trekSr=circshift(trekS,1);
-trekSl=circshift(trekS,-1);
-HighFrontStartBool=trekSl>=Threshold&trekS<Threshold;
+FrontsHighR=circshift(FrontsHigh,1);
+FrontsHighL=circshift(FrontsHigh,-1);
+HighFrontStartBool=FrontsHighL>=Threshold&FrontsHigh<Threshold;
 HighFrontStartInd=find(HighFrontStartBool);
 %% ====== PeakOnFront Search
 trD=diff(trek,1);
@@ -275,7 +278,7 @@ SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
 TrekSet.SelectedPeakInd=SelectedInd;
-TrekSet.SelectedPeakFrontN=Fronts(SelectedInd);
+TrekSet.SelectedPeakFrontN=FrontsN(SelectedInd);
 TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
                                % which is generaly double noise amlitude. And in GetPeaks
                                % Amplitude of pulse is used
