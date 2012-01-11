@@ -52,6 +52,7 @@ RSF=RSF(Ind,:);
 Khi=ones(size(RSF,1),1);
 Good=false(size(RSF,1),1);
 for i=1:size(RSF,1)
+%%  make Stp
             PulseShifted=RSF(i,1)*interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]-(RSF(i,2)-fix(RSF(i,2))),'spline',0)';
             PulseShifted(find(PulseShifted(1:MaxInd)<0))=0;
             PulseShifted(end)=0;
@@ -64,12 +65,14 @@ for i=1:size(RSF,1)
             maxI=find(Stp>StpR&Stp>StpL);
             maxI(maxI>=MaxInd+RSF(i,2)+2)=[];
             maxN=numel(maxI);           
+%% FitInd Determination (initial Fitting)
             FitInd=[1:maxI]+TrekSet.SelectedPeakInd(I)-maxI;
             FitIndPulse=[1:maxI];
             A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
             bool=TrekSet.trek(FitInd)-A*Stp(FitIndPulse)<TrekSet.Threshold;
             Good(i)=all(bool); 
             if Good(i)
+%% New (full size) fit points (FitInd)
                 FitInd=[1:StpN]+TrekSet.SelectedPeakInd(I)-maxI;
                 FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
                 FitIndPulse=FitInd-TrekSet.SelectedPeakInd(I)+maxI;
@@ -78,11 +81,50 @@ for i=1:size(RSF,1)
                 FitIndPulse=FitIndPulse(bool);                
                 N=numel(FitInd);
                 A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
-                Khi(i)=sum((trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
-            end;
-end;
+                khi(i)=sum((trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+%% Time Fitting Khi2 determination               
+                Yi=trek(FitInd);
+                % shT>0 means shift in time left. Conditions for shT are to Avoid fitting
+                % by part of front. In this case we have good khi, but
+                % after subtracting get the negative line, because maximum
+                % of fit pulse much greater then trek pulse
+                shT=1/2;
+                KhiMinInd=1;
+                while KhiMinInd<3&shT>=-1
+                    Khi=[];
+                    Khi(1:3)=inf;
+                    shTi=1;
+                    FineInd=[];
+                    while (Khi(end)<=Khi(end-1)|Khi(end-1)<=Khi(end-2))&(shT>=-1)
+                        FineInd(end+1)=shT;
+                        FitPulse=interp1([1:StpN],Stp,[1:StpN]+shT,'spline',0);
+                        A=sum(FitPulse(FitIndPulse).*Yi')/sum(FitPulse(FitIndPulse).^2);
+                        Khi(shTi)=sum((Yi'-A*FitPulse(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+                        shTi=shTi+1;
+                        shT=shT-1/Nfit;                        
+                    end;
+
+                    [KhiMin,KhiMinInd]=min(Khi);
+                    shT=FineInd(1)+2/Nfit;
+                end;
+                shTi=shTi-1;
+                [KhiMin,KhiMinInd]=min(Khi);
+                StInd=max([1,KhiMinInd-2]);
+                EndInd=min([shTi,KhiMinInd+2]);
+
+                KhiFit=polyfit(FineInd(StInd:EndInd),Khi(StInd:EndInd),2);
+                Shift=-KhiFit(2)/(2*KhiFit(1));
+
+                PulseFine=interp1([1:StpN],Stp,[1:StpN]+Shift,'spline',0);
+                A=sum(PulseFine(FitIndPulse).*Yi')/sum(PulseFine(FitIndPulse).^2);
+                KHI(i)=sum((Yi'-A*PulseFine(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+%%
+
+            end;%if Good
+end; %for i by RSF
 RSF=RSF(Good,:);
-Khi=Khi(Good);
+khi=khi(Good);
+KHI=KHI(Good);
 
 toc;
 %% start point determenation and initialization of itteration procces
@@ -109,13 +151,14 @@ if s(i,2)>1
 end;
 end;
 
-KHI=zeros(size(r,1),size(s,1));
-
+KHI2=ones(size(r,1),size(s,1));
+khi2=ones(size(r,1),size(s,1));
 for ri=1:size(r,1)
     for si=1:size(s,1)
         Ind=find(RSF(:,1)==r(ri,1)&RSF(:,2)==s(si,1));
         if not(isempty(Ind))
-            KHI(ri,si)=Khi(Ind);
+            KHI2(ri,si)=KHI(Ind);
+            khi2(ri,si)=khi(Ind);
         end;
     end;
 end;
