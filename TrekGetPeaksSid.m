@@ -22,7 +22,7 @@ TailInd=find(TrekSet.StandardPulse<=0);
 TailInd(TailInd<MaxInd)=[];
 TailInd=TailInd(1);
 %%
-
+STP=StpStruct(TrekSet.StandardPulse);
 
 if nargin<2
     Pass=1;
@@ -206,90 +206,33 @@ while i<PeakN %
            subplot(2,1,2);
            grid on; hold on;
        end;
+   %Make PreFit whithout shifting
+        if FitFast
+            p(1)=sum(TrekSet.StandardPulse(FitIndPulse).*trek(FitInd))/sum(TrekSet.StandardPulse(FitIndPulse).^2);
+            p(2)=0;
+        else
+            p=polyfit(TrekSet.StandardPulse(FitIndPulse),trek(FitInd),1);
+        end; 
+        A=p(1);
+        B=p(2);
+        Khi=sum((trek(FitInd)-A*TrekSet.StandardPulse(FitIndPulse)-B).^2)/N/trek(TrekSet.SelectedPeakInd(i));
 
-      Yi=trek(FitInd);
-%       if numel(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd(:)))>0
-%            Xi=PulseInterp(:,FitIndPulse);
-%            FineInd=[-2:1/Nfit:2];
-%           for ii=(4*Nfit+1):-1:1
-%               p=polyfit(Xi(ii,:),Yi',1);
-%               Khi(ii)=sum((Yi'-(p(1)*Xi(ii,:)+p(2))).^2)/N;
-%                 if FitPlot
-%                     figure(fp);
-%                     subplot(2,1,1);
-%                     plot(FitInd,p(1)*Xi(ii,:)+p(2),'om-');
-%                     plot(FitInd,Yi'-(p(1)*Xi(ii,:)+p(2)),'g');
-%                     subplot(2,1,2);
-%                     plot(FineInd(ii),Khi(ii),'*r');
-%                     pause;
-%                 end;
-%           end;
-%           shTi=4*Nfit+1+1;
-%       else
-                % shT>0 means shift in time left. Conditions for shT are to Avoid fitting
-                % by part of front. In this case we have good khi, but
-                % after subtracting get the negative line, because maximum
-                % of fit pulse much greater then trek pulse
-                shT=1/2;
-                KhiMinInd=1;
-                while KhiMinInd<3&shT>=-1
-                    Khi=[];
-                    Khi(1:3)=inf;
-                    shTi=1;
-                    FineInd=[];
-                    while (Khi(end)<=Khi(end-1)|Khi(end-1)<=Khi(end-2))&(shT>=-1)
-                        FineInd(end+1)=shT;
-                        FitPulse=interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]+shT,'spline',0);
+        FIT.Good=true;
+        FIT.A=A;
+        FIT.Shift=0;
+        FIT.Khi=Khi;
+        FIT.FitIndPulse=FitIndPulse;
+        FIT.FitInd=FitInd;
+        FIT.N=N;
 
-                        if FitFast
-                            p(1)=sum(FitPulse(FitIndPulse).*Yi')/sum(FitPulse(FitIndPulse).^2);
-                            p(2)=0;
-                        else
-                            p=polyfit(FitPulse(FitIndPulse),Yi',1);
-                        end;
-                        Khi(shTi)=sum((Yi'-(p(1)*FitPulse(FitIndPulse)+p(2))).^2)/N/trek(TrekSet.SelectedPeakInd(i));
-                        if FitPlot
-                            figure(fp);
-                            subplot(2,1,1);
-                            plot(FitInd,p(1)*FitPulse(FitIndPulse)+p(2),'om-');
-                            plot(FitInd,trek(FitInd)'-(p(1)*FitPulse(FitIndPulse)+p(2)),'g');
-                            subplot(2,1,2);
-                            plot(-shT,Khi(shTi),'*r');
-                            pause;
-                        end;
-                        shTi=shTi+1;
-                        shT=shT-1/Nfit;                        
-                    end;
+        TrekSet1=TrekSet;
+        TrekSet1.trek=trek;
+        FIT=TrekFitTime(TrekSet1,i,STP,FIT);
+        clear TrekSet1;
+        MinKhi2=FIT.Khi;
+        Shift=FIT.Shift;
+        PulseFine=interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]+Shift,'spline',0);
 
-                    [KhiMin,KhiMinInd]=min(Khi);
-                    shT=FineInd(1)+2/Nfit;
-                end;
-%       end;
-                shTi=shTi-1;
-                [KhiMin,KhiMinInd]=min(Khi);
-                StInd=max([1,KhiMinInd-2]);
-                EndInd=min([shTi,KhiMinInd+2]);
-
-                KhiFit=polyfit(FineInd(StInd:EndInd),Khi(StInd:EndInd),2);
-                Shift=-KhiFit(2)/(2*KhiFit(1));
-
-                PulseFine=interp1([1:PulseN],TrekSet.StandardPulse,[1:PulseN]+Shift,'spline',0);
-                if FitFast
-                     p(1)=sum(PulseFine(FitIndPulse).*Yi')/sum(PulseFine(FitIndPulse).^2);
-                     p(2)=0;
-                else
-                    [p,Rstruct]=polyfit(PulseFine(FitIndPulse),Yi',1);
-                end;
-                MinKhi2=sum((Yi'-(p(1)*PulseFine(FitIndPulse)+p(2))).^2)/N/trek(TrekSet.SelectedPeakInd(i));
-                if FitPlot
-                    figure(fp);                  
-                    subplot(2,1,2);
-                    plot(-[FineInd(1):-1/Nfit/10:FineInd(end)],polyval(KhiFit,[FineInd(1):-1/Nfit/10:FineInd(end)]),'b');                   
-                    plot([-Shift,-Shift],[0,MinKhi2],'sm-','linewidth',2);
-                    pause;
-                    figure(fp);                  
-                    close(gcf);
-                end;
 
 %% ================= trek cleaning and data saving
                 PulseSubtract=p(1)*PulseFine+p(2);
