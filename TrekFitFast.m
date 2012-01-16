@@ -26,6 +26,27 @@ if good
     bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
     FitInd=FitInd(bool);
     FitIndPulse=FitIndPulse(bool);
+
+    %if fit pulse points breaks in tail part we reduce FitPulse by
+        %removing stand alone tail points
+        
+    %if FitPulse is continious this array contains only 1
+    dFitIndPulse=circshift(FitIndPulse,-1)-FitIndPulse; 
+    dFitIndPulse(end)=0;
+
+
+    %if fit pulse points breaks in tail part we reduce FitPulse by
+    %removing stand alone tail points
+
+    FitIndPulseMax=FitIndPulse(dFitIndPulse>=StpSet.FrontN); % very small breaks is not important and take breaks more than
+    FitIndPulseMax=FitIndPulseMax(FitIndPulseMax>=maxI);    % we search breaks only after Maximum. >= because Break May be at maxI Point
+    %it allows to skip PeakOnTail, that gives bad fitting conditions, but fitting was good   
+    if not(isempty(FitIndPulseMax))
+        FitIndPulseMax=FitIndPulseMax(1); %Take First Break   
+        FitIndPulse(FitIndPulse>FitIndPulseMax)=[]; % remove from fitting all points after break
+        FitInd=FitIndPulse+TrekSet.SelectedPeakInd(I)-maxI;
+    end;
+
     N=numel(FitInd);
     
     Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));

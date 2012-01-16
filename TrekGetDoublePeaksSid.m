@@ -48,6 +48,8 @@ RSF=RSF(Ind,:);
 
 i=0;
 ex=false;
+ExcelentFit=false;
+
 %% first point search
 while not(ex)
     i=i+1;
@@ -65,9 +67,15 @@ while not(ex)
         continue;
     end;
    
-%% Fast search
+%%  Check to avoid long fit
     FIT=TrekFitTime(TrekSet,I,STPC,FIT);
     [TrekSet,ExcelentFit]=TrekSubtract(TrekSet,I,STPC,FIT);
+    if ExcelentFit
+        Ratio=RSF(Ind,1);
+        Shift=RSF(Ind,2);
+        return;
+    end;
+        
 %% Check border
     r=tabulateSid(RSF(:,1));
     s=tabulateSid(RSF(:,2));

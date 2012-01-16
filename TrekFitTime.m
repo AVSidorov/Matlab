@@ -88,12 +88,12 @@ if FitStruct.Good
     if Plot
         figure;
             subplot(2,1,1);            
-                plot(FitIndPulse,trek(FitInd));
+                plot(FitInd,trek(FitInd));
                 grid on; hold on;
-                plot(FitIndPulse,A*FitPulse(FitIndPulse),'r');
-                plot(FitIndPulse,trek(FitInd)-A*FitPulse(FitIndPulse),'k');
-                plot([1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
-                plot([1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+                plot(FitInd,A*FitPulse(FitIndPulse),'r');
+                plot(FitInd,trek(FitInd)-A*FitPulse(FitIndPulse),'k');
+                plot(FitInd(1)+[1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
+                plot(FitInd(1)+[1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
             subplot(2,1,2);
                 plot(ShKhi(khiFitInd,1),ShKhi(khiFitInd,2),'or');
                 grid on; hold on;
