@@ -1,22 +1,22 @@
-function FIT=TrekFitTime(TrekSet,I,StpStruct,FitStruct);
+function FIT=TrekFitTime(TrekSet,I,StpSet,FitStruct);
 
 Plot=false;
 Nfit=10;
 
 if nargin<3
-    StpStruct=StpStruct(TrekSet.StandardPulse);
+    StpSet=StpStruct(TrekSet.StandardPulse);
 end;
 
 if nargin<4
-    FitStruct=TrekFitFast(TrekSet,I,StpStruct);
+    FitStruct=TrekFitFast(TrekSet,I,StpSet);
 end;
 
 FIT=FitStruct;
 
 if FitStruct.Good
     trek=TrekSet.trek;
-    Stp=StpStruct.Stp;
-    StpN=StpStruct.size;
+    Stp=StpSet.Stp;
+    StpN=StpSet.size;
 
     N=FitStruct.N;
     FitInd=FitStruct.FitInd;
@@ -36,9 +36,9 @@ if FitStruct.Good
 
     while any(isinf(ShKhi(khiFitInd,2)))&min(diff(sortrows(ShKhi(khiFitInd,1))))>=1/Nfit%&abs(ShKhi(end,1)<=1) 
         for i=find(isinf(ShKhi(khiFitInd,2)))'
-           FitPulse=interp1([1:StpN],Stp,[1:StpN]+ShKhi(khiFitInd(i),1),'spline',0);
-           A=sum(FitPulse(FitIndPulse).*trek(FitInd)')/sum(FitPulse(FitIndPulse).^2);
-           ShKhi(khiFitInd(i),2)=sum((trek(FitInd)'-A*FitPulse(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+           FitPulse=interp1([1:StpN]',Stp,[1:StpN]'+ShKhi(khiFitInd(i),1),'spline',0);
+           A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+           ShKhi(khiFitInd(i),2)=sum((trek(FitInd)-A*FitPulse(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
         end;  
         if ShKhi(khiFitInd(end),2)>min(ShKhi(:,2)) %in peak on front Khi can have not only one minimum
             ShKhi=sortrows(ShKhi);
@@ -68,18 +68,20 @@ if FitStruct.Good
         ShKhi(end,2)=inf;        
     end;
 
-    FitPulse=interp1([1:StpN],Stp,[1:StpN]+ShKhi(end,1),'spline',0);
-    A=sum(FitPulse(FitIndPulse).*trek(FitInd)')/sum(FitPulse(FitIndPulse).^2);
-    ShKhi(end,2)=sum((trek(FitInd)'-A*FitPulse(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+    FitPulse=interp1([1:StpN],Stp,[1:StpN]'+ShKhi(end,1),'spline',0);
+    A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+    ShKhi(end,2)=sum((trek(FitInd)-A*FitPulse(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
     
     [KhiMin,KhiMinInd]=min(ShKhi(:,2));
-    FitPulse=interp1([1:StpN],Stp,[1:StpN]+ShKhi(KhiMinInd,1),'spline',0);
-    A=sum(FitPulse(FitIndPulse).*trek(FitInd)')/sum(FitPulse(FitIndPulse).^2);
+    FitPulse=interp1([1:StpN],Stp,[1:StpN]'+ShKhi(KhiMinInd,1),'spline',0);
+    A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
 
     FIT.A=A;
+    FIT.B=0;
     FIT.Shift=ShKhi(KhiMinInd,1);
     FIT.Khi=KhiMin;
     FIT.FitPulse=A*FitPulse;
+    FIT.FitPulseN=StpN;
 
 
 %%
@@ -89,7 +91,7 @@ if FitStruct.Good
                 plot(FitIndPulse,trek(FitInd));
                 grid on; hold on;
                 plot(FitIndPulse,A*FitPulse(FitIndPulse),'r');
-                plot(FitIndPulse,trek(FitInd)'-A*FitPulse(FitIndPulse),'k');
+                plot(FitIndPulse,trek(FitInd)-A*FitPulse(FitIndPulse),'k');
                 plot([1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
                 plot([1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
             subplot(2,1,2);

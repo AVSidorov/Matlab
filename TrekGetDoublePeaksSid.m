@@ -1,5 +1,5 @@
-function [TrekSet,MinKhi]=TrekGetDoublePeaksSid(TrekSetIn,I);
-TrekSet=TrekSetIn;
+function [FIT,Ratio,Shift]=TrekGetDoublePeaksSid(TrekSet,I);
+
 
 tic;
 disp('>>>>>>>>Get Double Peaks started');
@@ -27,6 +27,10 @@ PulseFrontNOver=TrekSet.SelectedPeakInd(I)-find(TrekSet.trek(1:TrekSet.SelectedP
 
 PulseFrontMin=min([PulseFrontN,PulseFrontNOver])-1;
 PulseFrontMax=max([PulseFrontN,PulseFrontNOver])+1;
+if not(isempty(find(TrekSet.PeakOnFrontInd==TrekSet.SelectedPeakInd(I))))
+    PulseFrontMin=PulseFrontMin-1;
+    PulseFrontMax=PulseFrontMax+1;
+end;
 
 
 rMin=TrekSet.Threshold/TrekSet.trek(TrekSet.SelectedPeakInd(I));
@@ -60,6 +64,10 @@ while not(ex)
         RSF(Ind,:)=[];
         continue;
     end;
+   
+%% Fast search
+    FIT=TrekFitTime(TrekSet,I,STPC,FIT);
+    [TrekSet,ExcelentFit]=TrekSubtract(TrekSet,I,STPC,FIT);
 %% Check border
     r=tabulateSid(RSF(:,1));
     s=tabulateSid(RSF(:,2));
@@ -290,6 +298,7 @@ while not(ex)%MinKHIInd>1
             i-iStart>3
             
             ex=true;
+            continue;
         end;
         i=i+1;
 
@@ -310,8 +319,12 @@ if size(RS,2)>i
     RS(:,end)=[];
 end;
 
+Ratio=RS(1,end);
+Shift=RS(2,end);
+
 toc;
 %%
+
 if EndPlot
     figure;
         subplot(2,1,1)

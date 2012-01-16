@@ -6,3 +6,7 @@ if isempty(TrekSet.StandardPulse)
          TrekSet.StandardPulse=load(TrekSet.StandardPulseFile);
     end;
 end;
+if size(TrekSet.StandardPulse,1)<size(TrekSet.StandardPulse,2)
+    TrekSet.StandardPulse=TrekSet.StandardPulse'; %all arrays are horizontal
+end;
+    

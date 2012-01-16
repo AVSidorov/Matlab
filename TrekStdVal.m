@@ -123,8 +123,7 @@ else
        StdVal=std(trek(Noise));    
 end;
 
-TrekSet.trek=trek;
-TrekSet.size=size(TrekSet.trek,1);  
+
 TrekSet.MeanVal=MeanVal;
 TrekSet.StdVal=StdVal;
 TrekSet.MaxSignal=MaxSignal;
