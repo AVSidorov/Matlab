@@ -34,6 +34,7 @@ FIT.Khi=Khi;
 FIT.FitIndPulse=FitIndPulse;
 FIT.FitInd=FitInd;
 FIT.N=N;
+FIT.FitPulse=A*Stp;
 
 %%
 if Plot

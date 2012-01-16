@@ -6,9 +6,10 @@ disp('>>>>>>>>Get Double Peaks started');
 
 fprintf('Initial Ind - Time is %4d - %5.3fus\n',TrekSet.SelectedPeakInd(I),TrekSet.StartTime+TrekSet.SelectedPeakInd(I)*TrekSet.tau);
 
-Nfit=2;
+Nfit=10;
 
-Plot=true;
+EndPlot=true;
+LambdaFitPlot=true;
 
 
 STP=StpStruct(TrekSet.StandardPulse);
@@ -28,14 +29,16 @@ PulseFrontMin=min([PulseFrontN,PulseFrontNOver])-1;
 PulseFrontMax=max([PulseFrontN,PulseFrontNOver])+1;
 
 
-shMin=0;
-shMax=2*STP.FrontN;
-amMin=TrekSet.Threshold/TrekSet.trek(TrekSet.SelectedPeakInd(I));
-amMax=1/amMin;
+rMin=TrekSet.Threshold/TrekSet.trek(TrekSet.SelectedPeakInd(I));
+rMax=1/rMin;
 
 
 
-Ind=find(RSF(:,1)>=amMin&RSF(:,1)<=amMax&RSF(:,3)>=PulseFrontMin&RSF(:,3)<=PulseFrontMax);
+Ind=find(RSF(:,1)>=rMin&RSF(:,1)<=rMax&RSF(:,3)>=PulseFrontMin&RSF(:,3)<=PulseFrontMax);
+if isempty(Ind)
+    pause;
+end;
+
 RSF=RSF(Ind,:);
 
 
@@ -96,6 +99,12 @@ end; %while not(ex) first point search
 
 
 %% Conjugate gradients method
+ %Boundaryes
+ shMin=min(RSF(:,2));
+ shMax=max(RSF(:,2));
+ rMin=max([rMin,min(RSF(:,1))]);
+ rMax=min([rMax,max(RSF(:,1))]);
+
 %% First Point Initialization
 r=zeros(5,1);
 r(1)=RS(1,i);
@@ -120,9 +129,11 @@ KHI=zeros(5,1);
 
 MinKHIInd=2;
 iStart=i;
+Lambda=[];
+Khi=[];
+ex=false;
 
-
-while MinKHIInd>1
+while not(ex)%MinKHIInd>1
 %% Calculate KHI for current point and neighbours
     for ii=1:5;
         STPC=StpCombined(STP,r(ii),s(ii));
@@ -149,36 +160,116 @@ while MinKHIInd>1
 
     Gr=GRADr(i);
     Gs=GRADs(i);
-%% Search lambda - length along [dR(i);dS(i)] vector
-    %??? How to pick Lambda Step
-    dL=1;
-    KhiSMinInd=1;
-    while KhiSMinInd<3&dL(1)>0.001
-        dL(1)=dL(1)/Nfit;
-        dL(2:end)=[];
-        KhiS=[];
-        KhiS(1)=KHI(1);    
-        Lambdas=[];
-        Lambdas(1)=0;
-        while KhiSMinInd>numel(KhiS)-2&any(KhiS<inf)
-            Lambdas(end+1)=Lambdas(end)+dL(end);
-            STPC=StpCombined(STP,r(1)+Lambdas(end)*dR(i),s(1)+Lambdas(end)*dS(i));
-            FIT=TrekFitTime(TrekSet,I,STPC);
-            KhiS(end+1)=FIT.Khi;
-            [KhiSMin,KhiSMinInd]=min(KhiS);
-            dL(end+1)=dL(1)*log(2*numel(KhiS)); %make dL greater if too many steps
-        end;
+    
+%% determination of lambda max
+    LambdaMax=inf;
+    if dR(i)<0
+       LambdaMax=(rMin-r(1))/dR(i);
+    elseif dR(i)>0
+       LambdaMax=(rMax-r(1))/dR(i);
     end;
-    StInd=max([1,KhiSMinInd-2]);
-    EndInd=min([numel(KhiS),KhiSMinInd+2]);
-    Khi(isinf(Khi))=1.1*max(Khi(not(isinf(Khi))));
-    if (EndInd-StInd)>1&KhiSMinInd>1
-        KhiSFit=polyfit(Lambdas(StInd:EndInd),KhiS(StInd:EndInd),2);
-        Lambda(i)=-KhiSFit(2)/(2*KhiSFit(1));
-    else
-        Lambda(i)=Lambdas(KhiSMinInd);
+    if dS(i)<0
+       LambdaMax=min([(shMin-s(1))/dS(i),LambdaMax]);
+    elseif dS(i)>0
+       LambdaMax=min([(shMax-s(1))/dS(i),LambdaMax]);
     end;
 
+%% Search lambda - length along [dR(i);dS(i)] vector
+    LmbdKhi=[]; %renew if changed fit direction
+    LmbdKhi(1:3,1:2)=[0,KHI(1);LambdaMax/2,inf;LambdaMax,inf];
+    khiFitInd=1:3;
+    [KhiSMin,KhiSMinInd]=min(LmbdKhi(:,2));
+    
+    while any(isinf(LmbdKhi(khiFitInd,2)))&...
+         (min(diff(sortrows(LmbdKhi(khiFitInd,1))))>=LmbdKhi(KhiSMinInd,1)/Nfit|min(diff(sortrows(LmbdKhi(khiFitInd,2))))>=KhiSMin/Nfit)
+
+        for ii=find(isinf(LmbdKhi(khiFitInd,2)))'
+            STPC=StpCombined(STP,r(1)+LmbdKhi(khiFitInd(ii),1)*dR(i),s(1)+LmbdKhi(khiFitInd(ii),1)*dS(i));
+            FIT=TrekFitTime(TrekSet,I,STPC);
+            LmbdKhi(khiFitInd(ii),2)=FIT.Khi;
+        end;
+
+        if any(isinf(LmbdKhi(khiFitInd,2)))
+            LambdaMax=min(LmbdKhi(isinf(LmbdKhi(:,2)),1));       
+            MaxGoodLmbd=max(LmbdKhi(LmbdKhi(:,1)<LambdaMax,1));
+            %LambdaMax=0.5*(LambdaMax+MaxGoodLambda);
+            khiFitBool=false(size(LmbdKhi,1),1);
+            khiFitBool(LmbdKhi(:,1)<=MaxGoodLmbd)=true;
+            khiFitInd=find(khiFitBool)';
+            LmbdKhi(end+1,1)=0.5*(LambdaMax+MaxGoodLmbd);                
+            LmbdKhi(end,2)=inf;
+            khiFitInd=[khiFitInd,size(LmbdKhi,1)];
+            if numel(khiFitInd)<3
+                LmbdKhi(end+1,1)=mean(LmbdKhi(khiFitInd,1));
+                LmbdKhi(end,2)=inf;
+                khiFitInd=[khiFitInd,size(LmbdKhi,1)];
+            end;
+            continue;
+        end;
+
+        if LmbdKhi(end,2)>KhiSMin
+            LmbdKhi=sortrows(LmbdKhi);
+            [KhiMin,KhiMinInd]=min(LmbdKhi(:,2));
+            li=max([KhiMinInd-1;1]);
+            firstBadInd=find(isinf(LmbdKhi(:,2)),1,'first'); %so LmbdKhi is sorted by Lambda
+            ri=min([KhiMinInd+1;size(LmbdKhi,1);firstBadInd-1]);             
+
+            AddPointBool=([li,ri]==KhiMinInd);
+            if not(isempty(find(AddPointBool)))
+                LmbdKhi(end+1,1)=min([max(LmbdKhi([li,ri],1))+0.5*(LmbdKhi(KhiMinInd,1)-LmbdKhi([not(AddPointBool),false],1)),LambdaMax]);
+                LmbdKhi(end,2)=inf;
+                khiFitInd=[ri,li,size(LmbdKhi,1)];
+                continue;
+            else
+                khiFitInd=[ri,li,KhiMinInd];
+            end;
+        end;
+        KhiSFit=polyfit(LmbdKhi(khiFitInd,1),LmbdKhi(khiFitInd,2),2);
+        LmbdKhi(end+1,1)=-KhiSFit(2)/(2*KhiSFit(1));
+        khiFitInd=[khiFitInd,size(LmbdKhi,1)];
+        if LmbdKhi(end,1)<0
+            LmbdKhi(end,1)=min(LmbdKhi(LmbdKhi(:,1)>0,1))/2;
+        end;
+        if LmbdKhi(end,1)>LambdaMax
+            MaxGoodLmbd=max(LmbdKhi(LmbdKhi(:,1)<LambdaMax,1));
+            LmbdKhi(end,1)=0.5*(LambdaMax+MaxGoodLmbd);
+        end;        
+        LmbdKhi(end,2)=inf;
+        [KhiSMin,KhiSMinInd]=min(LmbdKhi(:,2));
+    end;
+    STPC=StpCombined(STP,r(1)+LmbdKhi(end,1)*dR(i),s(1)+LmbdKhi(end,1)*dS(i));
+    FIT=TrekFitTime(TrekSet,I,STPC);
+    LmbdKhi(end,2)=FIT.Khi;
+    [KhiSMin,KhiSMinInd]=min(LmbdKhi(:,2));
+    Lambda(i)=LmbdKhi(KhiSMinInd,2);
+    if LambdaFitPlot
+        figure;
+        subplot(3,1,1)
+            plot(LmbdKhi(not(isinf(LmbdKhi(:,2))),1),LmbdKhi(not(isinf(LmbdKhi(:,2))),2),'*r');
+            grid on; hold on;
+            plot(LmbdKhi(khiFitInd,1),LmbdKhi(khiFitInd,2),'or');
+            plot(LmbdKhi(KhiSMinInd,1),LmbdKhi(KhiSMinInd,2),'dk');
+            plot([LambdaMax,LambdaMax],[KhiSMin,max(LmbdKhi(khiFitInd,2))],'m');
+            plot([0:1/Nfit:max(LmbdKhi(khiFitInd,1))],polyval(KhiSFit,[0:1/Nfit:max(LmbdKhi(khiFitInd,1))]));
+            title('Lambda search');
+        subplot(3,1,2)
+            plot(RS(1,:),RS(2,:),'.b-');            
+            grid on; hold on;
+            plot(RS(1,iStart:i),RS(2,iStart:i),'.r-');            
+            plot(RS(1,1),RS(2,1),'ob-');
+            plot(RS(1,iStart),RS(2,iStart),'dr-');
+            plot(RS(1,end),RS(2,end),'*r-');
+            title('Ratio-Shift path');
+        subplot(3,1,3)
+            plot(iStart:i,Khi(iStart:i),'*r-');
+            grid on; hold on;
+            title('Khi along RS-path');           
+        pause;
+        close(gcf);           
+    end;
+
+    
+%%
     STPC=StpCombined(STP,r(1)+Lambda(i)*dR(i),s(1)+Lambda(i)*dS(i));
     FIT=TrekFitTime(TrekSet,I,STPC);
 
@@ -195,15 +286,20 @@ while MinKHIInd>1
         s(3)=s(1);
         s(4)=RS(2,i);
         s(5)=RS(2,i)+2*Lambda(i)*dS(i);   
-
+        if (Lambda(i)*dR(i)<RS(1,i)/Nfit|Lambda(i)*dS(i)<RS(1,i)/Nfit|(Khi(i)-FIT.Khi)<FIT.Khi/Nfit)&...
+            i-iStart>3
+            
+            ex=true;
+        end;
         i=i+1;
 
         RS(1,i)=r(1);  
         RS(2,i)=s(1);
     %%
     else
+        Lambda(i)=[];
         if dR(i)==-GRADr(i)&dS(i)==-GRADs(i)
-            MinKHIInd=1;
+           ex=true;
         end;
         Sr=0; %if Khi don't decrease then use only Gradient
         Ss=0; %And Repeat the Step
@@ -216,16 +312,20 @@ end;
 
 toc;
 %%
-if Plot
+if EndPlot
     figure;
         subplot(2,1,1)
-            plot(RS(1,:),RS(2,:),'.r-');
+           plot(RS(1,:),RS(2,:),'.b-');            
             grid on; hold on;
-            plot(RS(1,1),RS(2,1),'or-');
+            plot(RS(1,iStart:i),RS(2,iStart:i),'.r-');            
+            plot(RS(1,1),RS(2,1),'ob-');
+            plot(RS(1,iStart),RS(2,iStart),'dr-');
             plot(RS(1,end),RS(2,end),'*r-');
+            title('Ratio-Shift path');
         subplot(2,1,2)
             plot(iStart:i,Khi(iStart:i),'*r-');
             grid on; hold on;
+            title('Khi along RS-path');   
     pause;
     close(gcf);
 end;
