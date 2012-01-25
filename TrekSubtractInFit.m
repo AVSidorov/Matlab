@@ -1,4 +1,4 @@
-function [TrekSet,isGood]=TrekSubtract(TrekSetIn,I,StpSet,FitStruct);
+function [TrekSet,isGood]=TrekSubtractInFit(TrekSetIn,I,StpSet,FitStruct);
 tic;
 disp('>>>>>>>>TrekSubtract started');
 TrekSet=TrekSetIn;
@@ -33,15 +33,16 @@ OverloadInd=SubtractInd(trek(SubtractInd)>TrekSet.MaxSignal);
 OverloadIndPulse=OverloadInd-TrekSet.SelectedPeakInd(I)+MaxInd;
 PulseSubtract(OverloadIndPulse)=trek(OverloadInd);
 
+SubtractIndPulse=SubtractIndPulse(SubtractIndPulse>=FitIndPulse(1));
+SubtractInd=SubtractInd(SubtractInd>=FitInd(1));
 
 trek(SubtractInd)=trek(SubtractInd)-PulseSubtract(SubtractIndPulse);
 
-if all(abs(trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitting quality
-   all(trek(SubtractInd(SubtractIndPulse<=STP.TailInd))>-TrekSet.Threshold)
+if all(abs(trek(FitStruct.FitInd))<TrekSet.Threshold)    %check fitting quality
    %check that FitPulse isn't moved right and fitted Pulse Amplitude much
    %greater than Amplitude of real signal pulse
-    isGood=true;
-    TrekSet.trek=trek;
+   TrekSet.trek=trek;
+   isGood=true;
 %%
     TrekSet.peaks=[TrekSet.peaks;zeros(1,7)];
 
@@ -51,7 +52,7 @@ if all(abs(trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitting qual
     TrekSet.peaks(end,4)=FitStruct.B;                       %Peak Zero Level
     TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
     TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
-    TrekSet.peaks(end,7)=1;                     % means that Standing Alone or first from Overlaped pulses
+    TrekSet.peaks(end,7)=-1;                     % means that this is not real pulse
 %%    
     TrekSet=TrekPeakReSearch(TrekSet,SubtractInd);
 %   Plot=true;

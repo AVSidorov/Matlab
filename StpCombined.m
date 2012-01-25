@@ -1,5 +1,6 @@
 function STP=StpCombined(StpStruct,R,S);
-
+tic;
+disp('>>>>>>>>StpCombined started');
 STP=StpStruct;
 
 Plot=false;
@@ -39,6 +40,8 @@ STP.maxN=maxN;
 STP.maxI=maxI;
 STP.max=Stp(maxI);
 STP.TailInd=TailInd;
+%%
+toc;
 %%
 if Plot
     figure;

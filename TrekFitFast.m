@@ -1,6 +1,8 @@
 function FIT=TrekFitFast(TrekSet,I,StpSet);
+tic;
+disp('>>>>>>>>TrekFitFast started');
 
-Plot=false;
+Plot=TrekSet.Plot;
 
 if nargin<3
     StpSet=StpStruct(TrekSet.StandardPulse);
@@ -12,13 +14,15 @@ StpN=StpSet.size;
 trek=TrekSet.trek;
 Khi=inf;
 
-FitInd=[1:maxI]+TrekSet.SelectedPeakInd(I)-maxI;
+FitInd=[1:maxI]'+TrekSet.SelectedPeakInd(I)-maxI;
 FitIndPulse=[1:maxI]'; %all arrays vert;
 N=numel(FitInd);
 
 A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
-bool=TrekSet.trek(FitInd)-A*Stp(FitIndPulse)<TrekSet.Threshold;
+bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
 good=all(bool);
+Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+
 if good   
     FitInd=[1:StpN]'+TrekSet.SelectedPeakInd(I)-maxI;
     FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
@@ -49,7 +53,7 @@ if good
 
     N=numel(FitInd);
     
-    Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+    Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));    
 end;
 
 FIT.Good=good;
@@ -62,16 +66,22 @@ FIT.FitInd=FitInd;
 FIT.N=N;
 FIT.FitPulse=A*Stp;
 FIT.FitPulseN=StpN;
+if not(good)&Khi<1
+    FIT.Good=true;
+    FIT=TrekFitTime(TrekSet,I,StpSet,FIT);
+end;
 
+%%
+toc;
 %%
 if Plot
     figure;
-        plot(FitIndPulse,trek(FitInd));
+        plot(FitInd,trek(FitInd));
         grid on; hold on;
-        plot(FitIndPulse,A*Stp(FitIndPulse),'r');
-        plot(FitIndPulse,trek(FitInd)-A*Stp(FitIndPulse),'k');
-        plot([1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
-        plot([1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+        plot(FitInd,A*Stp(FitIndPulse),'r');
+        plot(FitInd,trek(FitInd)-A*Stp(FitIndPulse),'k');
+        plot(FitInd(1)+[1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
+        plot(FitInd(1)+[1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
     pause;
     close(gcf);
 end;

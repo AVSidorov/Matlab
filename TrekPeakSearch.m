@@ -1,20 +1,21 @@
 function TrekSet=TrekPeakSearch(TrekSetIn,EndOut);
 
 tic;
+disp('>>>>>>>>TrekPeakSearch started');
 
 TrekSet=TrekSetIn;
 
 if nargin<2
     EndOut=true;
 end;
-disp('>>>>>>>>Search by Front started');
+
 
 
 BckgFitN=2;
 OnTailBorder=0.1;
 DoubleFrontK=1.5;
 Plot=TrekSet.Plot;
-Plot=EndOut;
+% Plot=true;
 % SmoothPar=5;
 
 
@@ -93,6 +94,39 @@ end;
  FrontHigh=trek(MaxInd)-trek(MinInd);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
 
+%% ======= Special trek constructing
+FrontsN=zeros(trSize,1);
+FrontsHigh=zeros(trSize,1);
+
+FrontNMax=max(FrontN);
+TailNMax=max(TailN);
+trekS=zeros(trSize,1);
+for i=1:FrontNMax
+    Ind=find(FrontN>=i);
+    FrontsN(MinInd(Ind)+i)=i;
+    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
+end;
+for i=1:TailNMax
+    Ind=find(TailN>=i);
+    FrontsN(MaxInd(Ind)+i)=-i;
+    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
+end;
+
+FrontsHighR=circshift(FrontsHigh,1);
+FrontsHighL=circshift(FrontsHigh,-1);
+HighFrontStartBool=FrontsHighL>=Threshold&FrontsHigh<Threshold;
+HighFrontStartInd=find(HighFrontStartBool);
+HighFrontN=MaxInd(find(FrontHigh>=Threshold))-HighFrontStartInd;
+%for peaks whith good zero level this ^ condition is too strong
+%This is for good zero level peaks (for LongFrontSearch)
+HighPeakBool=MaxBool&trek>Threshold/2;
+%Exclude PeaksOnTail and etc.
+HighPeakBool(MaxInd(find(trek(MinInd)>=Threshold/2)))=false;
+HighPeakInd=find(HighPeakBool);
+HighPeakStartBool=trL>=Threshold/2&trek<Threshold/2;
+HighPeakStartInd=find(HighPeakStartBool);
+HighPeakN=HighPeakInd-HighPeakStartInd; 
+%согласовать размеры массивов обычно совпадают
 %% ===============By Front
 
 ByFrontBool=FrontHigh>=Threshold&abs(MaxFrontN-FrontN)<=2; %first conditon is for front high, second means that front couldn't be shorter or longer  
@@ -102,11 +136,13 @@ ByFrontBool(ByFrontInd)=true;
 ByFrontN=size(ByFrontInd,1);
 
 %% ==============By High
-ByHighBool=(trek>Threshold/2)&MaxBool; % It is necessary for small peaks
+ByHighBool=MaxBool&trek>Threshold/2;               % It is necessary for peaks with small front
 ByHighBool(ByFrontBool)=false;         % For example, Peak haves noise maximum on front. 
 ByHighInd=find(ByHighBool);            % As result both noise and signal Maximums 
 ByHighN=size(ByHighInd,1);             % don't match FrontHigh Conditions
                                        % This work only if NullLine is "zero"
+                                       % ByHigh is not equal HighPeak
+                                       % FrontBoll peak are excluded
 
 %% ====== PeakOnFront Search
 trD=diff(trek,1);
@@ -140,6 +176,7 @@ PeakOnFrontBool=false(trSize,1);
 PeakOnFrontBool(Ind)=true;
 % excluding minimums
 PeakOnFrontBool=PeakOnFrontBool&not(MinBool);
+PeakOnFrontBool(MaxInd)=false; %exclude Maximums
 PeakOnFrontInd=find(PeakOnFrontBool);
 
 %search peak on front without trD minimum 
@@ -159,14 +196,15 @@ PeakOnFrontN=size(PeakOnFrontInd,1);
  
 
 % %common way for PeakOnFront and LongFront search
-NCombined=fix(FrontN/MaxFrontN); %approximate number of combined pulses for each peak
+% use only for HighPeaks (later was by front Determenation)
+NCombined=fix(HighPeakN/MaxFrontN); %approximate number of combined pulses for each peak
 NCombinedMax=max(NCombined);
 LongFrontInd=[];
 for i=1:NCombinedMax %this cycle is allowed because have small number of repeatitions
-    LFrontInd=MinInd+i*MaxFrontN;
+    LFrontInd=(HighPeakStartInd-1)+i*MaxFrontN;     %usualy first point before Threshold is next after last zero point of Standard Pulse
     
-    LFrontInd=LFrontInd(LFrontInd<MaxInd...                                         %first condition means that front more than i*MaxFrontN, 
-                        &(MaxInd-LFrontInd)>=(MaxFrontN-1));                         %second that after found Ind are not only several(one/two) points in other words front is more than i*MaxFrontN+MaxFrontN-1, i.e. more than 2/3/4*MaxFrontN
+    LFrontInd=LFrontInd(LFrontInd<HighPeakInd...                                     %first condition means that front more than i*MaxFrontN, 
+                        &(HighPeakInd-LFrontInd)>=(MaxFrontN-1));                         %second that after found Ind are not only several(one/two) points in other words front is more than i*MaxFrontN+MaxFrontN-1, i.e. more than 2/3/4*MaxFrontN
     LFrontInd=LFrontInd((trek(LFrontInd)-trek(LFrontInd-MaxFrontN))>Threshold);     %Means that gap between previous minimum(i=1)/marker(i>1) is more than Threshold
                    
 
@@ -174,6 +212,8 @@ for i=1:NCombinedMax %this cycle is allowed because have small number of repeati
 end;
 LongFrontBool=false(trSize,1);
 LongFrontBool(LongFrontInd)=true;
+LongFrontBool(MaxInd)=false; %exclude maximums
+
 
 %sorting peaks if there are near PeakOnFront and LongFront remove LongFront
 %Marker
@@ -205,28 +245,7 @@ SelectedBool=ByFrontBool|PeakOnFrontBool|ByHighBool|LongFrontBool;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
-%% ======= Special trek constructing
-FrontsN=zeros(trSize,1);
-FrontsHigh=zeros(trSize,1);
 
-FrontNMax=max(FrontN);
-TailNMax=max(TailN);
-trekS=zeros(trSize,1);
-for i=1:FrontNMax
-    Ind=find(FrontN>=i);
-    FrontsN(MinInd(Ind)+i)=i;
-    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
-end;
-for i=1:TailNMax
-    Ind=find(TailN>=i);
-    FrontsN(MaxInd(Ind)+i)=-i;
-    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
-end;
-
-FrontsHighR=circshift(FrontsHigh,1);
-FrontsHighL=circshift(FrontsHigh,-1);
-HighFrontStartBool=FrontsHighL>=Threshold&FrontsHigh<Threshold;
-HighFrontStartInd=find(HighFrontStartBool);
 
 
 %% =====  End                                  
@@ -241,7 +260,7 @@ TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
 % TrekSet.SelectedPeakInd(ZeroFrontInd)=[];
 % TrekSet.SelectedPeakFrontN(ZeroFrontInd)=[];
 
-toc;
+
 %% ===== End information
 if EndOut %to avoid statistic typing in short calls
     fprintf('=====  Search of peak tops      ==========\n');
@@ -259,8 +278,10 @@ if EndOut %to avoid statistic typing in short calls
     fprintf('The number of selected peaks = %7.0f \n',SelectedN);
     fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 end;
+%%
+toc;
 %% end plot
- if Plot
+ if Plot%&EndOut
    figure;
    plot(trek);
    s='trek';
@@ -289,7 +310,7 @@ end;
    legend(s);
    warning on;
       pause;
-%       close(gcf);
+       close(gcf);
  end;
 
 

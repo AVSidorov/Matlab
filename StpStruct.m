@@ -1,5 +1,6 @@
 function STP=StpStruct(StandardPulse);
-
+tic;
+disp('>>>>>>>>StpStruct started');
 Plot=false;
 
 %MaxInd=find(StandardPulse==max(StandardPulse));
@@ -29,6 +30,8 @@ STP.maxN=1;
 STP.maxI=MaxInd;
 STP.max=1;
 STP.TailInd=TailInd;
+%%
+toc;
 %%
 if Plot
     figure;

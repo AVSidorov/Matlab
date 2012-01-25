@@ -64,7 +64,7 @@ TrekSet.P=1;
 TrekSet.Merged=true; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
 
 
-Pass=1;
+Pass=2;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
