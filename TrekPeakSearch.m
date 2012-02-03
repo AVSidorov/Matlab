@@ -1,4 +1,4 @@
-function TrekSet=TrekPeakSearch(TrekSetIn,EndOut);
+function TrekSet=TrekPeakSearch(TrekSetIn,StpSet,EndOut);
 
 tic;
 disp('>>>>>>>>TrekPeakSearch started');
@@ -6,26 +6,18 @@ disp('>>>>>>>>TrekPeakSearch started');
 TrekSet=TrekSetIn;
 
 if nargin<2
+    StpSet=StpStruct(TrekSet.StandardPulse);
+end;
+
+if nargin<3
     EndOut=true;
 end;
 
 
 
-BckgFitN=2;
-OnTailBorder=0.1;
-DoubleFrontK=1.5;
-Plot=TrekSet.Plot;
-% Plot=true;
-% SmoothPar=5;
+MaxFrontN=StpSet.FrontN;
 
 
-[StPMax,StPMaxInd]=max(TrekSet.StandardPulse);
-FirstNonZero=find(TrekSet.StandardPulse,1,'first');
-LastNonZero=find(TrekSet.StandardPulse,1,'last');
-MaxFrontN=StPMaxInd-FirstNonZero+1;
-MaxTailN=LastNonZero-StPMaxInd+1;
-%Determination of length in points where peak may be hiden by previous pulse tail
-OnTailN=StPMaxInd+find(TrekSet.StandardPulse(StPMaxInd+1:end)<OnTailBorder,1,'first');
 
 
 
@@ -67,20 +59,12 @@ if MinInd(1)>MaxInd(1)
     MinN=MinN+1;
 end;
 
-% This is not neccesary if first point can be minimum
 
-% This part can cause loosing of first end single pulse in short trek
-
-    %  %making first minimum earlier then thirst maximum
-    %  while MaxInd(1)<MinInd(1)
-    %      MaxInd(1)=[];
-    %      MaxN=MaxN-1;
-    %  end;
  
 %making equal quantity of maximums and minimums
- while MinN>MaxN
-      MinInd(end)=[];
-      MinN=MinN-1;
+ if MinN>MaxN
+      MaxInd(end+1)=trSize; %earlier was removing MinInd, by this cause errors in HighPeak Search
+      MaxN=MaxN+1;
  end;
  
  MaxBool=false(trSize,1);
@@ -133,11 +117,13 @@ ByFrontBool=FrontHigh>=Threshold&abs(MaxFrontN-FrontN)<=2; %first conditon is fo
 ByFrontInd=MaxInd(find(ByFrontBool));
 ByFrontBool=false(trSize,1);
 ByFrontBool(ByFrontInd)=true;
+ByFrontBool(end)=false; %
 ByFrontN=size(ByFrontInd,1);
 
 %% ==============By High
 ByHighBool=MaxBool&trek>Threshold/2;               % It is necessary for peaks with small front
 ByHighBool(ByFrontBool)=false;         % For example, Peak haves noise maximum on front. 
+ByHighBool(end)=false;
 ByHighInd=find(ByHighBool);            % As result both noise and signal Maximums 
 ByHighN=size(ByHighInd,1);             % don't match FrontHigh Conditions
                                        % This work only if NullLine is "zero"
@@ -281,7 +267,7 @@ end;
 %%
 toc;
 %% end plot
- if Plot%&EndOut
+ if TrekSet.Plot%&EndOut
    figure;
    plot(trek);
    s='trek';

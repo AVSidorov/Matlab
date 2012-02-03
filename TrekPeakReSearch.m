@@ -1,17 +1,24 @@
-function TrekSet=TrekPeakReSearch(TrekSetIn,SubtractInd);
+function TrekSet=TrekPeakReSearch(TrekSetIn,StpSet,FIT);
 tic;
 disp('>>>>>>>>TrekPeakReSearch started');
 
 TrekSet=TrekSetIn;
 
 if nargin<2
-    SubtractInd=[1:TrekSet.size];
+    StpSet=StpStruct(TrekSet.StandardPulse);
 end;
 
- TrekSetIn.SelectedPeakFrontN(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
- TrekSetIn.SelectedPeakInd(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
- TrekSetIn.PeakOnFrontInd(TrekSet.PeakOnFrontInd>=SubtractInd(1)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
- TrekSetIn.LongFrontInd(TrekSet.LongFrontInd>=SubtractInd(1)&TrekSet.LongFrontInd<=SubtractInd(end))=[]; 
+if nargin<3
+    SubtractInd=[1:TrekSet.size]';
+else
+    SubtractInd=[1:FIT.FitPulseN]+FIT.MaxInd-StpSet.MaxInd;
+    SubtractInd=SubtractInd(SubtractInd<=TrekSet.size&SubtractInd>=1);
+end;
+
+  TrekSetIn.SelectedPeakFrontN(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
+  TrekSetIn.SelectedPeakInd(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
+  TrekSetIn.PeakOnFrontInd(TrekSet.PeakOnFrontInd>=SubtractInd(1)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
+  TrekSetIn.LongFrontInd(TrekSet.LongFrontInd>=SubtractInd(1)&TrekSet.LongFrontInd<=SubtractInd(end))=[]; 
 
  TrekSet.Plot=false;
  TrekSet.trek=[TrekSet.StdVal;-TrekSet.StdVal;0;TrekSet.trek(SubtractInd)];
@@ -23,11 +30,11 @@ end;
  TrekSet.PeakOnFrontInd=[];
  TrekSet.LongFrontInd=[];
  TrekSet.Threshold=2*TrekSet.Threshold;
- TrekSet=TrekPeakSearch(TrekSet,false);
+ TrekSet=TrekPeakSearch(TrekSet,StpSet,false);
 
- TrekSet.SelectedPeakInd=TrekSet.SelectedPeakInd+SubtractInd(1)-3; %3 because 3 points was added
- TrekSet.PeakOnFrontInd=TrekSet.PeakOnFrontInd+SubtractInd(1)-3;
- TrekSet.LongFrontInd=TrekSet.LongFrontInd+SubtractInd(1)-3;
+ TrekSet.SelectedPeakInd=TrekSet.SelectedPeakInd-1+SubtractInd(1)-3; %3 because 3 points was added
+ TrekSet.PeakOnFrontInd=TrekSet.PeakOnFrontInd-1+SubtractInd(1)-3;
+ TrekSet.LongFrontInd=TrekSet.LongFrontInd-1+SubtractInd(1)-3;
 
  for IndI=1:numel(TrekSet.SelectedPeakInd)
      if isempty(find(TrekSet.SelectedPeakInd(IndI)==TrekSetIn.SelectedPeakInd(:)))
@@ -55,5 +62,5 @@ end;
 
 
 TrekSet=TrekSetIn;
-TrekSet=TrekBreakPoints(TrekSet);
+
 toc;

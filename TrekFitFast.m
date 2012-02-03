@@ -1,8 +1,8 @@
-function FIT=TrekFitFast(TrekSet,I,StpSet);
+function FIT=TrekFitFast(TrekSet,Ind,StpSet);
 tic;
 disp('>>>>>>>>TrekFitFast started');
 
-Plot=TrekSet.Plot;
+
 
 if nargin<3
     StpSet=StpStruct(TrekSet.StandardPulse);
@@ -14,19 +14,19 @@ StpN=StpSet.size;
 trek=TrekSet.trek;
 Khi=inf;
 
-FitInd=[1:maxI]'+TrekSet.SelectedPeakInd(I)-maxI;
+FitInd=[1:maxI]'+Ind-maxI;
 FitIndPulse=[1:maxI]'; %all arrays vert;
 N=numel(FitInd);
 
 A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
 bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
 good=all(bool);
-Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));
+Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);
 
 if good   
-    FitInd=[1:StpN]'+TrekSet.SelectedPeakInd(I)-maxI;
+    FitInd=[1:StpN]'+Ind-maxI;
     FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
-    FitIndPulse=FitInd-TrekSet.SelectedPeakInd(I)+maxI;
+    FitIndPulse=FitInd-Ind+maxI;
     bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
     FitInd=FitInd(bool);
     FitIndPulse=FitIndPulse(bool);
@@ -48,12 +48,12 @@ if good
     if not(isempty(FitIndPulseMax))
         FitIndPulseMax=FitIndPulseMax(1); %Take First Break   
         FitIndPulse(FitIndPulse>FitIndPulseMax)=[]; % remove from fitting all points after break
-        FitInd=FitIndPulse+TrekSet.SelectedPeakInd(I)-maxI;
+        FitInd=FitIndPulse+Ind-maxI;
     end;
 
     N=numel(FitInd);
     
-    Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(TrekSet.SelectedPeakInd(I));    
+    Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);    
 end;
 
 FIT.Good=good;
@@ -66,15 +66,16 @@ FIT.FitInd=FitInd;
 FIT.N=N;
 FIT.FitPulse=A*Stp;
 FIT.FitPulseN=StpN;
+FIT.MaxInd=Ind;
 if not(good)&Khi<1
     FIT.Good=true;
-    FIT=TrekFitTime(TrekSet,I,StpSet,FIT);
+    FIT=TrekFitTime(TrekSet,Ind,StpSet,FIT);
 end;
 
 %%
 toc;
 %%
-if Plot
+if TrekSet.Plot
     figure;
         plot(FitInd,trek(FitInd));
         grid on; hold on;

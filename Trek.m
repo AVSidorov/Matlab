@@ -64,7 +64,7 @@ TrekSet.P=1;
 TrekSet.Merged=true; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
 
 
-Pass=2;
+Pass=3;
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -77,6 +77,7 @@ if TrekSet.type==0 return; end;
 
 %Loading Standard Pulse
 TrekSet=TrekStPLoad(TrekSet);
+STP=StpStruct(TrekSet.StandardPulse);
 %Choosing time interval for working
 % TrekSet=TrekPickTime(TrekSet);
 
@@ -118,13 +119,14 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-           TrekSet1.StartTime=25000;
-           TrekSet1.size=5e4;
-           TrekSet.StartTime=TrekSet1.StartTime;
-           TrekSet.size=TrekSet1.size;
-           TrekSet1=TrekLoad(FileName,TrekSet1);
+            TrekSet1.StartTime=25000;
+            TrekSet1.size=1.5e4;
+            TrekSet.StartTime=TrekSet1.StartTime;
+            TrekSet.size=TrekSet1.size;
+            TrekSet1=TrekLoad(FileName,TrekSet1);
 
-assignin('base','trek',TrekSet1.trek);
+% assignin('base','trek',TrekSet1.trek);
+
 for passI=1:Pass
 
      TrekSet1=TrekStdVal(TrekSet1);  
@@ -139,8 +141,8 @@ for passI=1:Pass
 %     %Searching for Indexes of potential Peaks
 
     
-      TrekSet1=TrekPeakSearch(TrekSet1);
-      TrekSet1=TrekBreakPoints(TrekSet1);
+      TrekSet1=TrekPeakSearch(TrekSet1,STP);
+      TrekSet1=TrekBreakPoints(TrekSet1,STP);
 %     pause;
 %     TrekSet1=TrekTops(TrekSet1);
       
@@ -148,10 +150,13 @@ for passI=1:Pass
 %     %!!!Searching for Standard Pulse
 % 
     %Getting Peaks
-     TrekSet1=TrekGetPeaksSid(TrekSet1,passI);
+     assignin('base',[inputname(1),'Pass',num2str(passI-1)],TrekSet1);
+     TrekSet1=TrekGetPeaksSid(TrekSet1,passI,STP);
      TrekSet1.Threshold=TrekSet1.Threshold*2;
 end;
- assignin('base','trekM',TrekSet1.trek);
+    assignin('base',[inputname(1),'Pass',num2str(Pass)],TrekSet1);
+
+
 
 
 %%%%%%%%%%%%%%%making trek whithout noise spaces%%%%%%%%%%%%%%%%%%%%%%%%%%

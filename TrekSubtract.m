@@ -1,68 +1,67 @@
-function [TrekSet,isGood]=TrekSubtract(TrekSetIn,I,StpSet,FitStruct);
+function [TrekSet,isGood,TrekSet1]=TrekSubtract(TrekSetIn,StpSet,FitStruct);
 tic;
 disp('>>>>>>>>TrekSubtract started');
 TrekSet=TrekSetIn;
+TrekSet1=TrekSet;    
+
 %%
-STP=StpStruct(TrekSet.StandardPulse);
 
-Plot=TrekSet.Plot;
 
-if nargin<3
-    StpSet=STP;
+
+if not(FitStruct.Good)
+    isGood=false;
 end;
-if nargin<4
-    FitStruct=TrekFitFast(TrekSet,I,StpSet);
-end;
-
 
 PulseN=FitStruct.FitPulseN;
 MaxInd=StpSet.MaxInd;
 FitInd=FitStruct.FitInd;
 FitIndPulse=FitStruct.FitIndPulse;
+Ind=FitStruct.MaxInd;
 
-trek=TrekSet.trek;
 
-SubtractInd=[1:PulseN]+TrekSet.SelectedPeakInd(I)-MaxInd;
+SubtractInd=[1:PulseN]+Ind-MaxInd;
 SubtractInd=SubtractInd(SubtractInd<=TrekSet.size&SubtractInd>=1);
-SubtractIndPulse=SubtractInd-TrekSet.SelectedPeakInd(I)+MaxInd;
+SubtractIndPulse=SubtractInd-Ind+MaxInd;
 
 PulseSubtract=FitStruct.FitPulse;
 
                         
-OverloadInd=SubtractInd(trek(SubtractInd)>TrekSet.MaxSignal);
-OverloadIndPulse=OverloadInd-TrekSet.SelectedPeakInd(I)+MaxInd;
-PulseSubtract(OverloadIndPulse)=trek(OverloadInd);
+OverloadInd=SubtractInd(TrekSet.trek(SubtractInd)>TrekSet.MaxSignal);
+OverloadIndPulse=OverloadInd-Ind+MaxInd;
+PulseSubtract(OverloadIndPulse)=TrekSet.trek(OverloadInd);
 
 
-trek(SubtractInd)=trek(SubtractInd)-PulseSubtract(SubtractIndPulse);
+TrekSet.trek(SubtractInd)=TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPulse);
 
-if all(abs(trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitting quality
-   all(trek(SubtractInd(SubtractIndPulse<=STP.TailInd))>-TrekSet.Threshold)
+TrekSet.peaks=[TrekSet1.peaks;zeros(1,7)];
+
+TrekSet.peaks(end,1)=Ind;             %TrekSet.SelectedPeakInd Max initial
+TrekSet.peaks(end,2)=TrekSet.StartTime+Ind*TrekSet.tau-FitStruct.Shift*TrekSet.tau;  %Peak Max Time fitted
+TrekSet.peaks(end,3)=TrekSet.peaks(end,2);     % for peak-to-peak interval
+TrekSet.peaks(end,4)=FitStruct.B;                       %Peak Zero Level
+TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
+TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
+TrekSet.peaks(end,7)=-1;                     % means that Standing Alone or first from Overlaped pulses
+
+if all(abs(TrekSet.trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitting quality
+   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))>-TrekSet.Threshold)
    %check that FitPulse isn't moved right and fitted Pulse Amplitude much
    %greater than Amplitude of real signal pulse
     isGood=true;
-    TrekSet.trek=trek;
+    TrekSet.peaks(end,7)=0;
 %%
-    TrekSet.peaks=[TrekSet.peaks;zeros(1,7)];
-
-    TrekSet.peaks(end,1)=TrekSet.SelectedPeakInd(I);             %TrekSet.SelectedPeakInd Max initial
-    TrekSet.peaks(end,2)=TrekSet.StartTime+TrekSet.SelectedPeakInd(I)*TrekSet.tau-FitStruct.Shift*TrekSet.tau;  %Peak Max Time fitted
-    TrekSet.peaks(end,3)=TrekSet.peaks(end,2);     % for peak-to-peak interval
-    TrekSet.peaks(end,4)=FitStruct.B;                       %Peak Zero Level
-    TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
-    TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
-    TrekSet.peaks(end,7)=1;                     % means that Standing Alone or first from Overlaped pulses
 %%    
-    TrekSet=TrekPeakReSearch(TrekSet,SubtractInd);
 %   Plot=true;
 else
     isGood=false;
+    TrekSet1=TrekSet;    
+    TrekSet=TrekSetIn;
 %     Plot=true;
 end;
 %%
 toc;
 %%
-if Plot
+if TrekSet.Plot
     pp=figure;
         grid on; hold on;
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));
@@ -70,7 +69,7 @@ if Plot
         plot(SubtractInd,PulseSubtract(SubtractIndPulse),'.r-');
         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
         plot(SubtractInd,trek(SubtractInd),'k');
-        plot(SubtractInd(SubtractIndPulse<=STP.TailInd),trek(SubtractInd(SubtractIndPulse<=STP.TailInd)),'ok');
+        plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');
     pause;
     figure(pp);
     close(gcf);

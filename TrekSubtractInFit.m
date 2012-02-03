@@ -1,17 +1,18 @@
-function [TrekSet,isGood]=TrekSubtractInFit(TrekSetIn,I,StpSet,FitStruct);
+function [TrekSet,isGood]=TrekSubtractInFit(TrekSetIn,I,StpSet,FitStruct,STP);
 tic;
 disp('>>>>>>>>TrekSubtract started');
 TrekSet=TrekSetIn;
 %%
-STP=StpStruct(TrekSet.StandardPulse);
 
-Plot=TrekSet.Plot;
 
 if nargin<3
     StpSet=STP;
 end;
 if nargin<4
     FitStruct=TrekFitFast(TrekSet,I,StpSet);
+end;
+if nargin<5
+    STP=StpStruct(TrekSet.StandardPulse);
 end;
 
 
@@ -32,6 +33,7 @@ PulseSubtract=FitStruct.FitPulse;
 OverloadInd=SubtractInd(trek(SubtractInd)>TrekSet.MaxSignal);
 OverloadIndPulse=OverloadInd-TrekSet.SelectedPeakInd(I)+MaxInd;
 PulseSubtract(OverloadIndPulse)=trek(OverloadInd);
+
 
 SubtractIndPulse=SubtractIndPulse(SubtractIndPulse>=FitIndPulse(1));
 SubtractInd=SubtractInd(SubtractInd>=FitInd(1));
@@ -63,7 +65,7 @@ end;
 %%
 toc;
 %%
-if Plot
+if TrekSet.Plot
     pp=figure;
         grid on; hold on;
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));

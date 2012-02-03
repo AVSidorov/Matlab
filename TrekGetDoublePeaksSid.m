@@ -1,4 +1,4 @@
-function [FIT,Ratio,Shift]=TrekGetDoublePeaksSid(TrekSet,I,FitSet);
+function [FIT,Ratio,Shift]=TrekGetDoublePeaksSid(TrekSet,I,FitSet,STP);
 
 
 tic;
@@ -13,10 +13,13 @@ EndPlot=true;
 LambdaFitPlot=false;
 
 
-STP=StpStruct(TrekSet.StandardPulse);
 if nargin<3
  FitSet=TrekFitTime(TrekSet,I,STP);
 end;
+if nargin<4
+    STP=StpStruct(TrekSet.StandardPulse);
+end;
+
 FIT=FitSet;
 
 F=load('D:\!SCN\EField\OvlpTest\RatShFront','RatShFront');
