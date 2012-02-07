@@ -49,6 +49,7 @@ if all(abs(TrekSet.trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitt
    %greater than Amplitude of real signal pulse
     isGood=true;
     TrekSet.peaks(end,7)=0;
+    TrekSet1=TrekSet;
 %%
 %%    
 %   Plot=true;
