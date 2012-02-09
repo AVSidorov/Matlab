@@ -66,11 +66,11 @@ if TrekSet.Plot
     pp=figure;
         grid on; hold on;
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));
-        plot(TrekSetIn.SelectedPeakInd(I),TrekSetIn.trek(TrekSetIn.SelectedPeakInd(I)),'*r');
+        plot(Ind,TrekSetIn.trek(Ind),'*r');
         plot(SubtractInd,PulseSubtract(SubtractIndPulse),'.r-');
         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
-        plot(SubtractInd,trek(SubtractInd),'k');
-        plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');
+        plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
+        plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),TrekSet1.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');
     pause;
     figure(pp);
     close(gcf);

@@ -46,7 +46,6 @@ while i<=PeakN %
         TrekSet=TrekPeakReSearch(TrekSet,STP,FIT);
         TrekSet=TrekBreakPoints(TrekSet,STP);
         PeakN=numel(TrekSet.SelectedPeakInd);
-        continue;
     else    
         if Pass==1
             BreakPointInd=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
@@ -54,26 +53,29 @@ while i<=PeakN %
                 i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(BreakPointInd),1,'first');
                 if isempty(i)
                     i=PeakN+1;
-                    continue;
                 end;
             else
                 i=PeakN+1;
-                continue;
-            end;
-            continue;    
+            end;              
          end;
         if Pass==2
              if not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd)))|...
                 not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd)))
                     i=i+1;
-                    continue;
              else
-                   [TrekSet,ExcelentFit]=TrekDoubleFitFrontTail(TrekSet,TrekSet.SelectedPeakInd(i),STP);
-                   if ExcelentFit
-                       continue;
-                   else
-                    i=i+1;
-                   end;
+                   [TrekSet,ExcelentFit,FIT,STPC]=TrekDoubleFitFrontTail(TrekSet,TrekSet.SelectedPeakInd(i),STP);
+                   TrekSet=TrekPeakReSearch(TrekSet,STPC,FIT);
+                   TrekSet=TrekBreakPoints(TrekSet,STP);
+                   PeakN=numel(TrekSet.SelectedPeakInd);
+                   if not(ExcelentFit)
+                    BreakPointInd=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
+                    if not(isempty(BreakPointInd))
+                        i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(BreakPointInd),1,'first');
+                        if isempty(i)
+                            i=PeakN+1;
+                        end;
+                    end;
+                   end;                  
              end;
         end;
         if Pass>2
