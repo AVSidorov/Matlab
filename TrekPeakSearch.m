@@ -110,25 +110,29 @@ HighPeakInd=find(HighPeakBool);
 HighPeakStartBool=trL>=Threshold/2&trek<Threshold/2;
 HighPeakStartInd=find(HighPeakStartBool);
 HighPeakN=HighPeakInd-HighPeakStartInd; 
-%согласовать размеры массивов обычно совпадают
-%% ===============By Front
-
-ByFrontBool=FrontHigh>=Threshold&abs(MaxFrontN-FrontN)<=2; %first conditon is for front high, second means that front couldn't be shorter or longer  
-ByFrontInd=MaxInd(find(ByFrontBool));
-ByFrontBool=false(trSize,1);
-ByFrontBool(ByFrontInd)=true;
-ByFrontBool(end)=false; %
-ByFrontN=size(ByFrontInd,1);
 
 %% ==============By High
-ByHighBool=MaxBool&trek>Threshold/2;               % It is necessary for peaks with small front
-ByHighBool(ByFrontBool)=false;         % For example, Peak haves noise maximum on front. 
+ByHighBool=HighPeakBool&FrontsN>=MaxFrontN-1;               % It is necessary for peaks with small front
+                                                            % For example, Peak haves noise maximum on front. 
 ByHighBool(end)=false;
 ByHighInd=find(ByHighBool);            % As result both noise and signal Maximums 
 ByHighN=size(ByHighInd,1);             % don't match FrontHigh Conditions
                                        % This work only if NullLine is "zero"
                                        % ByHigh is not equal HighPeak
-                                       % FrontBoll peak are excluded
+                                       
+%% ===============By Front
+
+ByFrontBool=FrontHigh>=Threshold&FrontN>=MaxFrontN-1; %first conditon is for front high,
+                                                      %second means that front couldn't be shorter   
+                                                      %mark only Maximums
+ByFrontInd=MaxInd(find(ByFrontBool));
+ByFrontBool=false(trSize,1);
+ByFrontBool(ByFrontInd)=true;
+ByFrontBool(end)=false; %
+ByFrontBool(ByHighBool)=false;
+ByFrontInd=find(ByFrontBool);
+ByFrontN=size(ByFrontInd,1);
+
 
 %% ====== PeakOnFront Search
 trD=diff(trek,1);
@@ -296,7 +300,7 @@ toc;
    legend(s);
    warning on;
       pause;
-       close(gcf);
+%        close(gcf);
  end;
 
 

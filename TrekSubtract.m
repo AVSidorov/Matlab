@@ -43,8 +43,9 @@ TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
 TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
 TrekSet.peaks(end,7)=-1;                     % means that Standing Alone or first from Overlaped pulses
 
-if all(abs(TrekSet.trek(FitStruct.FitInd))<TrekSet.Threshold)&...    %check fitting quality
-   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))>-TrekSet.Threshold)
+if all(abs(TrekSet.trek(FitStruct.FitInd(FitStruct.FitIndPulse>StpSet.BckgFitN)))<TrekSet.Threshold)&...    %check fitting quality
+   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))>-TrekSet.Threshold)&...
+   FitStruct.A>0
    %check that FitPulse isn't moved right and fitted Pulse Amplitude much
    %greater than Amplitude of real signal pulse
     isGood=true;

@@ -1,5 +1,5 @@
 % function TrekSet=Trek(FileName);
-function TrekSet=Trek(FileName);
+function TrekSet=Trek(FileName)
 % Fields of struct TrekSet is take from old data. Updated 03.03.11
 % FileType
 % tau
@@ -37,7 +37,7 @@ TrekSet.FileType='single';      %choose file type for precision in fread functio
 TrekSet.tau=0.02;               %ADC period
 TrekSet.StartOffset=0;       %in us old system was Tokamak delay + 1.6ms
 TrekSet.OverSt=3;               %uses in StdVal
-TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeakAmp4_20ns_3.dat';
+TrekSet.StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_1.dat';
 % TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 TrekSet.MaxSignal=4095;
@@ -64,7 +64,8 @@ TrekSet.P=1;
 TrekSet.Merged=true; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
 
 
-Pass=3;
+Pass=1;
+
 
 %??? May be Place for insertion cycle if Directory Name inputed
 
@@ -119,11 +120,14 @@ fprintf('==== Processing  Part %u of %u file %s\n',i,PartN,TrekSet.name);
      end;
  
    %Time re-setup for plasma treks. !!!!!!Think about moving this to header
-            TrekSet1.StartTime=25000;
-            TrekSet1.size=1.5e4;
-            TrekSet.StartTime=TrekSet1.StartTime;
-            TrekSet.size=TrekSet1.size;
-            TrekSet1=TrekLoad(FileName,TrekSet1);
+             TrekSet1=TrekPeakSearch(TrekSet1,STP);
+             TrekSet1=TrekBreakPoints(TrekSet1,STP);
+             TrekSet1=TrekPickTime(TrekSet1,TrekSet1.StartOffset,30000,5000);
+%              TrekSet1=TrekPickTime(TrekSet1,TrekSet1.StartOffset);
+             TrekSet1.Threshold=TrekSet1.Threshold*2; %after TrekPeakSearch
+             TrekSet.StartTime=TrekSet1.StartTime;
+             TrekSet.size=TrekSet1.size;
+             TrekSet1=TrekLoad(FileName,TrekSet1);
 
 % assignin('base','trek',TrekSet1.trek);
 
@@ -214,7 +218,7 @@ TrekSet=TrekChargeQX(TrekSet);
  if not(evalin('base','exist(''Treks'')'))
      evalin('base','Treks=[];');
  end;
- evalin('base','Treks=[Treks;TrekSet];');
+%  evalin('base','Treks=[Treks;TrekSet];');
 fprintf('>>>>>>>>>>>>>>>>>>>> Trek finished\n');
 toc;
 fprintf('\n \n');

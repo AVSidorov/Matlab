@@ -14,6 +14,11 @@ else
     SubtractInd=[1:FIT.FitPulseN]+FIT.MaxInd-StpSet.MaxInd;
     SubtractInd=SubtractInd(SubtractInd<=TrekSet.size&SubtractInd>=1);
 end;
+if numel(SubtractInd)<StpSet.MaxInd||...
+    range(TrekSet.trek(SubtractInd))<TrekSet.Threshold
+    return;
+end;
+
 
   TrekSetIn.SelectedPeakFrontN(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
   TrekSetIn.SelectedPeakInd(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];

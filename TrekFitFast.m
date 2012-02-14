@@ -21,7 +21,8 @@ N=numel(FitInd);
 A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
 bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
 good=all(bool);
-Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);
+% Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);
+Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse))/TrekSet.Threshold).^2)/N);
 
 if good   
     FitInd=[1:StpN]'+Ind-maxI;
@@ -53,7 +54,8 @@ if good
 
     N=numel(FitInd);
     
-    Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);    
+%      Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);    
+    Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse))/TrekSet.Threshold).^2)/N);
 end;
 
 FIT.Good=good;
@@ -67,10 +69,6 @@ FIT.N=N;
 FIT.FitPulse=A*Stp;
 FIT.FitPulseN=StpN;
 FIT.MaxInd=Ind;
-if not(good)&Khi<1
-    FIT.Good=true;
-    FIT=TrekFitTime(TrekSet,Ind,StpSet,FIT);
-end;
 
 %%
 toc;
