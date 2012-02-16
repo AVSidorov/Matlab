@@ -7,13 +7,12 @@ if TrekSet.Merged return; end;
 %TrekMerge must be called after making Positive Pulses and firs zero
 %subtraction in main trek.
 MaxAmpV=2;    %Maximum amplifier signal
-MaxAmpK=0.85; %This Koeff is necessary because MaxAmpV is saturation voltage. Deviations start earlier
+MaxAmpK=1; %This Koeff is necessary because MaxAmpV is saturation voltage. Deviations start earlier
 ADC1ampV=2.5; 
 ADC2ampV=2.5;
 
-TrekSet2=TrekSet;
 FileName=[TrekSet.name,'2.dat'];
-TrekSet2=TrekRecognize(FileName,TrekSet2);
+TrekSet2=TrekRecognize(FileName);
 
 if TrekSet2.type==0 
     disp('Second file is not found');
@@ -34,9 +33,10 @@ TrekSet2.MaxSignal=4095;
 TrekSet2.MinSignal=0;
 TrekSet2.StdVal=0;
 TrekSet2.MeanVal=[];
+TrekSet2.StartTime=TrekSet.StartTime;
 TrekSet2.size=TrekSet.size;
 
-TrekSet2=TrekLoad(FileName,TrekSet2);
+TrekSet2=TrekLoad(TrekSet2);
 TrekSet2=TrekStdVal(TrekSet2);
 
 TrekSet2.MaxSignal=min([MaxAmpK*MaxAmpV*4095/ADC2ampV,TrekSet2.MaxSignal]);
@@ -56,9 +56,9 @@ while abs(dZ)>1e-3
     dZ=mean(zero)-Z;
     Z=mean(zero);
     TrekSet.trek=TrekSet.trek-Z;
-%     TrekSet.MeanVal=TrekSet.MeanVal-Z;
-%     TrekSet.MaxSignal=TrekSet.MaxSignal-Z;
-%     TrekSet.MinSignal=TrekSet.MinSignal-Z
+     TrekSet.MeanVal=TrekSet.MeanVal-Z;
+     TrekSet.MaxSignal=TrekSet.MaxSignal-Z;
+     TrekSet.MinSignal=TrekSet.MinSignal-Z;
 end;
 %% merge treks
 bool=TrekSet2.trek<TrekSet2.MaxSignal&TrekSet2.trek>TrekSet2.MinSignal;

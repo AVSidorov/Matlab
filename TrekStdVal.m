@@ -124,6 +124,7 @@ else
 end;
 
 
+TrekSet.trek=trek;
 TrekSet.MeanVal=MeanVal;
 TrekSet.StdVal=StdVal;
 TrekSet.MaxSignal=MaxSignal;

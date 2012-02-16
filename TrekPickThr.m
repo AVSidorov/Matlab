@@ -1,6 +1,13 @@
 function TrekSet=TrekPickThr(TrekSetIn);
 
 TrekSet=TrekSetIn;
+if isfield(TrekSet,'Threshold')
+    if not(isempty(TrekSet.Threshold))
+        if TrekSet.Threshold>0
+            return;
+        end;
+    end;
+end;
 
 StartIntervalNum=100;   %Start Number of intervals in Histogram for Threshold Search
 MaxOverSt=20;
