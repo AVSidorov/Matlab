@@ -5,7 +5,7 @@ TrekSet=TrekSetIn;
 
 %%
 if TrekSet.Plot
-    figure;
+    tf=figure;
     plot(TrekSet.StartTime+[1:TrekSet.size]*TrekSet.tau,TrekSet.trek);
     grid on; hold on;
 end;
@@ -69,7 +69,7 @@ EndI=StI+round(ProcTime/TrekSet.tau);
 ProcInt=[StI,EndI];
 ProcIntTime=[StartTime,StartTime+ProcTime];
 
-if any([PickTime,PickStart]);
+while any([PickTime,PickStart]);
     ProcIntTime=input(['Input Process Interval Times [...,...]\n Default is Current times [',num2str(StartTime),',',num2str(StartTime+ProcTime),'] by indexes input\n']);
     
     if not(isempty(ProcIntTime))
@@ -88,7 +88,29 @@ if any([PickTime,PickStart]);
 
     ProcIntTime=[TrekSet.StartTime+(ProcInt(1)-1)*TrekSet.tau,TrekSet.StartTime+(ProcInt(end)-1)*TrekSet.tau];
     fprintf('Process Interval is %8.3f-%8.3fus  %8.3f us long\n Indexes [%5.0f:%7.0f]\n',ProcIntTime(1),ProcIntTime(end),(ProcIntTime(end)-ProcIntTime(1)),ProcInt(1),ProcInt(end));
+    StartTime=ProcIntTime(1);
+    StI=ProcInt(1);
+    EndI=ProcInt(end);
+    if TrekSet.Plot
+        figure(tf);
+        sl=plot([StartTime,StartTime],[min(TrekSet.trek),max(TrekSet.trek)],'g','LineWidth',2);
+        el=plot([ProcIntTime(end),ProcIntTime(end)],[min(TrekSet.trek),max(TrekSet.trek)],'r','LineWidth',2);
+        grid on; hold on;
+        s=input('Is correct? (Empty input)\n','s');
+        if isempty(s)
+            PickTime=false;
+            PickStart=false;
+        else
+            delete(sl);
+            delete(el);
+        end;
+    else
+        PickTime=false;
+        PickStart=false;
+    end;
 end;
+
+
 
 TrekSet.StartTime=StartTime;
 TrekSet.trek=TrekSet.trek(StI:EndI);

@@ -108,12 +108,13 @@ HighPeakBool=MaxBool&trek>Threshold/2;
 HighPeakBool(MaxInd(find(trek(MinInd)>=Threshold/2)))=false;
 HighPeakInd=find(HighPeakBool);
 HighPeakStartBool=trL>=Threshold/2&trek<Threshold/2;
+HighPeakStartBool(end)=false;
 HighPeakStartInd=find(HighPeakStartBool);
 HighPeakN=HighPeakInd-HighPeakStartInd; 
 
 %% ==============By High
-ByHighBool=HighPeakBool&FrontsN>=MaxFrontN-1;               % It is necessary for peaks with small front
-                                                            % For example, Peak haves noise maximum on front. 
+ByHighBool=HighPeakBool&FrontsN>=MaxFrontN-1|(trek>Threshold&MaxBool);         % It is necessary for peaks with small front
+                                                                     % For example, Peak haves noise maximum on front. 
 ByHighBool(end)=false;
 ByHighInd=find(ByHighBool);            % As result both noise and signal Maximums 
 ByHighN=size(ByHighInd,1);             % don't match FrontHigh Conditions

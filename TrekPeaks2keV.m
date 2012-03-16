@@ -4,8 +4,8 @@ if nargin==1
     C=-0.19/2;
 end;
 
-St=30000; % start time in us
-Ed=35000; % end time in us
+St=24400; % start time in us
+Ed=27200; % end time in us
 
 peaks=TrekSet.peaks;
 Vo=TrekSet.HV;

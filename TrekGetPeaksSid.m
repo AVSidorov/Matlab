@@ -34,7 +34,7 @@ Ind=0;
 while i<=PeakN %
 
 %      TrekSet.Plot=true;
-     if Ind==TrekSet.SelectedPeakInd(i)
+     if Ind>=TrekSet.SelectedPeakInd(i)
          i=i+1;
          continue;
      end;
@@ -49,10 +49,11 @@ while i<=PeakN %
 
      ExFit=not(any(TrekSet1.SelectedPeakInd>FIT.MaxInd-STP.FrontN&TrekSet1.SelectedPeakInd<=FIT.MaxInd));
      if xor(ExcelentFit,ExFit)&FIT.Khi<1&FIT.A>TrekSet.Threshold&Pass>1
-         TrekSet=TrekSubtractManual(TrekSet,TrekSet1,FIT,STP);
-         ExcelentFit=true;
+         [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT,STP);
      end;
-%      TrekSet.Plot=TrekSetIn.Plot;
+     TrekSet=TrekPeakReSearch(TrekSet,STP,FIT);
+     TrekSet=TrekBreakPoints(TrekSet,STP);
+     PeakN=numel(TrekSet.SelectedPeakInd);
      
 
      %i don't changes because in TrekPeakResearche current marker in case of good
@@ -71,12 +72,12 @@ while i<=PeakN %
                 i=PeakN+1;
             end;              
          end;
-        if Pass>=2
+        if Pass>=3
              if not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd)))|...
                 not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd)))
                     i=i+1;
              else
-                        [TrekSet,ExcelentFit,TrekSet1,FIT,STPC]=TrekFitDouble(TrekSet,TrekSet.SelectedPeakInd(i),STP);
+                    [TrekSet,ExcelentFit,TrekSet1,FIT,STPC]=TrekFitDouble(TrekSet,TrekSet.SelectedPeakInd(i),STP);
 %                    if FIT.Khi<1
                         TrekSet=TrekSet1;
 %                    end;
