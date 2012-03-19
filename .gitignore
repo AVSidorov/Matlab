@@ -1,2 +1,4 @@
 #ignore Matlab autosave files
 *.asv
+#ignore SVN folder
+.svn/
