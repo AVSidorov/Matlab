@@ -1,9 +1,24 @@
-function tf=TrekPlotTime(TrekSet,tf)
+function h=TrekPlotTime(TrekSet,hAxes)
 if nargin==2;
-    figure(tf);
+    if ishandle(hAxes)
+        if isequal(get(hAxes,'Type'),'axes')
+            axes(hAxes);
+        end;
+        if isequal(get(hAxes,'Type'),'figure')
+            figure(hAxes);
+            hAxes=findobj(hAxes,'Type','axes');
+            if ~isempty(hAxes)
+                hAxes=hAxes(1);
+                axes(hAxes);
+            else
+                h=axes; 
+            end;               
+        end;
+    end;
 else
-    tf=figure;
+    figure;
 end;
+
 title(TrekSet.name);
 xlabel('Time,  {\mu}s');
 grid on;
@@ -18,3 +33,4 @@ if isfield(TrekSet,'peaks')
     end;
 end;
 
+h=gca;
