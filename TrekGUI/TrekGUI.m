@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 21-Mar-2012 14:25:24
+% Last Modified by GUIDE v2.5 21-Mar-2012 17:24:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,11 +57,8 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-% This sets up the initial plot - only do when we are invisible
-% so window can get raised using TrekGUI.
-if strcmp(get(hObject,'Visible'),'off')
-    plot(rand(5));
-end
+
+
 
 % UIWAIT makes TrekGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -82,22 +79,8 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-axes(handles.axes1);
-cla;
 
-popup_sel_index = get(handles.popupmenu1, 'Value');
-switch popup_sel_index
-    case 1
-        plot(rand(5));
-    case 2
-        plot(sin(1:0.01:25.99));
-    case 3
-        bar(1:.5:10);
-    case 4
-        plot(membrane);
-    case 5
-        surf(peaks);
-end
+
 
 
 % --------------------------------------------------------------------
@@ -117,7 +100,23 @@ file = uigetfile({'*.mat;*.dat','All supported formats';...
      '*.dat','Binary trek DAT-files'},...
      'Pick a file with Trek data');
 if ~isequal(file, 0)
-    open(file);
+    [pathstr, name, ext]=fileparts(file);
+    if isequal(ext,'.mat');
+        Treks=uiimport(file);
+        TrekNames=fieldnames(Treks);
+        eval(['file=Treks.',char(TrekNames(1)),';']);
+        set(handles.AvaibleTreksMenu,'String',TrekNames);
+    end;
+    
+        
+    TrekSet=TrekRecognize(file);
+    TrekSet=TrekLoad(TrekSet);
+    axes(handles.MainGraph);
+    cla;
+    TrekPlotTime(TrekSet,handles.MainGraph);
+    handles.Treks=Treks;
+    handles.TrekSet=TrekSet;
+    guidata(hObject,handles);
 end
 
 % --------------------------------------------------------------------
@@ -168,26 +167,6 @@ set(hObject, 'String', {'plot(rand(5))', 'plot(sin(1:0.01:25))', 'bar(1:.5:10)',
 
 
 
-function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 
@@ -207,6 +186,29 @@ function TrekInfo_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in AvaibleTreksMenu.
+function AvaibleTreksMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to AvaibleTreksMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns AvaibleTreksMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from AvaibleTreksMenu
+
+
+% --- Executes during object creation, after setting all properties.
+function AvaibleTreksMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to AvaibleTreksMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
