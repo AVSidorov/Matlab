@@ -35,7 +35,7 @@ TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/
 if isstr(TrekSetIn); 
     TrekSet.type=exist(TrekSetIn); 
 else
-    TrekSet.type=exist(inputname(1));
+    TrekSet.type=1;
 end;
 
 
