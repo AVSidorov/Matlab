@@ -21,6 +21,7 @@ end;
 
 title(TrekSet.name);
 xlabel('Time,  {\mu}s');
+ylabel('ADC counts');
 grid on;
 hold on;
 plot(TrekSet.StartTime+[0:TrekSet.size-1]*TrekSet.tau,TrekSet.trek);
