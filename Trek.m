@@ -34,8 +34,7 @@ for passI=1:Pass
     TrekSet=TrekBreakPoints(TrekSet,STP);
     assignin('base',[inputname(1),'Pass',num2str(passI-1)],TrekSet);
     TrekSet.Plot=false;
-    TrekSet=TrekGetPeaksSid(TrekSet,passI,STP);
-    TrekSet.Threshold=TrekSet.Threshold*2; 
+    TrekSet=TrekGetPeaksSid(TrekSet,passI,STP); 
 end;
 CloseGraphs;   
 assignin('base',[inputname(1),'Pass',num2str(Pass)],TrekSet);

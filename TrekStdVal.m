@@ -41,8 +41,7 @@ end;
 
 if isfield(TrekSet,'Threshold')
       if TrekSet.Threshold>0
-          Thr=TrekSet.Threshold/2; %/2 because Threshold is for FrontHigh,
-                                   % which is generaly double noise amlitude.
+          Thr=TrekSet.Threshold; 
       end;
 end;
 
