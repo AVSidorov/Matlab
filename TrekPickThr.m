@@ -4,7 +4,7 @@ TrekSet=TrekSetIn;
 if isfield(TrekSet,'Threshold')
     if not(isempty(TrekSet.Threshold))
         if TrekSet.Threshold>0
-            return;
+%             return;
         end;
     end;
 end;
@@ -214,7 +214,7 @@ Thr=min([HistFH(Ind,1),Thr,HistFH(end,1)]);
     
  
 
-TrekSet.Threshold=Thr;
+TrekSet.Threshold=Thr/2; 
 
 fprintf('The Threshold  = %5.3f %5.3f*%7.4f \n',Thr,Thr/StdVal,StdVal);
 

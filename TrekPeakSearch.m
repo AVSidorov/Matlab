@@ -30,7 +30,7 @@ trSize=TrekSet.size;
 OverSt=TrekSet.OverSt;
 
 % Threshold=StdVal*OverSt;
-Threshold=TrekSet.Threshold;
+Threshold=TrekSet.Threshold*2;
 
 % trekS=smooth(trek,SmoothPar);
 
@@ -244,9 +244,7 @@ SelectedN=numel(SelectedInd);
 
 TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.SelectedPeakFrontN=FrontsN(SelectedInd);
-TrekSet.Threshold=Threshold/2; %/2 because Threshold is for FrontHigh,
-                               % which is generaly double noise amlitude. And in GetPeaks
-                               % Amplitude of pulse is used
+
 % ZeroFrontInd=find(TrekSet.SelectedPeakFrontN==0);
 % TrekSet.SelectedPeakInd(ZeroFrontInd)=[];
 % TrekSet.SelectedPeakFrontN(ZeroFrontInd)=[];

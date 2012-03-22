@@ -34,7 +34,6 @@ end;
  TrekSet.SelectedPeakFrontN=[];
  TrekSet.PeakOnFrontInd=[];
  TrekSet.LongFrontInd=[];
- TrekSet.Threshold=2*TrekSet.Threshold;
  TrekSet=TrekPeakSearch(TrekSet,StpSet,false);
 
  TrekSet.SelectedPeakInd=TrekSet.SelectedPeakInd-1+SubtractInd(1)-3; %3 because 3 points was added
