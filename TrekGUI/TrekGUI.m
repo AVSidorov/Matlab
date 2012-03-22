@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 22-Mar-2012 14:07:40
+% Last Modified by GUIDE v2.5 22-Mar-2012 17:03:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -79,8 +79,19 @@ function ThrPeakButton_Callback(hObject, eventdata, handles)
 % hObject    handle to ThrPeakButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-
+TrekSet=handles.TrekSet;
+STP=StpStruct(TrekSet.StandardPulse);
+TrekSet.Plot=true;
+TrekSet=TrekPickThr(TrekSet);
+TrekSet.Plot=false;
+TrekSet=TrekStdVal(TrekSet);  
+TrekSet=TrekPeakSearch(TrekSet,STP);
+TrekSet=TrekBreakPoints(TrekSet,STP);
+TrekPlotTime(TrekSet,handles.MainGraph);
+TrekPlotInfo(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
+getTrekParam(hObject,eventdata,handles);
 
 
 % --------------------------------------------------------------------
@@ -111,6 +122,7 @@ if ~isequal(file, 0)
         
     TrekSet=TrekRecognize(file);
     TrekSet=TrekLoad(TrekSet);
+    TrekSet.Plot=false; %in  GUI Plot=true is danger
     axes(handles.MainGraph);
     cla;
     TrekPlotTime(TrekSet,handles.MainGraph);
@@ -221,6 +233,14 @@ set(handles.StartEd,'String',num2str(TrekSet.StartTime,'%8.2f'));
 EndTime=TrekSet.StartTime+(TrekSet.size-1)*TrekSet.tau;
 set(handles.EndEd,'String',num2str(EndTime,'%8.2f'));
 
+function setTrekParam(hObject,eventdata,handles)
+TrekSet=handles.TrekSet;
+TrekSet.Threshold=str2num(get(handles.ThrEd,'String'));
+TrekSet.StartTime=str2num(get(handles.StartEd,'String'));
+TrekSet.size=(str2num(get(handles.EndEd,'String'))-TrekSet.StartTime)/TrekSet.tau+1;
+TrekPlotInfo(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
 
 function ThrEd_Callback(hObject, eventdata, handles)
 % hObject    handle to ThrEd (see GCBO)
@@ -229,6 +249,12 @@ function ThrEd_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of ThrEd as text
 %        str2double(get(hObject,'String')) returns contents of ThrEd as a double
+[Thr,status]=str2num(get(handles.ThrEd,'String'));
+if ~status
+    set(handles.ThrEd,'String',num2str(handles.TrekSet.Threshold,'%6.2f'));
+end;
+ setTrekParam(hObject,eventdata,handles);   
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -252,7 +278,11 @@ function StartEd_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of StartEd as text
 %        str2double(get(hObject,'String')) returns contents of StartEd as a double
-
+[StartTime,status]=str2num(get(handles.StartEd,'String'));
+if ~status||StartTime>=str2double(get(handles.EndEd,'String'))
+    set(handles.StartEd,'String',num2str(handles.TrekSet.StartTime,'%8.2f'));
+end;
+ setTrekParam(hObject,eventdata,handles); 
 
 % --- Executes during object creation, after setting all properties.
 function StartEd_CreateFcn(hObject, eventdata, handles)
@@ -275,6 +305,13 @@ function EndEd_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of EndEd as text
 %        str2double(get(hObject,'String')) returns contents of EndEd as a double
+[EndTime,status]=str2num(get(handles.EndEd,'String'));
+if ~status||EndTime<=str2double(get(handles.StartEd,'String'))
+    EndTime=handles.TrekSet.StartTime+(handles.TrekSet.size-1)*handles.TrekSet.tau;
+    set(handles.EndEd,'String',num2str(EndTime,'%8.2f'));
+end;
+ setTrekParam(hObject,eventdata,handles); 
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -288,3 +325,46 @@ function EndEd_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in ThrTimeButton.
+function ThrTimeButton_Callback(hObject, eventdata, handles)
+% hObject    handle to ThrTimeButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+TrekSet=handles.TrekSet;
+TrekSet=TrekPickTime(TrekSet,TrekSet.StartTime,(TrekSet.size-1)*TrekSet.tau);
+TrekSet=TrekStdVal(TrekSet);
+TrekPlotTime(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in PeakIndButton.
+function PeakIndButton_Callback(hObject, eventdata, handles)
+% hObject    handle to PeakIndButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+TrekSet=handles.TrekSet;
+STP=StpStruct(TrekSet.StandardPulse);
+TrekSet=TrekStdVal(TrekSet);  
+TrekSet=TrekPeakSearch(TrekSet,STP);
+TrekSet=TrekBreakPoints(TrekSet,STP);
+TrekPlotTime(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
+getTrekParam(hObject,eventdata,handles);
+
+
+% --- Executes on button press in PeakSrchButton.
+function PeakSrchButton_Callback(hObject, eventdata, handles)
+% hObject    handle to PeakSrchButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+TrekSet=handles.TrekSet;
+STP=StpStruct(TrekSet.StandardPulse);
+TrekSet=TrekGetPeaksSid(TrekSet,1,STP);
+TrekPlotTime(TrekSet,handles.MainGraph);
+assignin('base',['T',TrekSet.name,'Pass1'],TrekSet);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
