@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 21-Mar-2012 17:24:59
+% Last Modified by GUIDE v2.5 22-Mar-2012 14:07:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -74,9 +74,9 @@ function varargout = TrekGUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in ThrPeakButton.
+function ThrPeakButton_Callback(hObject, eventdata, handles)
+% hObject    handle to ThrPeakButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -117,6 +117,7 @@ if ~isequal(file, 0)
     handles.Treks=Treks;
     handles.TrekSet=TrekSet;
     guidata(hObject,handles);
+    getTrekParam(hObject,eventdata,handles)
 end
 
 % --------------------------------------------------------------------
@@ -185,11 +186,6 @@ function TrekInfo_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 % --- Executes on selection change in AvaibleTreksMenu.
@@ -209,6 +205,85 @@ function AvaibleTreksMenu_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function getTrekParam(hObject,eventdata,handles)
+TrekSet=handles.TrekSet;
+str = ['Date ',num2str(TrekSet.Date),' File ',TrekSet.name,...
+      ' Amp=',num2str(TrekSet.Amp),' Pressure=',num2str(TrekSet.P),...
+      'atm Voltage=',num2str(TrekSet.HV),'V',' tau=',num2str(TrekSet.tau),'us'];
+set(handles.TrekInfo,'String',str);
+set(handles.ThrEd,'String',num2str(TrekSet.Threshold,'%6.2f'));
+set(handles.StartEd,'String',num2str(TrekSet.StartTime,'%8.2f'));
+EndTime=TrekSet.StartTime+(TrekSet.size-1)*TrekSet.tau;
+set(handles.EndEd,'String',num2str(EndTime,'%8.2f'));
+
+
+function ThrEd_Callback(hObject, eventdata, handles)
+% hObject    handle to ThrEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ThrEd as text
+%        str2double(get(hObject,'String')) returns contents of ThrEd as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function ThrEd_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ThrEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function StartEd_Callback(hObject, eventdata, handles)
+% hObject    handle to StartEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of StartEd as text
+%        str2double(get(hObject,'String')) returns contents of StartEd as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function StartEd_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to StartEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function EndEd_Callback(hObject, eventdata, handles)
+% hObject    handle to EndEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of EndEd as text
+%        str2double(get(hObject,'String')) returns contents of EndEd as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function EndEd_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to EndEd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
