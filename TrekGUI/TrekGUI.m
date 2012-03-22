@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 22-Mar-2012 17:03:34
+% Last Modified by GUIDE v2.5 22-Mar-2012 21:10:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -74,9 +74,9 @@ function varargout = TrekGUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-% --- Executes on button press in ThrPeakButton.
-function ThrPeakButton_Callback(hObject, eventdata, handles)
-% hObject    handle to ThrPeakButton (see GCBO)
+% --- Executes on button press in ThrButton.
+function ThrButton_Callback(hObject, eventdata, handles)
+% hObject    handle to ThrButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 TrekSet=handles.TrekSet;
@@ -85,8 +85,6 @@ TrekSet.Plot=true;
 TrekSet=TrekPickThr(TrekSet);
 TrekSet.Plot=false;
 TrekSet=TrekStdVal(TrekSet);  
-TrekSet=TrekPeakSearch(TrekSet,STP);
-TrekSet=TrekBreakPoints(TrekSet,STP);
 TrekPlotTime(TrekSet,handles.MainGraph);
 TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
@@ -129,7 +127,7 @@ if ~isequal(file, 0)
     handles.Treks=Treks;
     handles.TrekSet=TrekSet;
     guidata(hObject,handles);
-    getTrekParam(hObject,eventdata,handles)
+    getTrekParam(hObject,eventdata,handles);
 end
 
 % --------------------------------------------------------------------
@@ -205,6 +203,19 @@ function AvaibleTreksMenu_Callback(hObject, eventdata, handles)
 % hObject    handle to AvaibleTreksMenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+str=get(handles.AvaibleTreksMenu,'String');
+val=get(handles.AvaibleTreksMenu,'Value');
+eval(['TrekSet=handles.Treks.',char(str(val)),';']);
+TrekSet=TrekRecognize(TrekSet);
+TrekSet=TrekLoad(TrekSet);
+TrekSet.Plot=false; %in  GUI Plot=true is danger
+axes(handles.MainGraph);
+cla;
+TrekPlotTime(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
+getTrekParam(hObject,eventdata,handles);
+
 
 % Hints: contents = cellstr(get(hObject,'String')) returns AvaibleTreksMenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from AvaibleTreksMenu
