@@ -24,14 +24,14 @@ xlabel('Time,  {\mu}s');
 ylabel('ADC counts');
 grid on;
 hold on;
-plot(TrekSet.StartTime+[0:TrekSet.size-1]*TrekSet.tau,TrekSet.trek);
+plot(TrekSet.StartTime+[0:TrekSet.size-1]*TrekSet.tau,TrekSet.trek,'Tag','TrekLine');
 axis([TrekSet.StartTime,TrekSet.StartTime+(TrekSet.size-1)*TrekSet.tau,TrekSet.MinSignal,TrekSet.MaxSignal]);
 if isfield(TrekSet,'SelectedPeakInd');
-    plot(TrekSet.StartTime+(TrekSet.SelectedPeakInd-1)*TrekSet.tau,TrekSet.trek(TrekSet.SelectedPeakInd),'.r');
+    plot(TrekSet.StartTime+(TrekSet.SelectedPeakInd-1)*TrekSet.tau,TrekSet.trek(TrekSet.SelectedPeakInd),'.r','Tag','SelectedPeakIndLine');
 end;
 if isfield(TrekSet,'peaks')
     if not(isempty(TrekSet.peaks))
-        plot(TrekSet.peaks(:,2),TrekSet.peaks(:,4)+TrekSet.peaks(:,5),'>r');
+        plot(TrekSet.peaks(:,2),TrekSet.peaks(:,4)+TrekSet.peaks(:,5),'>r','Tag','PeaksLine');
     end;
 end;
 
