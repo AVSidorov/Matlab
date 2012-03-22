@@ -66,6 +66,7 @@ end;
 %% Control and trek reducing
 StI=round((StartTime-TrekSet.StartTime)/TrekSet.tau)+1;
 EndI=StI+round(ProcTime/TrekSet.tau);
+EndI=min([EndI,TrekSet.size]);
 ProcInt=[StI,EndI];
 ProcIntTime=[StartTime,StartTime+ProcTime];
 
