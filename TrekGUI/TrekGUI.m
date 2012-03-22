@@ -253,6 +253,18 @@ TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
 
+function previewTrek(hObject,eventdata,handles);
+% if we change value in Edit we don't change value in TrekSet,
+% only show on graph
+% we apply changes after button is pressed
+TrekSet=handles.TrekSet;
+TrekSet.Threshold=str2double(get(handles.ThrEd,'String'));
+TrekSet.StartTime=str2double(get(handles.StartEd,'String'));
+TrekSet.size=(str2double(get(handles.EndEd,'String'))-str2double(get(handles.StartEd,'String')))/TrekSet.tau+1;
+TrekPlotInfo(TrekSet,handles.MainGraph);
+
+
+
 function ThrEd_Callback(hObject, eventdata, handles)
 % hObject    handle to ThrEd (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -261,10 +273,10 @@ function ThrEd_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of ThrEd as text
 %        str2double(get(hObject,'String')) returns contents of ThrEd as a double
 [Thr,status]=str2num(get(handles.ThrEd,'String'));
-if ~status
+if ~status||Thr>=handles.TrekSet.MaxSignal||Thr<=0
     set(handles.ThrEd,'String',num2str(handles.TrekSet.Threshold,'%6.2f'));
 end;
- setTrekParam(hObject,eventdata,handles);   
+previewTrek(hObject,eventdata,handles);
 
 
 
@@ -290,10 +302,10 @@ function StartEd_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of StartEd as text
 %        str2double(get(hObject,'String')) returns contents of StartEd as a double
 [StartTime,status]=str2num(get(handles.StartEd,'String'));
-if ~status||StartTime>=str2double(get(handles.EndEd,'String'))
+if ~status||StartTime>=str2double(get(handles.EndEd,'String'))||StartTime<handles.TrekSet.StartTime
     set(handles.StartEd,'String',num2str(handles.TrekSet.StartTime,'%8.2f'));
 end;
- setTrekParam(hObject,eventdata,handles); 
+previewTrek(hObject,eventdata,handles);
 
 % --- Executes during object creation, after setting all properties.
 function StartEd_CreateFcn(hObject, eventdata, handles)
@@ -317,11 +329,12 @@ function EndEd_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of EndEd as text
 %        str2double(get(hObject,'String')) returns contents of EndEd as a double
 [EndTime,status]=str2num(get(handles.EndEd,'String'));
-if ~status||EndTime<=str2double(get(handles.StartEd,'String'))
+StartTime=str2double(get(handles.StartEd,'String'));
+if ~status||EndTime<=StartTime||EndTime>(handles.TrekSet.StartTime+(handles.TrekSet.size-1)*handles.TrekSet.tau);
     EndTime=handles.TrekSet.StartTime+(handles.TrekSet.size-1)*handles.TrekSet.tau;
     set(handles.EndEd,'String',num2str(EndTime,'%8.2f'));
 end;
- setTrekParam(hObject,eventdata,handles); 
+previewTrek(hObject,eventdata,handles);
 
 
 
@@ -344,9 +357,13 @@ function ThrTimeButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 TrekSet=handles.TrekSet;
-TrekSet=TrekPickTime(TrekSet,TrekSet.StartTime,(TrekSet.size-1)*TrekSet.tau);
+TrekSet.Threshold=str2double(get(handles.ThrEd,'String'));
+StartTime=str2double(get(handles.StartEd,'String'));
+ProcTime=str2double(get(handles.EndEd,'String'))-str2double(get(handles.StartEd,'String'));
+TrekSet=TrekPickTime(TrekSet,StartTime,ProcTime);
 TrekSet=TrekStdVal(TrekSet);
 TrekPlotTime(TrekSet,handles.MainGraph);
+TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
 
