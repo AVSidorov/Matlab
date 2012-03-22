@@ -365,6 +365,6 @@ TrekSet=handles.TrekSet;
 STP=StpStruct(TrekSet.StandardPulse);
 TrekSet=TrekGetPeaksSid(TrekSet,1,STP);
 TrekPlotTime(TrekSet,handles.MainGraph);
-assignin('base',['T',TrekSet.name,'Pass1'],TrekSet);
+assignin('base',['T',TrekSet.name(1:2),'Pass1'],TrekSet);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
