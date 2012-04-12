@@ -1,5 +1,5 @@
 function SpecSM=Poisson_smooth(SpectrR,K);
-
+%This function smooths given spectrum with poisson disributinon curve
 dEw=max(SpectrR(:,1)-circshift(SpectrR(:,1),1));
 SpecSM=zeros(max(size(SpectrR)),1);
 for i=1:max(size(SpectrR))

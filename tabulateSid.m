@@ -1,6 +1,7 @@
 function table=tabulateSid(x);
-
-%because tabulate (MatLab Statistic Toolbox) gives not exact values for first column
+%frequency table (Analog tabulete MATLAB function)
+%table=tabulateSid(x)
+%Is neccessary because tabulate (MatLab Statistic Toolbox) gives not exact values for first column
 if size(x,1)<size(x,2)
     x=x';
 end;
