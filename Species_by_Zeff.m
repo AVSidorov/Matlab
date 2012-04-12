@@ -1,4 +1,9 @@
-function Ni=Species_by_Zeff(Zeff);
+function [Ni,Zeff]=Species_by_Zeff(Zeff)
+% function makes  array with relative concentration
+% of species to obtain given Zeff
+% first column contains charge of ions
+% second part of specie (<=1) 
+% sum of second column is 1 (must be equal unity)
 
 
 if nargin<1
