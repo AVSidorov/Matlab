@@ -277,23 +277,23 @@ toc;
    grid on; hold on;
    if not(isempty(SelectedInd))
        plot(SelectedInd,trek(SelectedInd),'.r');
-       s=strvcat(s,'SelectedInd');
+       s=char(s,'SelectedInd');
    end;
    if not(isempty(ByFrontInd))
        plot(ByFrontInd,trek(ByFrontInd),'or');
-       s=strvcat(s,'ByFront');
+       s=char(s,'ByFront');
    end;
    if not(isempty(ByHighInd))
        plot(ByHighInd,trek(ByHighInd),'sm');
-       s=strvcat(s,'ByHigh');
+       s=char(s,'ByHigh');
    end;
    if not(isempty(PeakOnFrontInd))
        plot(TrekSet.PeakOnFrontInd,trek(TrekSet.PeakOnFrontInd),'db');
-       s=strvcat(s,'OnFront');
+       s=char(s,'OnFront');
    end;
    if not(isempty(LongFrontInd))
        plot(TrekSet.LongFrontInd,trek(TrekSet.LongFrontInd),'hk');
-       s=strvcat(s,'LongFront');
+       s=char(s,'LongFront');
    end;  
    warning off; 
    legend(s);
