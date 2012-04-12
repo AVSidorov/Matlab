@@ -33,7 +33,7 @@ classdef SXR_spectrum
                 obj.Te=Te;
             end;
             if isempty(obj.Ni)
-                obj.Ni=Species_by_Zeff;
+                [obj.Ni,obj.Zeff]=Species_by_Zeff;
             end;
         end
     end
