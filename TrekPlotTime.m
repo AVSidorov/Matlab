@@ -1,5 +1,9 @@
-function TrekPlotTime(TrekSet)
-tf=figure;
+function tf=TrekPlotTime(TrekSet,tf)
+if nargin==2;
+    figure(tf);
+else
+    tf=figure;
+end;
 title(TrekSet.name);
 xlabel('Time,  {\mu}s');
 grid on;
