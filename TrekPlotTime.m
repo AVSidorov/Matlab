@@ -24,6 +24,7 @@ xlabel('Time,  {\mu}s');
 grid on;
 hold on;
 plot(TrekSet.StartTime+[0:TrekSet.size-1]*TrekSet.tau,TrekSet.trek);
+axis([TrekSet.StartTime,TrekSet.StartTime+(TrekSet.size-1)*TrekSet.tau,TrekSet.MinSignal,TrekSet.MaxSignal]);
 if isfield(TrekSet,'SelectedPeakInd');
     plot(TrekSet.StartTime+(TrekSet.SelectedPeakInd-1)*TrekSet.tau,TrekSet.trek(TrekSet.SelectedPeakInd),'.r');
 end;
