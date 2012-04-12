@@ -1,4 +1,8 @@
-function tokamak;
+function tokamak
+%Function calculates main plasma parameters in tokamak
+%suck as plasma frequency gyro frequencies and so on
+%not completed
+
 % CGS system
  me=9.1e-28; 
  mp=1.6726485e-24; %proton mass in gramm

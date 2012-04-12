@@ -1,4 +1,6 @@
 function [jb,jr]=J_calc(ne,ni,Z,Te,Ew);
+%Expression for bremsstrahlung in W m^-3 sr^-1 s
+%see Hutchinson Principles of plasma diagnostics
 Ry=13.6;
 
 N=1;
