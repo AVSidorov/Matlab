@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 22-Mar-2012 21:10:06
+% Last Modified by GUIDE v2.5 07-Apr-2012 16:04:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -396,3 +396,16 @@ TrekPlotTime(TrekSet,handles.MainGraph);
 assignin('base',['T',TrekSet.name(1:2),'Pass1'],TrekSet);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
+
+
+% --- Executes on button press in CleanPeaks.
+function CleanPeaks_Callback(hObject, eventdata, handles)
+% hObject    handle to CleanPeaks (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.TrekSet.peaks=[];
+guidata(hObject,handles);
+h=findobj(handles.MainGraph,'Tag','PeaksLine');
+if ~isempty(h)
+    delete(h);
+end;
