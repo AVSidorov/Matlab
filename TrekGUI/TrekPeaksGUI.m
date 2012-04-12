@@ -22,7 +22,7 @@ function varargout = TrekPeaksGUI(varargin)
 
 % Edit the above text to modify the response to help TrekPeaksGUI
 
-% Last Modified by GUIDE v2.5 03-Apr-2012 15:51:13
+% Last Modified by GUIDE v2.5 04-Apr-2012 17:27:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -237,7 +237,7 @@ TrekSet=TrekRecognize(TrekSet);
 TrekSet=TrekLoad(TrekSet);
 TrekSet.Plot=false; %in  GUI Plot=true is danger
 C=str2double(get(handles.CEd,'String'));
-if isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks)
+if isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks)&&size(TrekSet.peaks,2)==7;
     p=TrekPeaks2keV(TrekSet,C);
     TrekSet.peaks=[TrekSet.peaks,p(:,5)];
 end;
@@ -1041,3 +1041,13 @@ function ResetButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 initLimits(hObject, eventdata,handles);
 previewLimits(hObject, eventdata, handles);
+
+
+% --- Executes on button press in ExportButton.
+function ExportButton_Callback(hObject, eventdata, handles)
+% hObject    handle to ExportButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+str=get(handles.AvaibleTreksMenu,'String');
+val=get(handles.AvaibleTreksMenu,'Value');
+assignin('base',char(str(val)),handles.TrekSet);
