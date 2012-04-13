@@ -38,11 +38,11 @@ for i=1:max(size(Ni))
 end;    
 
 % figure;
-    semilogy(Ew,Jb(:),'-g','LineWidth',2);
-    hold on; grid on;
-    semilogy(Ew,Jr(:),'-b','LineWidth',2);
-    semilogy(Ew,Jb(:)+Jr(:),'-r','LineWidth',3);
-    semilogy(Ew,jb(:,find(Ni(:,1)==1)),'-c','LineWidth',2);
+%     semilogy(Ew,Jb(:),'-g','LineWidth',2);
+%     hold on; grid on;
+%     semilogy(Ew,Jr(:),'-b','LineWidth',2);
+%     semilogy(Ew,Jb(:)+Jr(:),'-r','LineWidth',3);
+%     semilogy(Ew,jb(:,find(Ni(:,1)==1)),'-c','LineWidth',2);
         
 Spectr(:,1)=Ew;
 Spectr(:,2)=Jb(:)+Jr(:);
