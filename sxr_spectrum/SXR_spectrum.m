@@ -61,10 +61,18 @@ classdef SXR_spectrum
             if isempty(K)
                 obj.K=2*5.9/(0.15*5.9)^2;
             elseif K<1
-                obj.K=2*5.9/(0.15*5.9)^2;
+                obj.K=2*5.9/(K*5.9)^2;
             end;
             obj.SpecBeSm=obj.SpecBe;
             obj.SpecBeSm(:,2)=Poisson_smooth([obj.SpecBe(:,1)/1000,obj.SpecBe(:,2)],obj.K);
+        end
+        function h=plot(obj,varargin)
+            h=figure;
+            grid on; hold on;
+            set(gca,'YScale','log');
+            plot(obj.Spec(:,1),obj.Spec(:,2),'b','Linewidth',1.5);
+            plot(obj.SpecBe(:,1),obj.SpecBe(:,2),'k','Linewidth',1.5);
+            plot(obj.SpecBeSm(:,1),obj.SpecBeSm(:,2),'r','Linewidth',2);
         end
     end
 end %classdef
