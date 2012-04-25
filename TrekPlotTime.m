@@ -17,6 +17,7 @@ if nargin==2;
     end;
 else
     figure;
+    hAxes=gca;
 end;
 
 title(TrekSet.name);
