@@ -54,11 +54,14 @@ fprintf('Standard deviat                   = %7.4f\n', StdVal);
 fprintf('First mean search                 = %7.4f  sec\n', toc); 
 fprintf('>>>>>>>>>TrekStdVal Finished>>>>>>>>>\n');
     
-TrekSet.trek=trek;
-% change this fiel only if it was not init
+
 if ~isfield(TrekSet,'MeanVal')||isempty(TrekSet.MeanVal); 
     TrekSet.MeanVal=MeanVal;
+else
+% TODO how correct if you don't now intitial PeakPolarity was   
+    TrekSet.MeanVal=TrekSet.MeanVal;
 end;
+TrekSet.trek=trek;
 TrekSet.StdVal=StdVal;
 TrekSet.MaxSignal=MaxSignal;
 TrekSet.MinSignal=MinSignal;
