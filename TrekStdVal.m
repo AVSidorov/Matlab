@@ -65,7 +65,7 @@ TrekSet.trek=trek;
 TrekSet.StdVal=StdVal;
 TrekSet.MaxSignal=MaxSignal;
 TrekSet.MinSignal=MinSignal;
-TrekSet.PeakPolarity=1;
+TrekSet.PeakPolarity=PeakPolarity;
 
 
 
