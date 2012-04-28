@@ -1,6 +1,23 @@
-function STP=StpStruct(StandardPulse);
+function STP=StpStruct(StandardPulseFile)
+%This function makes Standart pulse sruct
+%that contains StandartPulse and its parameters
+%length, maximum position etc.
+% TODO Change later to choosing standart pulse by Amp in TrekSet
+
 tic;
 disp('>>>>>>>>StpStruct started');
+
+if nargin<1
+    StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_1.dat';
+end;
+ if exist(StandardPulseFile,'file');
+         StandardPulse=load(StandardPulseFile);
+ else
+     disp('Standart pulse file not found\n');
+     STP=[];
+     return;
+ end;
+
 Plot=false;
 
 %MaxInd=find(StandardPulse==max(StandardPulse));
@@ -30,6 +47,7 @@ STP.maxN=1;
 STP.maxI=MaxInd;
 STP.max=1;
 STP.TailInd=TailInd;
+STP.StandardPulseFile=StandardPulse;
 %%
 toc;
 %%
