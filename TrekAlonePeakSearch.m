@@ -2,9 +2,9 @@ function TrekSet=TrekAlonePeakSearch(TrekSetIn);
 
 TrekSet=TrekSetIn;
 
-PeakFrontN=600;
-PeakTailN=600;
-MaxSignal=2700;
+PeakFrontN=1750;
+PeakTailN=PeakFrontN;
+MaxSignal=min([1.9*4095/2.5;TrekSet.MaxSignal]);
 
 SelectedInd=sortrows(TrekSet.SelectedPeakInd);
 IntAfter=circshift(SelectedInd,-1)-SelectedInd;
@@ -19,8 +19,8 @@ SelectedInd=SelectedInd(Ind);
 
 N=max(size(SelectedInd));
 for i=1:N
-    PulseNorm(i,:)=TrekSet.trek(SelectedInd(i)-10:SelectedInd(i)+600)/TrekSet.trek(SelectedInd(i));
-    Pulse(i,:)=TrekSet.trek(SelectedInd(i)-10:SelectedInd(i)+600);
+    PulseNorm(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN)/TrekSet.trek(SelectedInd(i));
+    Pulse(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN);
 end;
  assignin('base','Pulse',Pulse);
  if not(evalin('base','exist(''Pulses'')'))
