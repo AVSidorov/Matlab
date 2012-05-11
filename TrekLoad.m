@@ -35,11 +35,15 @@ if isempty(TrekSet.trek)
         end;
         fprintf('Loading time of %3.0f points=                               %7.4f  sec\n',count ,toc); 
 
-        bool=(TrekSet.trek(:)>4095)|(TrekSet.trek(:)<0); OutRangeN=size(find(bool),1); 
-        if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
-        TrekSet.trek(bool,:)=[];  clear bool
+        if range(TrekSet.trek)<5    
+            fprintf('Trek is probably in volts.\n Converting to counts will be performed common with base line determination\n');
+        else
+            bool=(TrekSet.trek(:)>4095)|(TrekSet.trek(:)<0); OutRangeN=size(find(bool),1); 
+            if OutRangeN>0; fprintf('%7.0f  points out of the ADC range  \n',OutRangeN); end; 
+            TrekSet.trek(bool,:)=[];  clear bool
+        end;
 
-        i=find(TrekSet.trek,1,'last');
+        i=find(TrekSet.trek,1,'last'); %remove zero points from end of trek
         TrekSet.trek(i+1:end)=[];
     else
         return;
@@ -49,6 +53,11 @@ end;
 
 
 TrekSet.size=numel(TrekSet.trek);
+
+TrekSet.trek=TrekSet.trek(1:pow2(fix(log2(TrekSet.size)))); %make number of points pow of 2
+TrekSet.size=numel(TrekSet.trek);
+
+fprintf('Trek size is %3.0f points\n',TrekSet.size); 
 
 if size(TrekSet.trek,1)<size(TrekSet.trek,2)
     TrekSet.trek=TrekSet.trek'; %all arrays are vertical

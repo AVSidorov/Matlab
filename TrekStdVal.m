@@ -43,8 +43,15 @@ MeanVal=MeanVal-slope(1);
 MaxSignal=MaxSignal-slope(1);
 MinSignal=MinSignal-slope(1);
 
-StdVal=std(trek(trek<0));
+if range(trek)<5    
+    disp('Trek is probably in volts');
+    trek=trek/2.5*4095;
+    MeanVal=MeanVal/2.5*4095;
+    MaxSignal=MaxSignal/2.5*4095;
+    MinSignal=MinSignal/2.5*4095;
+end;
 
+StdVal=std(trek(trek<0));
 
 fprintf('Mean trek old is                  = %7.4f\n', mean(TrekSet.trek));
 fprintf('Mean trek new is                  = %7.4f\n', mean(trek));
