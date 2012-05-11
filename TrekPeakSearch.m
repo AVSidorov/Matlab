@@ -1,21 +1,18 @@
-function TrekSet=TrekPeakSearch(TrekSetIn,StpSet,EndOut);
+function TrekSet=TrekPeakSearch(TrekSetIn,EndOut)
 
 tic;
 disp('>>>>>>>>TrekPeakSearch started');
 
 TrekSet=TrekSetIn;
 
-if nargin<2
-    StpSet=StpStruct(TrekSet.StandardPulse);
-end;
 
-if nargin<3
+if nargin<2
     EndOut=true;
 end;
 
 
 
-MaxFrontN=StpSet.FrontN;
+MaxFrontN=TrekSet.STP.FrontN;
 
 
 
@@ -270,7 +267,7 @@ end;
 %%
 toc;
 %% end plot
- if TrekSet.Plot%&EndOut
+ if TrekSet.Plot&&EndOut
    figure;
    plot(trek);
    s='trek';

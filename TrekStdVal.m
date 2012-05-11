@@ -1,4 +1,6 @@
-function TrekSet=TrekStdVal(TrekSetIn);
+function TrekSet=TrekStdVal(TrekSetIn)
+%This function calculates null line level
+%and determinates peak polarity
 
 tic;
 
@@ -10,132 +12,69 @@ TrekSet=TrekSetIn;
 
 trek=TrekSet.trek;
 
-OverSt=3;
 MeanVal=mean(trek);
-M=MeanVal;
-StdVal=std(trek);
-St=StdVal;
-Thr=OverSt*StdVal;
-MaxSignal=TrekSet.MaxSignal;
-MinSignal=TrekSet.MinSignal;
-
-
-
-if isfield(TrekSet,'OverSt');
-    if TrekSet.OverSt>0
-        OverSt=TrekSet.OverSt;
-    end;
-end;
-
-if isfield(TrekSet,'MeanVal')
-        if TrekSet.MeanVal~=0
-            MeanVal=TrekSet.MeanVal;
-        end;
-end;
-
-if isfield(TrekSet,'StdVal')
-        if TrekSet.StdVal>0
-            StdVal=TrekSet.StdVal;
-        end;
-end;
-
-if isfield(TrekSet,'Threshold')
-      if TrekSet.Threshold>0
-          Thr=TrekSet.Threshold; 
-      end;
-end;
-
-
-
-if isfield(TrekSet,'PeakPolarity');
-   if not(isempty(TrekSet.PeakPolarity))
-    if TrekSet.PeakPolarity==0
-         Positive=size(find(trek-(M+2*Thr)>0),1);  
-         Negative=size(find(trek-(M-2*Thr)<0),1); 
-        %Positive=sum(trek(trek-(M+2*Thr)>0));  
-        %Negative=sum(trek(trek-(M-2*Thr)<0)); 
-    
-        if Positive>Negative 
-            PeakPolarity=1;
-        else
-            PeakPolarity=-1;   
-        end; 
-    
-    else
-        PeakPolarity=TrekSet.PeakPolarity;        
-    end;
-   else
-    Positive=size(find(trek-(M+2*Thr)>0),1);  
-    Negative=size(find(trek-(M-2*Thr)<0),1);    
-
-    if Positive>Negative 
-        PeakPolarity=1;
-    else
-        PeakPolarity=-1;   
-    end; 
-       
-   end;    
+trek=trek-MeanVal;
+if std(trek(trek>=0))>=std(trek(trek<0))
+    PeakPolarity = 1;
 else
-    Positive=size(find(trek-(M+2*Thr)>0),1);  
-    Negative=size(find(trek-(M-2*Thr)<0),1);    
+    PeakPolarity = -1;
+end;
+trek=PeakPolarity*trek;
+MaxSignal=max([PeakPolarity*(TrekSet.MaxSignal-MeanVal);PeakPolarity*(TrekSet.MinSignal-MeanVal)]);
+MinSignal=min([PeakPolarity*(TrekSet.MaxSignal-MeanVal);PeakPolarity*(TrekSet.MinSignal-MeanVal)]);
 
-    if Positive>Negative 
-        PeakPolarity=1;
-    else
-        PeakPolarity=-1;   
-    end; 
+%correcting null by integral slope
+bool=true(TrekSet.size,1);
+n=1;
+integ=zeros(TrekSet.size,1);
+for i=2:TrekSet.size
+    integ(i)=integ(i-1)+trek(i);
 end;
 
+while n~=numel(find(bool))
+    n=numel(find(bool));
+    slope=polyfit(find(bool),integ(bool),1);
+    difer=integ-polyval(slope,[1:TrekSet.size])';
+    bool=abs(difer)<std(difer);
+end;
 
+trek=trek-slope(1);
+MeanVal=MeanVal-slope(1);
+MaxSignal=MaxSignal-slope(1);
+MinSignal=MinSignal-slope(1);
 
+if range(trek)<5    
+    disp('Trek is probably in volts');
+    trek=trek/2.5*4095;
+    MeanVal=MeanVal/2.5*4095;
+    MaxSignal=MaxSignal/2.5*4095;
+    MinSignal=MinSignal/2.5*4095;
+end;
 
-if (abs(M)<Thr)
-    Noise=abs(trek)<Thr;
-    StdVal=std(trek(Noise));
+StdVal=std(trek(trek<0));
+
+fprintf('Mean trek old is                  = %7.4f\n', mean(TrekSet.trek));
+fprintf('Mean trek new is                  = %7.4f\n', mean(trek));
+fprintf('Correction by slope is            = %7.4f\n', slope(1));
+fprintf('MeanVal is                        = %7.4f\n', MeanVal);
+fprintf('Standard deviat                   = %7.4f\n', StdVal);
+fprintf('First mean search                 = %7.4f  sec\n', toc); 
+fprintf('>>>>>>>>>TrekStdVal Finished>>>>>>>>>\n');
+    
+
+if ~isfield(TrekSet,'MeanVal')||isempty(TrekSet.MeanVal); 
+    TrekSet.MeanVal=MeanVal;
 else
-    trek=PeakPolarity*(trek-MeanVal);
-    MaxS=max([PeakPolarity*(MaxSignal-MeanVal),PeakPolarity*(MinSignal-MeanVal)]); %temporary variable beacause MaxSignal is neccesary for MinSignal determenation
-    MinSignal=min([PeakPolarity*(MaxSignal-MeanVal),PeakPolarity*(MinSignal-MeanVal)]);
-    MaxSignal=MaxS;
-    PeakPolarity=1;
-    if M==MeanVal
-        dSt=1;
-        dM=1;
-        while (dSt>0.1)||(dM>1e-4)
-           Noise=abs(trek)<Thr;
-           St=[St;std(trek(Noise))];
-           M=[M;mean(trek(Noise))];           
-           dM=abs(M(end)-M(end-1));
-           dSt=abs(St(end)-St(end-1));
-           trek=trek-M(end);
-            MaxSignal=MaxSignal-M(end);
-            MinSignal=MinSignal-M(end);
-           if Thr==OverSt*St(end-1);
-               Thr=OverSt*St(end);
-           end;
-        end;
-        MeanVal=sum(M);
-        fprintf('MeanVal is          = %7.4f\n', MeanVal);       
-        fprintf('First mean search   = %7.4f  sec\n', toc); 
-    end;
-       Noise=abs(trek)<Thr;
-       StdVal=std(trek(Noise));    
+% TODO how correct if you don't now intitial PeakPolarity was   
+    TrekSet.MeanVal=TrekSet.MeanVal;
 end;
-
-
 TrekSet.trek=trek;
-TrekSet.MeanVal=MeanVal;
 TrekSet.StdVal=StdVal;
 TrekSet.MaxSignal=MaxSignal;
 TrekSet.MinSignal=MinSignal;
 TrekSet.PeakPolarity=PeakPolarity;
 
-TrekSet.PeakPolarity=PeakPolarity;
 
-
-fprintf('Standard deviat     = %7.4f\n', StdVal);
-fprintf('>>>>>>>>>TrekStdVal Finished>>>>>>>>>\n');
-toc;
 
 
 

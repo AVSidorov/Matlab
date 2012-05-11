@@ -1,4 +1,4 @@
-function peaks=TrekPeaks2keV(TrekSet,C);
+function peaks=TrekPeaks2keV(TrekSet,C)
 
 if nargin==1
     C=-0.19/2;

@@ -1,11 +1,12 @@
 function TrekSet=TrekMerge(TrekSetIn);
-TrekSet=TrekSetIn;
-if TrekSet.Merged return; end;
 %This function merges two treks written in differen ADC channels with
 %different ranges. MainTrek must be in wider ADC range written
 %Also calculates Min/MaxSignal
-%TrekMerge must be called after making Positive Pulses and firs zero
+%TrekMerge must be called after making Positive Pulses and first zero
 %subtraction in main trek.
+TrekSet=TrekSetIn;
+if TrekSet.Merged return; end;
+
 MaxAmpV=2;    %Maximum amplifier signal
 MaxAmpK=1; %This Koeff is necessary because MaxAmpV is saturation voltage. Deviations start earlier
 ADC1ampV=2.5; 
