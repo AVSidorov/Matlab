@@ -1,4 +1,7 @@
-function TrekSet=TrekRecognize(TrekSetIn);
+function TrekSet=TrekRecognize(TrekSetIn,varargin)
+%This function inits TrekSet and check existense of file (if file name
+%inputed)
+
 
 
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
@@ -31,6 +34,17 @@ TrekSet.Amp=[];
 TrekSet.HV=[];
 TrekSet.P=[];
 TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
+
+nargsin=size(varargin,2);
+if ~isempty(varargin)&&mod(nargsin,2)~=0
+    disp('incorrect number of input arguments');
+    TrekSet.type=0;
+    return;
+else
+   for i=1:fix(nargsin/2) 
+    eval(['TrekSet.',varargin{1+2*(i-1)},'=varargin{2*i};']);
+    end;
+end;
 
 if isstr(TrekSetIn); 
     TrekSet.type=exist(TrekSetIn); 
@@ -72,8 +86,8 @@ end;
         end;
         [pathstr, name, ext]=fileparts(TrekSetIn);
         TrekSet.name=name;
-        if not(isempty(regexp(name,'^(\d{2})+(sxr|sxr2)$')))
-            TrekSet.Shot=str2num(name(1:2));
+        if not(isempty(regexp(name,'^(\d{2,3})(sxr|sxr2)$')))
+            TrekSet.Shot=str2num(regexprep(name,'^(\d{2,3})(sxr|sxr2)$','$1'));
         end;            
      otherwise
         disp('Not supported type');

@@ -1,4 +1,4 @@
-function TrekSet=Trek(TrekSet)
+function TrekSet=Trek(TrekSet,varargin)
 
 tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
@@ -7,7 +7,7 @@ fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
 
 %% Checking for existing and initialization
-TrekSet=TrekRecognize(TrekSet);
+TrekSet=TrekRecognize(TrekSet,varargin{:});
 
 if TrekSet.type==0 
     return; 
@@ -15,6 +15,10 @@ end;
 
 
 TrekSet=TrekLoad(TrekSet);
+TrekSet=TrekStdVal(TrekSet);
+TrekSet=TrekPickThr(TrekSet);
+TrekSet=TrekPickTime(TrekSet,0,pow2(21)*TrekSet.tau);
+return;
 
 if TrekSet.type==0 
     return; 
@@ -22,14 +26,14 @@ end;
 
 %Loading Standard Pulse
 TrekSet.STP=StpStruct;
+
 %% Block for Plasma treks
 Pass=2;
-TrekSet=TrekPickTime(TrekSet,27200);
+TrekSet=TrekPickTime(TrekSet,0,5000);
 for passI=1:Pass
     TrekSet.Threshold=[];
     TrekSet.Plot=true;
     TrekSet=TrekPickThr(TrekSet);
-    TrekSet=TrekStdVal(TrekSet);  
     TrekSet=TrekPeakSearch(TrekSet,STP);
     TrekSet=TrekBreakPoints(TrekSet,STP);
     assignin('base',[inputname(1),'Pass',num2str(passI-1)],TrekSet);
