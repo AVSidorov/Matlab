@@ -82,8 +82,7 @@ function ThrButton_Callback(hObject, eventdata, handles)
 TrekSet=handles.TrekSet;
 TrekSet.Plot=true;
 TrekSet=TrekPickThr(TrekSet);
-TrekSet.Plot=false;
-TrekSet=TrekStdVal(TrekSet);  
+TrekSet.Plot=false;  
 TrekPlotTime(TrekSet,handles.MainGraph);
 TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
@@ -365,7 +364,6 @@ TrekSet.Threshold=str2double(get(handles.ThrEd,'String'));
 StartTime=str2double(get(handles.StartEd,'String'));
 ProcTime=str2double(get(handles.EndEd,'String'))-str2double(get(handles.StartEd,'String'));
 TrekSet=TrekPickTime(TrekSet,StartTime,ProcTime);
-TrekSet=TrekStdVal(TrekSet);
 TrekPlotTime(TrekSet,handles.MainGraph);
 TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
@@ -378,10 +376,8 @@ function PeakIndButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 TrekSet=handles.TrekSet;
-STP=StpStruct(TrekSet.StandardPulse);
-TrekSet=TrekStdVal(TrekSet);  
-TrekSet=TrekPeakSearch(TrekSet,STP);
-TrekSet=TrekBreakPoints(TrekSet,STP);
+TrekSet=TrekPeakSearch(TrekSet,false);
+TrekSet=TrekBreakPoints(TrekSet);
 TrekPlotTime(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
