@@ -21,8 +21,7 @@ if TrekSet.type==0
 end;
 
 %Loading Standard Pulse
-TrekSet=TrekStPLoad(TrekSet);
-STP=StpStruct(TrekSet.StandardPulse);
+TrekSet.STP=StpStruct;
 %% Block for Plasma treks
 Pass=2;
 TrekSet=TrekPickTime(TrekSet,27200);
@@ -225,3 +224,4 @@ assignin('base',[inputname(1),'Pass',num2str(Pass)],TrekSet);
 % evalin('base',['Poisson(spec',N,');']);
 
 
+ 
