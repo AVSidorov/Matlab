@@ -1,5 +1,4 @@
-function TrekSet=TrekAlonePeakSearch(TrekSetIn);
-
+function TrekSet=TrekAlonePeakSearch(TrekSetIn)
 TrekSet=TrekSetIn;
 
 PeakFrontN=1750;
@@ -17,20 +16,22 @@ SelectedInd=SelectedInd(Ind);
  bool=TrekSet.trek(SelectedInd)<=5*TrekSet.Threshold|TrekSet.trek(SelectedInd)>=MaxSignal;
  SelectedInd(bool)=[];
 
-N=max(size(SelectedInd));
-for i=1:N
-    PulseNorm(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN)/TrekSet.trek(SelectedInd(i));
-    Pulse(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN);
-end;
- assignin('base','Pulse',Pulse);
- if not(evalin('base','exist(''Pulses'')'))
-     evalin('base','Pulses=[];');
- end;
- evalin('base','Pulses=[Pulses;Pulse];');
-if TrekSet.Plot
-    figure;
-    grid on; hold on;
-    plot(PulseNorm');
-    plot(mean(PulseNorm),'r','linewidth',3);
-    plot(mean(Pulse)/max(mean(Pulse)),'b','linewidth',1);
+if ~isempty(SelectedInd)
+    N=max(size(SelectedInd));
+    for i=1:N
+        PulseNorm(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN)/TrekSet.trek(SelectedInd(i));
+        Pulse(i,:)=TrekSet.trek(SelectedInd(i)-20:SelectedInd(i)+PeakFrontN);
+    end;
+     assignin('base','Pulse',Pulse);
+     if not(evalin('base','exist(''Pulses'')'))
+         evalin('base','Pulses=[];');
+     end;
+     evalin('base','Pulses=[Pulses;Pulse];');
+    if TrekSet.Plot
+        figure;
+        grid on; hold on;
+        plot(PulseNorm');
+        plot(mean(PulseNorm),'r','linewidth',3);
+        plot(mean(Pulse)/max(mean(Pulse)),'b','linewidth',1);
+    end;
 end;
