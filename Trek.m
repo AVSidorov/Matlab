@@ -17,8 +17,11 @@ end;
 TrekSet=TrekLoad(TrekSet);
 TrekSet=TrekStdVal(TrekSet);
 TrekSet=TrekPickThr(TrekSet);
-TrekSet=TrekPickTime(TrekSet,0,pow2(21)*TrekSet.tau);
+TrekSet.plot=false;
+TrekSet=TrekMerge(TrekSet);
 return;
+
+TrekSet=TrekPickTime(TrekSet,0,pow2(21)*TrekSet.tau);
 
 if TrekSet.type==0 
     return; 
