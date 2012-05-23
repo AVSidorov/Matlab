@@ -1,4 +1,4 @@
-function TrekStandardPulseSearch(TrekSet)
+function TrekStandardPulseSearch(TrekSet,varargin)
 %
 %
 %
@@ -6,7 +6,7 @@ tic;
 fprintf('>>>>>>>>>>>>>>>>>>>>> Trek started\n');
 
 %Checking for existing and initialization
-TrekSet=TrekRecognize(TrekSet);
+TrekSet=TrekRecognize(TrekSet,varargin{:});
 
 if TrekSet.type==0 return; end;
 
