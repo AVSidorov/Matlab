@@ -65,7 +65,7 @@ end;
         else %in case FileName is trek array
             TrekSet.name=inputname(1);
             TrekSet.FileName='unknown';
-            if min(size(TrekSetIn))<2 % if in trek there are not only signal and time
+            if min(size(TrekSetIn))>2 % if in trek there are not only signal and time
                 disp('Wrong array size');
                 TrekSet.type=0;
                 return;
