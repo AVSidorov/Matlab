@@ -1,16 +1,19 @@
-function FIT=TrekFitFast(TrekSet,Ind,StpSet);
+function FIT=TrekFitFast(TrekSet,Ind)
 tic;
 disp('>>>>>>>>TrekFitFast started');
 
 
-
-if nargin<3
-    StpSet=StpStruct(TrekSet.StandardPulse);
+if ~isempty(TrekSet.STP)
+    STP=TrekSet.STP;
+else
+    STP=StpStruct;
 end;
 
-Stp=StpSet.Stp;
-maxI=StpSet.MaxInd;
-StpN=StpSet.size;
+
+
+Stp=STP.Stp;
+maxI=STP.MaxInd;
+StpN=STP.size;
 trek=TrekSet.trek;
 Khi=inf;
 
@@ -43,7 +46,7 @@ if good
     %if fit pulse points breaks in tail part we reduce FitPulse by
     %removing stand alone tail points
 
-    FitIndPulseMax=FitIndPulse(dFitIndPulse>=StpSet.FrontN); % very small breaks is not important and take breaks more than
+    FitIndPulseMax=FitIndPulse(dFitIndPulse>=STP.FrontN); % very small breaks is not important and take breaks more than
     FitIndPulseMax=FitIndPulseMax(FitIndPulseMax>=maxI);    % we search breaks only after Maximum. >= because Break May be at maxI Point
     %it allows to skip PeakOnTail, that gives bad fitting conditions, but fitting was good   
     if not(isempty(FitIndPulseMax))

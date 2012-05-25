@@ -1,25 +1,28 @@
-function FIT=TrekFitTime(TrekSet,Ind,StpSet,FitStruct);
+function FIT=TrekFitTime(TrekSet,Ind,FitStruct)
 tic;
-fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);;
+fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
 Nfit=10;
 gs=(1+sqrt(5))/2;
 
 
-if nargin<3
-    StpSet=StpStruct(TrekSet.StandardPulse);
-end;
 
-if nargin<4
-    FitStruct=TrekFitFast(TrekSet,Ind,StpSet);
+if nargin<3
+    FitStruct=TrekFitFast(TrekSet,Ind);
 end;
 
 FIT=FitStruct;
 
 
 trek=TrekSet.trek;
-Stp=StpSet.Stp;
-StpN=StpSet.size;
+if ~isempty(TrekSet.STP)
+    STP=TrekSet.STP;
+else
+    STP=StpStruct;
+end;
+
+Stp=STP.Stp;
+StpN=STP.size;
 
 N=FitStruct.N;
 FitInd=FitStruct.FitInd;
