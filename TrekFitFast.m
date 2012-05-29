@@ -1,7 +1,7 @@
 function FIT=TrekFitFast(TrekSet,Ind)
 tic;
 disp('>>>>>>>>TrekFitFast started');
-
+FitFast=false;
 
 if ~isempty(TrekSet.STP)
     STP=TrekSet.STP;
@@ -21,17 +21,25 @@ FitInd=[1:maxI]'+Ind-maxI;
 FitIndPulse=[1:maxI]'; %all arrays vert;
 N=numel(FitInd);
 
-A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
-bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
+if FitFast
+    A=sum(Stp(FitIndPulse).*trek(FitInd))/sum(Stp(FitIndPulse).^2);
+    B=0;
+else
+    p=polyfit(Stp(FitIndPulse),trek(FitInd),1);
+    A=p(1);
+    B=p(2);
+end;
+
+bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse)-B)<TrekSet.Threshold;
 good=all(bool);
 % Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);
-Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse))/TrekSet.Threshold).^2)/N);
+Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
 
 if good   
     FitInd=[1:StpN]'+Ind-maxI;
     FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
     FitIndPulse=FitInd-Ind+maxI;
-    bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse))<TrekSet.Threshold;
+    bool=abs(TrekSet.trek(FitInd)-A*Stp(FitIndPulse)-B)<TrekSet.Threshold;
     FitInd=FitInd(bool);
     FitIndPulse=FitIndPulse(bool);
 
@@ -58,20 +66,21 @@ if good
     N=numel(FitInd);
     
 %      Khi=sum((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)).^2)/N/trek(Ind);    
-    Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse))/TrekSet.Threshold).^2)/N);
+    Khi=sqrt(sum(((TrekSet.trek(FitInd)-A*Stp(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
 end;
 
 FIT.Good=good;
 FIT.A=A;
-FIT.B=0;
+FIT.B=B;
 FIT.Shift=0;
 FIT.Khi=Khi;
 FIT.FitIndPulse=FitIndPulse;
 FIT.FitInd=FitInd;
 FIT.N=N;
-FIT.FitPulse=A*Stp;
+FIT.FitPulse=A*Stp+B;
 FIT.FitPulseN=StpN;
 FIT.MaxInd=Ind;
+FIT.FitFast=FitFast;
 
 %%
 toc;
@@ -80,8 +89,8 @@ if TrekSet.Plot
     figure;
         plot(FitInd,trek(FitInd));
         grid on; hold on;
-        plot(FitInd,A*Stp(FitIndPulse),'r');
-        plot(FitInd,trek(FitInd)-A*Stp(FitIndPulse),'k');
+        plot(FitInd,A*Stp(FitIndPulse)+B,'r');
+        plot(FitInd,trek(FitInd)-A*Stp(FitIndPulse)-B,'k');
         plot(FitInd(1)+[1,N],[TrekSet.Threshold,TrekSet.Threshold],'g');
         plot(FitInd(1)+[1,N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
     pause;
