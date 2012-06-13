@@ -24,6 +24,7 @@ end;
 Stp=STP.Stp;
 StpN=STP.size;
 
+
 N=FitStruct.N;
 FitInd=FitStruct.FitInd;
 FitIndPulse=FitStruct.FitIndPulse;
@@ -41,18 +42,25 @@ ShKhi(1:2,2)=[inf;inf];
 good=[false;false;FIT.Good];
 
 
-while any(isinf(ShKhi(:,2)))&min(diff(sortrows(ShKhi(:,1))))>=1/Nfit%&abs(ShKhi(end,1)<=1) 
+while any(isinf(ShKhi(:,2)))&&min(diff(sortrows(ShKhi(:,1))))>=1/Nfit%&abs(ShKhi(end,1)<=1) 
     for i=find(isinf(ShKhi(:,2)))'
-       FitPulse=interp1([1:StpN]',Stp,[1:StpN]'+ShKhi(i,1),'spline',0);
-       if FitFast
-        A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
-        B=0;
-       else
-        p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
-        A=p(1);
-        B=p(2);
-       end;
-       
+       FitPulse=TrekGetFitPulse(STP,ShKhi(i,1));
+       N=0;
+       while N~=FIT.N||numel(find(FIT.FitInd-FitInd))>0
+           FitInd=FIT.FitInd;
+           FitIndPulse=FIT.FitIndPulse;
+           N=FIT.N;
+           if FitFast
+            A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+            B=0;
+           else
+            p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
+            A=p(1);
+            B=p(2);
+           end;
+           FIT.FitPulse=A*FitPulse+B;
+           FIT=TrekGetFitInd(TrekSet,Ind,FIT);
+        end;
 %        ShKhi(khiFitInd(i),2)=sum((trek(FitInd)-A*FitPulse(FitIndPulse)).^2)/N/trek(Ind);
        ShKhi(i,2)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
        good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold);
@@ -99,8 +107,15 @@ while any(isinf(ShKhi(:,2)))&min(diff(sortrows(ShKhi(:,1))))>=1/Nfit%&abs(ShKhi(
 end;
 
 for i=find(isinf(ShKhi(:,2)))'
-   FitPulse=interp1([1:StpN]',Stp,[1:StpN]'+ShKhi(i,1),'spline',0);
-   A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+    FitPulse=TrekGetFitPulse(STP,ShKhi(i,1));
+    if FitFast
+        A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+        B=0;
+    else
+        p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
+        A=p(1);
+        B=p(2);
+    end;   
 %        ShKhi(khiFitInd(i),2)=sum((trek(FitInd)-A*FitPulse(FitIndPulse)).^2)/N/trek(Ind);
    ShKhi(i,2)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
    good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold);
@@ -129,7 +144,9 @@ end;
       end;
 
 
-FitPulse=interp1([1:StpN],Stp,[1:StpN]'+ShKhi(KhiMinInd,1),'spline',0);
+FitPulse=TrekGetFitPulse(STP,ShKhi(KhiMinInd,1));
+
+
 if FitFast
     A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
     B=0;
