@@ -1,5 +1,5 @@
 function STP=StpStruct(StandardPulseFile)
-%This function makes Standart pulse sruct
+%This function makes Standart pulse struct
 %that contains StandartPulse and its parameters
 %length, maximum position etc.
 % TODO Change later to choosing standart pulse by Amp in TrekSet
@@ -8,7 +8,7 @@ tic;
 disp('>>>>>>>>StpStruct started');
 
 if nargin<1
-    StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_5.dat';
+    StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_8.dat';
 end;
 if isstr(StandardPulseFile) 
  if exist(StandardPulseFile,'file');
@@ -20,14 +20,25 @@ if isstr(StandardPulseFile)
  end;
 else
     StandardPulse=StandardPulseFile;
-    if size(StandardPulse,2)>size(StandardPulse,1)
-        StandardPulse=StandardPulse'; %make vertical
-    end;
 end;
+
+if size(StandardPulse,2)>size(StandardPulse,1)
+    StandardPulse=StandardPulse'; %make vertical
+end;
+
 
 Plot=false;
 
 %MaxInd=find(StandardPulse==max(StandardPulse));
+if size(StandardPulse,2)==2
+    TimeInd=StandardPulse(:,1);
+    FinePulse=StandardPulse(:,2);
+    StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'cubic',0)';
+    StandardPulse=StandardPulse/max(StandardPulse);
+else
+    TimeInd=[1:numel(StandardPulse)]';
+    FinePulse=StandardPulse;
+end;
 MaxInd=find(StandardPulse==1); %Standard Pulse must be normalized by Amp s
 FirstNotZero=find(abs(StandardPulse),1,'first');%Standard Pulse must have several zero point at front end and las zero point
 BckgFitN=FirstNotZero-1; 
@@ -65,6 +76,8 @@ STP.StandardPulseFile=StandardPulse;
 STP.IndNegativeTail=IndNegativeTail;
 STP.IndPositiveTail=IndPositiveTail;
 STP.IndPulse=IndPulse;
+STP.TimeInd=TimeInd;
+STP.FinePulse=FinePulse;
 %%
 toc;
 %%
