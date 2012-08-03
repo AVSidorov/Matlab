@@ -1,0 +1,17 @@
+function a=SmoothTillDiff2(A,Ind)
+dA=diff(A);
+ddA=diff(A,2);
+dInd=Ind(1)-1:Ind(end);
+dInd(dInd<1|dInd>numel(dA))=[];
+ddInd=Ind(1)-2:Ind(end);
+ddInd(ddInd<1|ddInd>numel(ddA))=[];
+x1=Ind(1);
+xn=Ind(end);
+B=[A(x1);A(xn);dA(dInd(1));dA(dInd(end));ddA(ddInd(1));ddA(ddInd(end))];
+M(1,:)=[x1^5,x1^4,x1^3,x1^2,x1,1];
+M(2,:)=[xn^5,xn^4,xn^3,xn^2,xn,1];
+M(3,:)=[5*x1^4,4*x1^3,3*x1^2,2*x1,1,0];
+M(4,:)=[5*xn^4,4*xn^3,3*xn^2,2*xn,1,0];
+M(5,:)=[20*x1^3,12*x1^2,6*x1,2,0,0];
+M(6,:)=[20*xn^3,12*xn^2,6*xn,2,0,0];
+a=linsolve(M,B);
