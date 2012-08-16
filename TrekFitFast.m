@@ -1,7 +1,7 @@
 function FIT=TrekFitFast(TrekSet,Ind)
 tic;
 disp('>>>>>>>>TrekFitFast started');
-FitFast=false;
+FitFast=true;
 
 if ~isempty(TrekSet.STP)
     STP=TrekSet.STP;
@@ -18,7 +18,9 @@ trek=TrekSet.trek;
 Khi=inf;
 
 FitInd=[1:maxI]'+Ind-maxI;
-FitIndPulse=[1:maxI]'; %all arrays vert;
+FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
+FitIndPulse=FitInd-Ind+maxI;
+
 N=numel(FitInd);
 
 if FitFast
