@@ -1,5 +1,8 @@
-function [gDD,gD,g]=SmoothDiff2(X,fDD,fD,f);
-Plot=false;
+function [gDD,gD,g]=SmoothDiff2(X,fDD,fD,f)
+%This function smooths the second derivative by 3th degree polynom. This
+%polynom and its integrals are equal  in interval ends to origin values.
+
+Plot=true;
 if nargin<3 
     disp('Not enough params');
     return; 
@@ -68,8 +71,8 @@ for i=2:numel(g)
 end;
 
 if Plot
-fi=gcf;
-figure;    
+
+fi=figure(gcf);
 X(1)=X(1)-2;
 X(end)=X(end)+2;
 X=[X(1):X(end)];
