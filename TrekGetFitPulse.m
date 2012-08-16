@@ -1,8 +1,9 @@
 function FitPulse=TrekGetFitPulse(STP,Shift)
-Stp=STP.Stp;
+Stp=STP.FinePulse;
 StpN=STP.size;
+TimeInd=STP.TimeInd;
 
-FitPulse=interp1([1:StpN]',Stp,[1:StpN]'+Shift,'spline',0);
+FitPulse=interp1(TimeInd,Stp,[1:StpN]'+Shift,'spline',0);
 FitPulse(FitPulse(1:STP.MaxInd)<0)=0;
 bool=FitPulse<0;
 bool(1:STP.IndPositiveTail(3))=false;
