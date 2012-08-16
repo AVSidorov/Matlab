@@ -8,7 +8,7 @@ tic;
 disp('>>>>>>>>StpStruct started');
 
 if nargin<1
-    StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_8.dat';
+    StandardPulseFile='D:\!SCN\StandPeakAnalys\StPeakAmp4_20ns_9.dat';
 end;
 if isstr(StandardPulseFile) 
  if exist(StandardPulseFile,'file');
