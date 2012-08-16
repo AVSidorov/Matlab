@@ -13,11 +13,13 @@ ADC1ampV=2.5;
 ADC2ampV=2.5;
 
 FileName=[TrekSet.name,'2.dat'];
-TrekSet2=TrekRecognize(FileName);
+TrekSet2=TrekRecognize(FileName,'StartOffset',TrekSet.StartOffset,'Date',TrekSet.Date,...
+                       'Amp',TrekSet.Amp,'HV',TrekSet.HV,'P',TrekSet.P,'Plot',TrekSet.Plot);
 
 if TrekSet2.type==0 
     disp('Second file is not found');
     TrekSet.MaxSignal=min([MaxAmpK*MaxAmpV*TrekSet.MaxSignal/ADC1ampV,TrekSet.MaxSignal]);
+    TrekSet.Merged = true;
     return;
 end;
 
@@ -51,17 +53,23 @@ TrekSet2.MaxSignal=min([MaxAmpK*MaxAmpV*4095/ADC2ampV,TrekSet2.MaxSignal]);
 %bool=TrekSet.trek*ADC1ampV/ADC1ampV<TrekSet2.MaxSignal;
 Z=inf;
 dZ=inf;
+i=1;
 while abs(dZ)>1e-3
-    bool=TrekSet2.trek<TrekSet2.MaxSignal&TrekSet.trek*ADC1ampV/ADC2ampV<TrekSet2.MaxSignal;
-    zero=(TrekSet.trek(bool)-TrekSet2.trek(bool)*ADC2ampV/ADC1ampV);
+    bool=TrekSet2.trek>TrekSet2.MinSignal&TrekSet2.trek<TrekSet2.MaxSignal&TrekSet.trek<TrekSet2.MaxSignal&TrekSet.trek>TrekSet.MinSignal;
+    fit(i,:)=polyfit(TrekSet.trek(bool),TrekSet2.trek(bool),1);
+    zero=fit(i,2);
     dZ=mean(zero)-Z;
     Z=mean(zero);
-    TrekSet.trek=TrekSet.trek-Z;
-     TrekSet.MeanVal=TrekSet.MeanVal-Z;
-     TrekSet.MaxSignal=TrekSet.MaxSignal-Z;
-     TrekSet.MinSignal=TrekSet.MinSignal-Z;
+    TrekSet2.trek=TrekSet2.trek-Z;
+     TrekSet2.MeanVal=TrekSet2.MeanVal-Z;
+     TrekSet2.MaxSignal=TrekSet2.MaxSignal-Z;
+     TrekSet2.MinSignal=TrekSet2.MinSignal-Z;
+     i=i+1;
 end;
 %% merge treks
 bool=TrekSet2.trek<TrekSet2.MaxSignal&TrekSet2.trek>TrekSet2.MinSignal;
-TrekSet.trek(bool)=TrekSet2.trek(bool)*ADC2ampV/ADC1ampV;
+%TrekSet.trek(bool)=TrekSet2.trek(bool)*ADC2ampV/ADC1ampV;
+TrekSet.trek(bool)=TrekSet2.trek(bool)/fit(end,1);
+fprintf('Treks is merged. Amp ratio is %4.2f\n',fit(end,1));
 TrekSet.Merged=true;
+TrekSet=TrekStdVal(TrekSet);

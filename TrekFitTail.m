@@ -1,4 +1,4 @@
-function FitSet=TrekFitTail(TrekSet,Ind,StpSet);
+function FitSet=TrekFitTail(TrekSet,Ind,StpSet)
 tic;
 fprintf('>>>>>>>>TrekFitTail started Ind is %6d\n',Ind);
 
@@ -27,7 +27,7 @@ FitIndPulse=FitInd-Ind+maxI;
 %%
 if not(isempty(find(FitInd-StpSet.MaxInd)<2))
 N=1;
-while N~=numel(FitInd)&N>0
+while N~=numel(FitInd)&&N>0
 %%
     N=numel(FitInd);
     
@@ -73,7 +73,7 @@ while N~=numel(FitInd)&N>0
             HoleEnd=find(dBefore>1);  % at least second after max
             PartLength=FitInd([HoleStart;numel(FitInd)])-FitInd([1;HoleEnd])+1;
             ind=find(PartLength>=StpSet.FrontN,1,'first')-1;
-            if not(isempty(ind))&ind>0
+            if not(isempty(ind))&&ind>0
                 FitIndPulse(1:HoleStart(ind))=[];
             end;
             FitInd=FitIndPulse+Ind-maxI;

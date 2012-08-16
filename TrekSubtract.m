@@ -1,4 +1,4 @@
-function [TrekSet,isGood,TrekSet1]=TrekSubtract(TrekSetIn,StpSet,FitStruct);
+function [TrekSet,isGood,TrekSet1]=TrekSubtract(TrekSetIn,FitStruct)
 tic;
 disp('>>>>>>>>TrekSubtract started');
 TrekSet=TrekSetIn;
@@ -10,6 +10,12 @@ TrekSet1=TrekSet;
 
 if not(FitStruct.Good)
     isGood=false;
+end;
+
+if ~isempty(TrekSet.STP)
+   StpSet=TrekSet.STP;
+else
+   StpSet=StpStruct;
 end;
 
 PulseN=FitStruct.FitPulseN;
@@ -65,6 +71,12 @@ toc;
 %%
 if TrekSet.Plot
     pp=figure;
+        %set(gcf, 'Position', get(0,'Screensize')); % Maximize figure        
+         if isGood 
+            title('Good');
+        else
+            title('bad');
+        end;
         grid on; hold on;
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));
         plot(Ind,TrekSetIn.trek(Ind),'*r');
@@ -72,6 +84,9 @@ if TrekSet.Plot
         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
         plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
         plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),TrekSet1.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');
+        plot([SubtractInd(1),SubtractInd(end)],[TrekSet.Threshold,TrekSet.Threshold],'g');
+        plot([SubtractInd(1),SubtractInd(end)],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+        set(gcf, 'Units', 'normalized', 'Position', [0.01, 0.01, 0.8, 0.8]);
     pause;
     figure(pp);
     close(gcf);
