@@ -2,7 +2,7 @@ function FIT=TrekFitTime(TrekSet,Ind,FitStruct)
 tic;
 fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
-Nfit=10;
+Nfit=20;
 gs=(1+sqrt(5))/2;
 
 
@@ -92,7 +92,8 @@ while any(isinf(ShKhi(:,2)))
          if EndGoodInd-StGoodInd>1 %to avoid bad conditioned fit
             KhiFit=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),2),2);
             if KhiFit(1)>0
-                if abs(-KhiFit(2)/(2*KhiFit(1)))<=1
+                
+                if abs(-KhiFit(2)/(2*KhiFit(1)))<=1&&isempty(find(ShKhi(:,1)==-KhiFit(2)/(2*KhiFit(1))))==0                    
                     ShKhi(end+1,1)= -KhiFit(2)/(2*KhiFit(1));  
                     ShKhi(end,2)=inf;
                 end;
@@ -106,7 +107,7 @@ while any(isinf(ShKhi(:,2)))
      if ri-li>1
         KhiFit=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,2),2);
             if KhiFit(1)>0
-                if abs(-KhiFit(2)/(2*KhiFit(1)))<=1
+                if abs(-KhiFit(2)/(2*KhiFit(1)))<=1&&isempty(find(ShKhi(:,1)==-KhiFit(2)/(2*KhiFit(1))))
                     ShKhi(end+1,1)= -KhiFit(2)/(2*KhiFit(1));  
                     ShKhi(end,2)=inf;
                 end;
@@ -115,12 +116,16 @@ while any(isinf(ShKhi(:,2)))
      dS=ShKhi(ri,1)-ShKhi(li,1);
      
 
-     ShKhi(end+1,1)=ShKhi(ri,1)-dS/gs;
-     ShKhi(end,2)=inf;
-     ShKhi(end+1,1)=ShKhi(li,1)+dS/gs;
-     ShKhi(end,2)=inf;
+     if isempty(find(ShKhi(:,1)==ShKhi(ri,1)-dS/gs))
+        ShKhi(end+1,1)=ShKhi(ri,1)-dS/gs;
+        ShKhi(end,2)=inf;
+     end;
+     if isempty(find(ShKhi(:,1)==ShKhi(ri,1)+dS/gs))
+        ShKhi(end+1,1)=ShKhi(li,1)+dS/gs;
+        ShKhi(end,2)=inf;
+     end;
     % check for exit
-    if size(ShKhi,1)>=2*Nfit %&&min(diff(sortrows(ShKhi(:,1))))>=1/Nfit%&abs(ShKhi(end,1)<=1) 
+    if min(diff(sortrows(ShKhi(:,1))))<=1/Nfit%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
         ShKhi(isinf(ShKhi(:,2)),:)=[];
     end;
 end;

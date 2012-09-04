@@ -17,7 +17,7 @@ FitIndPulse=FitInd-Ind+maxI;
 FIT.FitInd=FitInd;
 FIT.FitIndPulse=FitIndPulse;
 FIT.N=numel(FitInd);
-return;
+%return;
 
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
