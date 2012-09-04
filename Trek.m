@@ -19,9 +19,9 @@ TrekSet=TrekStdVal(TrekSet);
 TrekSet=TrekPickThr(TrekSet);
 TrekSet.plot=false;
 TrekSet=TrekMerge(TrekSet);
-return;
+%return;
 
-TrekSet=TrekPickTime(TrekSet,0,pow2(21)*TrekSet.tau);
+%TrekSet=TrekPickTime(TrekSet,0,pow2(21)*TrekSet.tau);
 
 if TrekSet.type==0 
     return; 
@@ -32,16 +32,16 @@ TrekSet.STP=StpStruct;
 
 %% Block for Plasma treks
 Pass=2;
-TrekSet=TrekPickTime(TrekSet,0,5000);
+TrekSet=TrekPickTime(TrekSet,15000,10000);
 for passI=1:Pass
     TrekSet.Threshold=[];
     TrekSet.Plot=true;
     TrekSet=TrekPickThr(TrekSet);
-    TrekSet=TrekPeakSearch(TrekSet,STP);
-    TrekSet=TrekBreakPoints(TrekSet,STP);
+    TrekSet=TrekPeakSearch(TrekSet);
+    TrekSet=TrekBreakPoints(TrekSet);
     assignin('base',[inputname(1),'Pass',num2str(passI-1)],TrekSet);
-    TrekSet.Plot=false;
-    TrekSet=TrekGetPeaksSid(TrekSet,passI,STP); 
+%     TrekSet.Plot=false;
+    TrekSet=TrekGetPeaksSid(TrekSet,passI); 
 end;
 CloseGraphs;   
 assignin('base',[inputname(1),'Pass',num2str(Pass)],TrekSet);
