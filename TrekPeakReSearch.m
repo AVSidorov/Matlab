@@ -1,14 +1,12 @@
-function TrekSet=TrekPeakReSearch(TrekSetIn,StpSet,FIT);
+function TrekSet=TrekPeakReSearch(TrekSetIn,FIT)
 tic;
 disp('>>>>>>>>TrekPeakReSearch started');
 
 TrekSet=TrekSetIn;
 
-if nargin<2
-    StpSet=StpStruct(TrekSet.StandardPulse);
-end;
+StpSet=TrekSet.STP;
 
-if nargin<3
+if nargin<2
     SubtractInd=[1:TrekSet.size]';
 else
     SubtractInd=[1:FIT.FitPulseN]+FIT.MaxInd-StpSet.MaxInd;
@@ -34,7 +32,7 @@ end;
  TrekSet.SelectedPeakFrontN=[];
  TrekSet.PeakOnFrontInd=[];
  TrekSet.LongFrontInd=[];
- TrekSet=TrekPeakSearch(TrekSet,StpSet,false);
+ TrekSet=TrekPeakSearch(TrekSet,false);
 
  TrekSet.SelectedPeakInd=TrekSet.SelectedPeakInd-1+SubtractInd(1)-3; %3 because 3 points was added
  TrekSet.PeakOnFrontInd=TrekSet.PeakOnFrontInd-1+SubtractInd(1)-3;

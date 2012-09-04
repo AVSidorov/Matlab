@@ -1,4 +1,4 @@
-function TrekSet=TrekGetPeaksSid(TrekSetIn,Pass,STP)
+function TrekSet=TrekGetPeaksSid(TrekSetIn,Pass)
 
 tic;
 disp('>>>>>>>>Get Peaks started');
@@ -10,9 +10,7 @@ EndPlotBool=TrekSet.Plot;
 
 
 %%
-if nargin<3
-    STP=StpStruct(TrekSet.StandardPulse);
-end;    
+STP=TrekSet.STP;   
 
 if nargin<2
     Pass=1;
@@ -39,20 +37,20 @@ while i<=PeakN %
          continue;
      end;
      Ind=TrekSet.SelectedPeakInd(i);   
-     FIT=TrekFitTime(TrekSet,TrekSet.SelectedPeakInd(i),STP);
+     FIT=TrekFitTime(TrekSet,TrekSet.SelectedPeakInd(i));
      
      
-     [TrekSet,ExcelentFit,TrekSet1]=TrekSubtract(TrekSet,STP,FIT);
-     TrekSet1=TrekPeakReSearch(TrekSet1,STP,FIT);
-     TrekSet1=TrekBreakPoints(TrekSet1,STP);
+     [TrekSet,ExcelentFit,TrekSet1]=TrekSubtract(TrekSet,FIT);
+     TrekSet1=TrekPeakReSearch(TrekSet1,FIT);
+     TrekSet1=TrekBreakPoints(TrekSet1);
      PeakN=numel(TrekSet.SelectedPeakInd);
 
      ExFit=not(any(TrekSet1.SelectedPeakInd>FIT.MaxInd-STP.FrontN&TrekSet1.SelectedPeakInd<=FIT.MaxInd));
      if xor(ExcelentFit,ExFit)&FIT.Khi<1&FIT.A>TrekSet.Threshold&Pass>1
          [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT,STP);
      end;
-     TrekSet=TrekPeakReSearch(TrekSet,STP,FIT);
-     TrekSet=TrekBreakPoints(TrekSet,STP);
+     TrekSet=TrekPeakReSearch(TrekSet,FIT);
+     TrekSet=TrekBreakPoints(TrekSet);
      PeakN=numel(TrekSet.SelectedPeakInd);
      
 
