@@ -1,9 +1,11 @@
-function TrekSet=TrekBreakPoints(TrekSetIn,STP);
+function TrekSet=TrekBreakPoints(TrekSetIn)
 tic;
 disp('>>>>>>>>TrekBreakPoints started');
 TrekSet=TrekSetIn;
-if nargin<2
-    STP=StpStruct(TrekSet.StandardPulse);
+if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)
+    STP=TrekSet.STP;
+else
+    StpStruct(TrekSet.StandardPulse);
 end;
 
 SelectedPeakIndshR=circshift(TrekSet.SelectedPeakInd,1);

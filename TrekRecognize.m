@@ -40,10 +40,6 @@ if ~isempty(varargin)&&mod(nargsin,2)~=0
     disp('incorrect number of input arguments');
     TrekSet.type=0;
     return;
-else
-   for i=1:fix(nargsin/2) 
-    eval(['TrekSet.',varargin{1+2*(i-1)},'=varargin{2*i};']);
-    end;
 end;
 
 if isstr(TrekSetIn); 
@@ -65,6 +61,7 @@ end;
         else %in case FileName is trek array
             TrekSet.name=inputname(1);
             TrekSet.FileName='unknown';
+            TrekSet.trek=TrekSetIn;
             if min(size(TrekSetIn))>2 % if in trek there are not only signal and time
                 disp('Wrong array size');
                 TrekSet.type=0;
@@ -96,6 +93,9 @@ end;
   end;
 
   
+    for i=1:fix(nargsin/2) 
+        eval(['TrekSet.',varargin{1+2*(i-1)},'=varargin{2*i};']);
+    end;
 
 
     if isempty(TrekSet.Date)

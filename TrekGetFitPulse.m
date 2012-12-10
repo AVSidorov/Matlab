@@ -11,7 +11,12 @@ FitPulse(bool)=0;
 FitPulse(1:STP.BckgFitN-round(Shift))=0;
 FitPulse(end-(STP.ZeroTailN-1+round(Shift)):end)=0;
 IndNeg=find(FitPulse<0);
+if isempty(IndNeg)
+ IndNeg=numel(FitPulse)+1;
+end;
 IndPos=find(FitPulse>0);
 IndPos(IndPos<IndNeg(1))=[];
 IndPulse=1:IndNeg(1)-1;
+
+   
 FitPulse(IndPulse)=FitPulse(IndPulse)*(sum(FitPulse(IndPulse))-sum(FitPulse))/sum(FitPulse(IndPulse));

@@ -2,17 +2,30 @@ function FIT=TrekGetFitInd(TrekSet,Ind,FIT)
 
 StpN=TrekSet.STP.size;
 maxI=TrekSet.STP.MaxInd;
-FitPulse=FIT.FitPulse;
+FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 TailInd=TrekSet.STP.TailInd;
 FrontN=TrekSet.STP.FrontN;
 
-FitIndPulseStrict=[1:maxI];
+
+
 MinSpace=1;
 
 
 FitInd=[1:StpN]'+Ind-maxI;
 FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
 FitIndPulse=FitInd-Ind+maxI;
+
+
+%  FitIndStrict=[FitInd(1):Ind];
+%  FitIndPulseStrict=FitIndStrict-Ind+maxI;
+ [md,mdInd]=max(diff(TrekSet.STP.FinePulse));
+ maxId=TrekSet.STP.TimeInd(mdInd);
+% maxId=190;
+if isfield(FIT.FitIndPulseStrict)&&~isempty(FIT.FitIndPulseStrict)
+    FitIndPulseStrict=FIT.FitIndPulseStrict;
+else
+    FitIndPulseStrict=1:round(maxId-FIT.Shift);
+end;
 
 FIT.FitInd=FitInd;
 FIT.FitIndPulse=FitIndPulse;

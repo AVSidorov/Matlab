@@ -12,7 +12,11 @@ end;
 
 
 
-MaxFrontN=TrekSet.STP.FrontN;
+if isfield(TrekSet.STP,'FrontN')
+    MaxFrontN=TrekSet.STP.FrontN;   
+else
+    MaxFrontN=30;
+end;
 
 
 

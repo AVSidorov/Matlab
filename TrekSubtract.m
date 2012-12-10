@@ -25,16 +25,17 @@ FitIndPulse=FitStruct.FitIndPulse;
 Ind=FitStruct.MaxInd;
 
 
+
 SubtractInd=[1:PulseN]+Ind-MaxInd;
 SubtractInd=SubtractInd(SubtractInd<=TrekSet.size&SubtractInd>=1);
 SubtractIndPulse=SubtractInd-Ind+MaxInd;
 
-PulseSubtract=FitStruct.FitPulse;
+PulseSubtract=FitStruct.FitPulse*FitStruct.A;
 
                         
-OverloadInd=SubtractInd(TrekSet.trek(SubtractInd)>TrekSet.MaxSignal);
+OverloadInd=SubtractInd((TrekSet.trek(SubtractInd)>TrekSet.MaxSignal-TrekSet.StdVal)|(TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPulse)<TrekSet.MinSignal+TrekSet.StdVal));
 OverloadIndPulse=OverloadInd-Ind+MaxInd;
-PulseSubtract(OverloadIndPulse)=TrekSet.trek(OverloadInd);
+PulseSubtract(OverloadIndPulse)=0;
 
 
 TrekSet.trek(SubtractInd)=TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPulse);
@@ -49,8 +50,8 @@ TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
 TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
 TrekSet.peaks(end,7)=-1;                     % means that Standing Alone or first from Overlaped pulses
 
-if all(abs(TrekSet.trek(FitStruct.FitInd(FitStruct.FitIndPulse>StpSet.BckgFitN)))<TrekSet.Threshold)&...    %check fitting quality
-   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))>-TrekSet.Threshold)&...
+if all(abs(TrekSet.trek(FitInd(FitIndPulse>StpSet.BckgFitN))-FitStruct.B)<TrekSet.Threshold)&...    %check fitting quality
+   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))-FitStruct.B>-TrekSet.Threshold)&...
    FitStruct.A>0
    %check that FitPulse isn't moved right and fitted Pulse Amplitude much
    %greater than Amplitude of real signal pulse
@@ -80,7 +81,7 @@ if TrekSet.Plot
         grid on; hold on;
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));
         plot(Ind,TrekSetIn.trek(Ind),'*r');
-        plot(SubtractInd,PulseSubtract(SubtractIndPulse),'.r-');
+        plot(SubtractInd,PulseSubtract(SubtractIndPulse)+FitStruct.B,'.r-');
         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
         plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
         plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),TrekSet1.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');

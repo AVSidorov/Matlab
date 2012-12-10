@@ -1,7 +1,7 @@
 function FIT=TrekFitFast(TrekSet,Ind)
 tic;
 disp('>>>>>>>>TrekFitFast started');
-FitFast=true;
+FitFast=false;
 
 if ~isempty(TrekSet.STP)
     STP=TrekSet.STP;

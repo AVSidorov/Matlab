@@ -7,25 +7,30 @@ function [PoissonSet,INs]=PoissonSeparate(FileName,IN)
 %Wmain - counts for the second peak maximum, 
 %K=2*W1/Sigma1^2=2*Wmain/SigmaMain^2;  Sigma - half width of the peaks
 
-W1Rad=5.898;
-W2Rad=5.887;
-W3Rad=6.490;
+W1Rad=5.89875;
+W2Rad=5.88765;
+W3Rad=6.49045;
 %W4Rad=2.956;   % keV,   energy of the Ar excited line 3.203-0.247 Fe-Kalpha Ar Radiation
                         %5.96(97)-2.956=3.014
-W4Rad=4.16;      % keV,   energy escape Peak by manual fit;
+WRadEsc=1.740; % keV,   Kalpha line energe detector substance(Ar or Si) that gives escape peak
+W1RadEsc=W1Rad-WRadEsc;                        
+W2RadEsc=W2Rad-WRadEsc;
+W3RadEsc=W3Rad-WRadEsc;
+
 %WmainRad=5.97;   % keV,   energy of the combined Fe line 
 if isstr(FileName) Spectr=load(FileName);  else  Spectr=FileName;  end; 
 ZeroBool=Spectr(:,2)==0; 
 Spectr(ZeroBool,:)=[]; 
 % First approximation data
 Amain=sum(Spectr(:,2)); 
-[M,Ind]=Spectr(:,2)
+[M,Ind]=max(Spectr(:,2));
+
 
 
 W1=Spectr(Ind,1); 
 Sigma1=0.03*W1; 
 
-W4=W1*W4Rad/W1Rad;
+WEsc=W1*WRadEsc/W1Rad;
 
 
 % Borders for fitting the main peak
@@ -49,7 +54,7 @@ else
   if IN(2)>0 Sigma1=IN(2); end;
   if IN(3)>0 LowerBorder=IN(3); end;
   if IN(4)>0 HighBorder=IN(4); end;
-  if IN(5)>0 W4=IN(5); end;
+  if IN(5)>0 WEsc=IN(5); end;
   if IN(6)>0 LowerBorder1=IN(6); end;
   if IN(7)>0 HighBorder1=IN(7); end;
 end;
@@ -103,48 +108,7 @@ while key=='r'|'R'
                INs(4)=Inp;
            else
                INs(4)=0;
-           end;
-
-        
-        
-        fprintf('W4=%3.0f:   \n', W4);        
-
-           Inp = input('Insert the escape peak position\n');  
-           if not(isempty(Inp)) 
-               W4=Inp ;    
-               INs(5)=Inp;
-           else
-               INs(5)=0;
-           end;
-        
-
-        
-        fprintf('Lower border=%3.0f:   \n', LowerBorder1);                
-
-            Inp = input('Insert lower border for fitting escape\n'); 
-           if not(isempty(Inp)) 
-               LowerBorder1=Inp ;    
-               INs(6)=Inp;
-           else
-               INs(6)=0;
-           end;
-
-        fprintf('High border =%3.0f:   \n', HighBorder1);                
-
-            Inp = input('Insert high border for fitting escape\n'); 
-           if not(isempty(Inp)) 
-               HighBorder1=Inp ;    
-               INs(7)=Inp;
-           else
-               INs(7)=0;
-           end;
-
- %         fprintf('A4=%3.0f:   ', A4);                
-%         Inp = input('Insert the second peak amplitude\n');  
-%         if not(isempty(Inp)) A4=Inp ;    end;
-       
-%         W4=Wmain*W3Rad/WmainRad;
-%         Sigma4=SigmaMain*sqrt(W4/Wmain);
+           end;             
     end;
     hold off; 
     plot(Spectr(:,1),Spectr(:,2),'-ro'); grid on; hold on; 
@@ -168,27 +132,23 @@ while key=='r'|'R'
     FitSpec1=SpectrFit(Spectr(:,1),W1,K);
     FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,K);
     FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,K);
-    FitSpec4=SpectrFit(Spectr(:,1),W4,K);
-    FitSpecS=FitSpec1+FitSpec2+FitSpec3;
+    FitSpecS=FitSpec1+FitSpec2;
 
     
     BorderBool=(Spectr(:,1)>=LowerBorder)&(Spectr(:,1)<=HighBorder);
 
-    A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
+    A1=sum(Spectr(BorderBool,2).*FitSpecS(BorderBool))/sum(FitSpecS(BorderBool).^2);   
 
    
-    BorderBool=(Spectr(:,1)>=LowerBorder1)&(Spectr(:,1)<=HighBorder1);
 
-    A4=P1(Spectr(BorderBool,:),FitSpec4(BorderBool))/P2(Spectr(BorderBool,:),FitSpec4(BorderBool));  %
 
     
    
     
     plot(Spectr(:,1),A1*FitSpec1,'-b'); 
     plot(Spectr(:,1),A1*FitSpec2,'-c'); 
-    plot(Spectr(:,1),A1*FitSpec3,'-g'); 
-    plot(Spectr(:,1),A4*FitSpec4,'-k'); 
-    plot(Spectr(:,1),A1*FitSpecS+A4*FitSpec4,'-m','LineWidth',1.5); 
+    plot(Spectr(:,1),A1*FitSpec3,'-g');
+    plot(Spectr(:,1),A1*(FitSpecS+FitSpec3),'-m','LineWidth',1.5);
     title('Press ''R'' to input new data or any key to continue'); 
     key=input('press a key to continue or ''r'' to reapeat the input  \n ','s'); 
 end; 
@@ -212,14 +172,10 @@ for j=1:Wnum
            W2=W1*W2Rad/W1Rad;
            W3=W1*W3Rad/W1Rad;
            FitSpec1=SpectrFit(Spectr(:,1),W1,Kset(i));
-           FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kset(i));
-           FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,Kset(i));
-           FitSpec4=SpectrFit(Spectr(:,1),W4,Kset(i));         
-           FitSpecS=FitSpec1+FitSpec2+FitSpec3;          
+           FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kset(i));           
+           FitSpecS=FitSpec1+FitSpec2;          
            A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
-           FitSpecS=FitSpec1+FitSpec2+FitSpec3+(A4/A1)*FitSpec4;
-           A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
-           FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3+A4*FitSpec4;
+           FitSpecS=A1*FitSpec1+A1*FitSpec2;
            S(i)=KhiSquare(Spectr(BorderBool,:),FitSpecS(BorderBool))/NumSpectrPoints;   %
     end;
     %search along the K direction
@@ -267,80 +223,20 @@ FitSpecS=FitSpec1+FitSpec2+FitSpec3;
 A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
 
 
-Sigma4=sqrt(2*W4/Kmin);
-Wrange=2*Sigma4; 
-BorderBool1=(Spectr(:,1)>=LowerBorder1)&(Spectr(:,1)<=HighBorder1);
-NumSpectrPoints1=size(Spectr(BorderBool1,1),1); 
-Wstep=Wrange/(Wnum-1);
-W4set=(W4-Wrange/2:Wstep:W4+Wrange/2);
-for j=1:Wnum
-           W41=W4set(j);
-           Wdif=W1-W41;
-           W42=W2-Wdif;
-           W43=W3-Wdif;
 
-           FitSpec41=SpectrFit(Spectr(:,1),W41,Kmin);
-           FitSpec42=0.51*SpectrFit(Spectr(:,1),W42,Kmin);
-           FitSpec43=0.16*SpectrFit(Spectr(:,1),W43,Kmin);
-           
-           FitSpec4=FitSpec41+FitSpec42+FitSpec43;          
-           A4=P1(Spectr(BorderBool1,:),FitSpec4(BorderBool1))/P2(Spectr(BorderBool1,:),FitSpec4(BorderBool1));  %
-
-           FitSpecS1=A1/A4*FitSpecS+FitSpec4;
-           A4=P1(Spectr(BorderBool1,:),FitSpecS1(BorderBool1))/P2(Spectr(BorderBool1,:),FitSpecS1(BorderBool1));  %
-           
-           FitSpecS1=A4*FitSpecS1;
-           S4(j)=KhiSquare(Spectr(BorderBool1,:),FitSpecS1(BorderBool1))/NumSpectrPoints1;   %
-           
-end; 
-%search along the W direction
- W4set(isnan(S4))=[];
- S4(isnan(S4))=[];
- 
- [MinKhi2_4,MinKhi2_4Ind]=min(S4);
- W41=W4set(MinKhi2_4Ind);
- if MinKhi2_4Ind>2&MinKhi2_4Ind<max(size(S4))-2;
-     poly4=polyfit(W4set(MinKhi2_4Ind-2:MinKhi2_4Ind+2)-W41,S4(MinKhi2_4Ind-2:MinKhi2_4Ind+2),4);
-     W4fit=[W4set(MinKhi2_4Ind-1)-W41:Wstep/20:W4set(MinKhi2_4Ind+1)-W41];
-     S4fine=polyval(poly4,W4fit);
-     [AbsMinKhi2_4,MinKhi2_4Ind]=min(S4fine);
- 
-     if (AbsMinKhi2_4<0)|(AbsMinKhi2_4>min(MinKhi2_4)) 
-        AbsMinKhi2_4=MinKhi2_4;
-     else
-           W41=W4fit(MinKhi2_4Ind)+W41;
-     end;
- end;
-
-    W41W=W1Rad*W41/W1;
-
-    Wdif=W1-W41;
-    W42=W2-Wdif;
-    W43=W3-Wdif;
- 
-    WdifW=W1Rad*Wdif/W1;
 
  
 FitSpec1=SpectrFit(Spectr(:,1),W1,Kmin);
 FitSpec2=0.51*SpectrFit(Spectr(:,1),W2,Kmin);
 FitSpec3=0.16*SpectrFit(Spectr(:,1),W3,Kmin);
 
-FitSpec41=SpectrFit(Spectr(:,1),W41,Kmin);
-FitSpec42=0.51*SpectrFit(Spectr(:,1),W42,Kmin);
-FitSpec43=0.16*SpectrFit(Spectr(:,1),W43,Kmin);
+
 
 FitSpecS=FitSpec1+FitSpec2+FitSpec3;
-FitSpec4=FitSpec41+FitSpec42+FitSpec43;
+
 
 A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
-A4=P1(Spectr(BorderBool1,:),FitSpec4(BorderBool1))/P2(Spectr(BorderBool1,:),FitSpec4(BorderBool1));  %
 
-
-FitSpecS=A1/A4*FitSpec1+A1/A4*FitSpec2+A1/A4*FitSpec3+FitSpec4;
-A4=P1(Spectr(BorderBool1,:),FitSpecS(BorderBool1))/P2(Spectr(BorderBool1,:),FitSpecS(BorderBool1));  %
-
-FitSpecS=FitSpec1+FitSpec2+FitSpec3+A4/A1*FitSpec4;
-A1=P1(Spectr(BorderBool,:),FitSpecS(BorderBool))/P2(Spectr(BorderBool,:),FitSpecS(BorderBool));  %
 
 
 
@@ -350,9 +246,9 @@ KminW=Kmin*W1/W1Rad;
 Sigma1=sqrt(2*W1/Kmin); %%%%%SigmaMain=2*sqrt(Wmain/Kmin);
 Sigma1W=Sigma1*W1Rad/W1;
 
-FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3+A4*FitSpec4;
+FitSpecS=A1*FitSpec1+A1*FitSpec2+A1*FitSpec3;
 
-Bool=Spectr(:,1)>=W4+Sigma1;
+Bool=Spectr(:,1)>=WEsc+Sigma1;
 [Amain,WmainI]=max(FitSpecS(Bool));
     WmainI=find(Bool,1,'first')+WmainI;
     Wst=Spectr(WmainI-1,1);
@@ -364,44 +260,21 @@ Bool=Spectr(:,1)>=W4+Sigma1;
     FitSpec2f=0.51*SpectrFit(WmainSet,W2,Kmin);
     FitSpec3f=0.16*SpectrFit(WmainSet,W3,Kmin);
 
-    FitSpec41f=SpectrFit(WmainSet,W41,Kmin);
-    FitSpec42f=0.51*SpectrFit(WmainSet,W42,Kmin);
-    FitSpec43f=0.16*SpectrFit(WmainSet,W43,Kmin);
-
-[Amain,WmainI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f)+A4*(FitSpec41f+FitSpec42f+FitSpec43f));
+[Amain,WmainI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f));
  
 Wmain=WmainSet(WmainI);
   WmainW=W1Rad*Wmain/W1;
 
-[Aesc,WescI]=max(FitSpecS(BorderBool1));
-    IndEsc=find(BorderBool1);
-    Wst=Spectr(IndEsc(max([WescI-1,1])),1);
-    Wend=Spectr(IndEsc(min([WescI+1,size(IndEsc,1)])),1);
-    dW=(Wend-Wst)/20;
-    WescSet=Wst:dW:Wend;
-    
-    FitSpec1f=SpectrFit(WescSet,W1,Kmin);
-    FitSpec2f=0.51*SpectrFit(WescSet,W2,Kmin);
-    FitSpec3f=0.16*SpectrFit(WescSet,W3,Kmin);
-
-    FitSpec41f=SpectrFit(WescSet,W41,Kmin);
-    FitSpec42f=0.51*SpectrFit(WescSet,W42,Kmin);
-    FitSpec43f=0.16*SpectrFit(WescSet,W43,Kmin);
-
-[Aesc,WescI]=max(A1*(FitSpec1f+FitSpec2f+FitSpec3f)+A4*(FitSpec41f+FitSpec42f+FitSpec43f));
- 
- Wesc=WescSet(WescI);
- WescW=W1Rad*Wesc/W1;
-
 
 SigmaMain=Sigma1*sqrt(Wmain/W1);
 SigmaMainW=SigmaMain*WmainW/Wmain;
-SigmaEsc=Sigma1*sqrt(Wesc/W1);
 
 %FWHM finding
-Bool=(Spectr(:,1)>=W4+Sigma1)&(Spectr(:,1)<=Wmain);
+Bool=(Spectr(:,1)>=WEsc+Sigma1)&(Spectr(:,1)<=Wmain);
+Bool=Bool&(FitSpecS>0);
  w1=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
  Bool=(Spectr(:,1)>=Wmain);
+ Bool=Bool&(FitSpecS>0);
  w2=interp1(FitSpecS(Bool),Spectr(Bool,1),Amain/2);
 
  w1W=W1Rad*w1/W1;
@@ -426,31 +299,31 @@ Bool=(Spectr(:,1)>=W4+Sigma1)&(Spectr(:,1)<=Wmain);
 
 Chi2=KhiSquare(Spectr,FitSpecS)/size(FitSpecS,1);
 
-PoissonSet.W1=W1;
-PoissonSet.Wmain=Wmain;
-PoissonSet.WmainW=WmainW;
-PoissonSet.W41=W41;
-PoissonSet.Wesc=Wesc;
-PoissonSet.WescW=WescW;
-PoissonSet.Wdif=Wdif;
-PoissonSet.WdifW=WdifW;
-PoissonSet.SigmaMain=SigmaMain;
-PoissonSet.SigmaMainW=SigmaMainW;
-PoissonSet.SigmaMainP=100*SigmaMain/Wmain;
-PoissonSet.Sigma1=Sigma1;
-PoissonSet.Sigma1W=Sigma1W;
-PoissonSet.Sigma1P=100*Sigma1/Wmain;
-PoissonSet.FWHM=w2-w1;
-PoissonSet.FWHMw=w2W-w1W;
-PoissonSet.FWHMp=100*(w2W-w1W)/WmainW;
-PoissonSet.K=Kmin;
-PoissonSet.KW=KminW;
-PoissonSet.A1=A1;
-PoissonSet.A4=A4;
-PoissonSet.Amain=Amain;
-PoissonSet.Aesc=Aesc;
-PoissonSet.Chi2=Chi2;
-PoissonSet.Khi2=AbsMinKhi2;
+% PoissonSet.W1=W1;
+% PoissonSet.Wmain=Wmain;
+% PoissonSet.WmainW=WmainW;
+% PoissonSet.W41=W41;
+% PoissonSet.Wesc=Wesc;
+% PoissonSet.WescW=WescW;
+% PoissonSet.Wdif=Wdif;
+% PoissonSet.WdifW=WdifW;
+% PoissonSet.SigmaMain=SigmaMain;
+% PoissonSet.SigmaMainW=SigmaMainW;
+% PoissonSet.SigmaMainP=100*SigmaMain/Wmain;
+% PoissonSet.Sigma1=Sigma1;
+% PoissonSet.Sigma1W=Sigma1W;
+% PoissonSet.Sigma1P=100*Sigma1/Wmain;
+% PoissonSet.FWHM=w2-w1;
+% PoissonSet.FWHMw=w2W-w1W;
+% PoissonSet.FWHMp=100*(w2W-w1W)/WmainW;
+% PoissonSet.K=Kmin;
+% PoissonSet.KW=KminW;
+% PoissonSet.A1=A1;
+% PoissonSet.A4=A4;
+% PoissonSet.Amain=Amain;
+% PoissonSet.Aesc=Aesc;
+% PoissonSet.Chi2=Chi2;
+% PoissonSet.Khi2=AbsMinKhi2;
 
 
 
@@ -461,18 +334,18 @@ fprintf('begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin=begin
 fprintf('------------\n');
 fprintf('W1=%3.3f counts or %3.3f keV\n', W1,W1Rad);
 fprintf('Wmain=%3.3f counts or %3.3f keV\n',Wmain,WmainW);
-fprintf('W41=%3.3f counts or %3.3f keV\n',W41,W41W);
-fprintf('Wescape=%3.3f counts or %3.3f keV\n',Wesc,WescW);
-fprintf('Wdif=%3.3f counts or %3.3f keV\n',Wdif,WdifW);
+% fprintf('W41=%3.3f counts or %3.3f keV\n',W41,W41W);
+% fprintf('Wescape=%3.3f counts or %3.3f keV\n',Wesc,WescW);
+% fprintf('Wdif=%3.3f counts or %3.3f keV\n',Wdif,WdifW);
 
 fprintf('Sigma1=%3.3f counts or %3.3f keV or %3.1f %%\n', Sigma1, Sigma1W, 100*Sigma1/W1); 
 fprintf('SigmaMain=%3.3f counts or %3.3f keV or %3.1f %%\n', SigmaMain, SigmaMainW, 100*SigmaMain/Wmain); 
 fprintf('FWHM=%3.3f counts or %3.3f keV or %3.1f %%\n', w2-w1, w2W-w1W, 100*(w2W-w1W)/WmainW); 
 fprintf('A1=%3.3f\n',A1);
-fprintf('A4=%3.3f\n',A4);
+% fprintf('A4=%3.3f\n',A4);
 fprintf('Amain=%3.3f\n',Amain);
-fprintf('Aesc=%3.3f\n',Aesc);
-fprintf('Escape ratio=%3.3f\n',Aesc/Amain);
+% fprintf('Aesc=%3.3f\n',Aesc);
+% fprintf('Escape ratio=%3.3f\n',Aesc/Amain);
 fprintf('AbsMinKhi2=%3.3f  \n',AbsMinKhi2);
 fprintf('Chi2=%3.3f  \n',Chi2);
 fprintf('++++++++++++\n');
@@ -492,8 +365,8 @@ subplot(2,1,1); plot(Spectr(:,1),Spectr(:,2),'-ro'); grid on; hold on;
                 
                 x=[LowerBorder1, LowerBorder1]; y=[0,Amain];      plot(x,y,'-y');
                 x=[HighBorder1, HighBorder1];                  plot(x,y,'-y');
-                x=[W4set(1),W4set(1)];                         plot(x,y,'-r')
-                x=[W4set(end),W4set(end)];                     plot(x,y,'-r')                
+%                 x=[W4set(1),W4set(1)];                         plot(x,y,'-r')
+%                 x=[W4set(end),W4set(end)];                     plot(x,y,'-r')                
                 
                 x=[Wmain,Wmain];                             plot(x,y,'-m');               
                 
@@ -519,25 +392,25 @@ subplot(2,1,1); plot(Spectr(:,1),Spectr(:,2),'-ro'); grid on; hold on;
                 plot(Spectr(:,1),A1*FitSpec1,'-b','LineWidth',2); 
                 plot(Spectr(:,1),A1*FitSpec2,'-c','LineWidth',2); 
                 plot(Spectr(:,1),A1*FitSpec3,'-g','LineWidth',2); 
-                plot(Spectr(:,1),A4*FitSpec41,'-b','LineWidth',2); 
-                plot(Spectr(:,1),A4*FitSpec42,'-c','LineWidth',2); 
-                plot(Spectr(:,1),A4*FitSpec43,'-g','LineWidth',2); 
+%                 plot(Spectr(:,1),A4*FitSpec41,'-b','LineWidth',2); 
+%                 plot(Spectr(:,1),A4*FitSpec42,'-c','LineWidth',2); 
+%                 plot(Spectr(:,1),A4*FitSpec43,'-g','LineWidth',2); 
 
                 plot(Spectr(:,1),FitSpecS,'-m','LineWidth',3); 
 
                 plot(Spectr(:,1),Spectr(:,2)-FitSpecS,'-k','LineWidth',1.5); 
 
                 plot(x,Amain*Gauss(x,Wmain,SigmaMain),'-k');  
-                plot(x,Aesc*Gauss(x,Wesc,SigmaEsc),'-k');  
+%                 plot(x,Aesc*Gauss(x,Wesc,SigmaEsc),'-k');  
 
                 xlabel('counts'); ylabel('numbers'); 
 %                 'A1=',num2str(A1,'%6.2f'),'; W1=',num2str(W1,'%6.2f'),'cnts (5.989 keV); Sigma1=',...
 %                            num2str(Sigma1,'%6.2f'),' cnts (',num2str(Sigma1W,'%6.2f'),' keV)=',...
 %                            num2str(100*Sigma1/W1,'%6.2f'),'%',... 
                 TitleText=['Amain=',num2str(Amain,'%6.2f'),'; Wmain=',num2str(Wmain,'%6.2f'),'cnts (',num2str(WmainW,'%6.2f'),...
-                           'keV); SigmaMain=', num2str(SigmaMain,'%6.2f'),' cnts (',num2str(SigmaMainW,'%6.2f'),' keV)=',...
+                           'keV); SigmaMain=', num2str(SigmaMain,'%6.2f'),' cnts (',num2str(SigmaMainW,'%6.3f'),' keV)=',...
                            num2str(100*SigmaMain/Wmain,'%6.2f'),'%; FWHM=',num2str(w2-w1,'%6.2f'),...
-                           ' cnts (',num2str(w2W-w1W,'%6.2f'),' keV)=',...
+                           ' cnts (',num2str(1e3*(w2W-w1W),'%4.1f'),' eV)=',...
                            num2str(100*(w2W-w1W)/WmainW,'%6.2f'),'%']; 
                 title(TitleText);
 subplot(2,1,2); 
@@ -552,7 +425,7 @@ subplot(2,1,2);
 
 
 %=================================
-function y=SpectrFit(x,W0,K);   % Poisson distribution
+function y=SpectrFit(x,W0,K)   % Poisson distribution
 X=K*x+1; X0=K*W0+1; 
 y=X;
 LargeBool=(X>20)&(X0>20);
@@ -566,15 +439,15 @@ if not(isempty(y(not(LargeBool))))
 end; 
 y=Poisson_distr(K,W0,x);    
 
-function s=KhiSquare(HSpec,FitSpec);
+function s=KhiSquare(HSpec,FitSpec)
     s=sum(((HSpec(:,2)-FitSpec)./HSpec(:,3)).^2);
     
-function s=P1(HSpec,FitSpec); 
+function s=P1(HSpec,FitSpec)
     s=sum(HSpec(:,2).*FitSpec./HSpec(:,3).^2);
 
-function s=P2(HSpec,FitSpec); 
+function s=P2(HSpec,FitSpec) 
     s=sum((FitSpec./HSpec(:,3)).^2);
 
-function y=Gauss(W,W0,DW); 
+function y=Gauss(W,W0,DW) 
 y=exp(-((W-W0)/DW).^2);
 

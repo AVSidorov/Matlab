@@ -34,12 +34,12 @@ if size(StandardPulse,2)==2
     TimeInd=StandardPulse(:,1);
     FinePulse=StandardPulse(:,2);
     StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'cubic',0)';
-    StandardPulse=StandardPulse/max(StandardPulse);
+%     StandardPulse=StandardPulse/max(StandardPulse);
 else
     TimeInd=[1:numel(StandardPulse)]';
     FinePulse=StandardPulse;
 end;
-MaxInd=find(StandardPulse==1); %Standard Pulse must be normalized by Amp s
+[M,MaxInd]=max(StandardPulse); 
 FirstNotZero=find(abs(StandardPulse),1,'first');%Standard Pulse must have several zero point at front end and las zero point
 BckgFitN=FirstNotZero-1; 
 FrontN=MaxInd-BckgFitN;
@@ -57,9 +57,14 @@ maxI(maxI>=MaxInd+2)=[];
 maxN=numel(maxI); 
 
 IndNegativeTail=find(Stp<0);
+
 IndPositiveTail=find(Stp>0);
-IndPositiveTail(IndPositiveTail<IndNegativeTail(1))=[];
-IndPulse=1:IndNegativeTail(1)-1;
+if ~isempty(IndNegativeTail)
+    IndPositiveTail(IndPositiveTail<IndNegativeTail(1))=[];
+    IndPulse=1:IndNegativeTail(1)-1;
+else
+    IndPulse=IndPositiveTail;
+end;
 
 STP.Stp=StandardPulse;
 STP.size=numel(StandardPulse);
