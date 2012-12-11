@@ -134,7 +134,10 @@ SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
 %% ====== PeakOnFront Search
-% Search Minimums are correspondig to SelectedInd
+%Searching peaks on front of selected pulses
+%These are points on front where are minimums of trek derivation
+
+%Search Minimums are correspondig to SelectedInd
 Difer=circshift(MinInd,-1)-MinInd;
 Difer(end)=0;
 DeltaMinTrek=zeros(trSize,1);
@@ -149,8 +152,8 @@ MinPreSelBool=DeltaMinTrek-DeltaMinSelectedTrek>0;
 MinPreSelInd=find(MinPreSelBool);
 
 
-%Searching peaks on front of selected pulses
-%These are points on front where are minimums of trek derivation
+
+
 
 % search trek derivation minimums
 trD=diff(trek,1);
@@ -162,35 +165,69 @@ trDL=circshift(trD,-1);
 trDMinBool=trD<trDL&trD<trDR;
 trDMinInd=find(trDMinBool);
 
-%At first choose such ^ points and minimums befor SelectedInd of trek
-%It's necceseary for calculating gap
-Bool=(trDMinBool&FrontBool)|MinPreSelBool;
-%Finding indexes of points ^
-Ind=find(Bool);
-IndSh=circshift(Ind,1);
-IndSh(1)=Ind(1);
-%array of gaps
-Difer=trek(Ind)-trek(IndSh);
-%array of size gaps in points
-DiferN=Ind-IndSh;
-%excluding points whith small gap or size gap in points is short or long
-bool=Difer<Threshold;%|abs(MaxFrontN-DiferN)>=2;
-
-Ind(bool)=[];
-
-PeakOnFrontBool=false(trSize,1); 
-PeakOnFrontBool(Ind)=true;
-% excluding minimums
-PeakOnFrontBool=PeakOnFrontBool&not(MinBool);
-PeakOnFrontBool(MaxInd)=false; %exclude Maximums
+%Select from trDMinInd points whith large enough front length and high
+PeakOnFrontInd=trDMinInd;
+PeakOnFrontInd=PeakOnFrontInd(FrontsHigh(PeakOnFrontInd)>Threshold);
+PeakOnFrontInd=PeakOnFrontInd(trek(PeakOnFrontInd)>Threshold);
+PeakOnFrontBool=false(trSize,1);
+PeakOnFrontBool(PeakOnFrontInd)=true;
+PeakOnFrontBool(SelectedInd)=false;
 PeakOnFrontInd=find(PeakOnFrontBool);
 
-%search peak on front without trD minimum 
-% bool=FrontN>=2*MaxFrontN
+PeakOnFrontBool=PeakOnFrontBool|MinPreSelBool|SelectedBool;
+PeakOnFrontInd=find(PeakOnFrontBool);
+Difer=PeakOnFrontInd-circshift(PeakOnFrontInd,1);
+Difer(1)=0;
+PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/2);
+PeakOnFrontBool=false(trSize,1);
+PeakOnFrontBool(PeakOnFrontInd)=true;
+PeakOnFrontBool(MinInd)=false;
+PeakOnFrontBool(SelectedInd)=false;
+PeakOnFrontInd=find(PeakOnFrontBool);
+
+PeakOnFrontBool=PeakOnFrontBool|SelectedBool;
+PeakOnFrontInd=find(PeakOnFrontBool);
+Difer=circshift(PeakOnFrontInd,-1)-PeakOnFrontInd;
+Difer(end)=0;
+PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/2);
+PeakOnFrontBool=false(trSize,1);
+PeakOnFrontBool(PeakOnFrontInd)=true;
+PeakOnFrontBool(SelectedInd)=false;
+PeakOnFrontInd=find(PeakOnFrontBool);
 
 
-TrekSet.PeakOnFrontInd=PeakOnFrontInd;
-PeakOnFrontN=size(PeakOnFrontInd,1);
+% % Calculating Gaps from this points from minimum of trek
+% % and to SelectedPulseInd
+% 
+% %Gaps from Minimum
+% %At first choose such ^ points and minimums befor SelectedInd of trek
+% Bool=(trDMinBool&FrontBool)|MinPreSelBool;
+% %Finding indexes of points ^
+% Ind=find(Bool);
+% IndSh=circshift(Ind,1);
+% IndSh(1)=Ind(1);
+% %array of gaps
+% Difer=trek(Ind)-trek(IndSh);
+% %array of size gaps in points
+% DiferN=Ind-IndSh;
+% %excluding points whith small gap or size gap in points is short or long
+% bool=Difer<Threshold;%|abs(MaxFrontN-DiferN)>=2;
+% 
+% Ind(bool)=[];
+% 
+% PeakOnFrontBool=false(trSize,1); 
+% PeakOnFrontBool(Ind)=true;
+% % excluding minimums
+% PeakOnFrontBool=PeakOnFrontBool&not(MinBool);
+% PeakOnFrontBool(MaxInd)=false; %exclude Maximums
+% PeakOnFrontInd=find(PeakOnFrontBool);
+% 
+% %search peak on front without trD minimum 
+% % bool=FrontN>=2*MaxFrontN
+% 
+% 
+% TrekSet.PeakOnFrontInd=PeakOnFrontInd;
+% PeakOnFrontN=size(PeakOnFrontInd,1);
 
 
 
