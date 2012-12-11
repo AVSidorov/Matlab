@@ -125,7 +125,6 @@ clear trL trR FrontsHighL FrontsHighR;
 
 
 
-
 %% ============ Search Markers
 %SelectedBool=ByFrontBool|PeakOnFrontBool|ByHighBool|LongFrontBool;
 SelectedBool=MaxBool&MaxBoolFronts&FrontsHigh>Threshold/2&trek>Threshold/2;
@@ -134,6 +133,64 @@ SelectedBool=MaxBool&MaxBoolFronts&FrontsHigh>Threshold/2&trek>Threshold/2;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
+%% ====== PeakOnFront Search
+% Search Minimums are correspondig to SelectedInd
+Difer=circshift(MinInd,-1)-MinInd;
+Difer(end)=0;
+DeltaMinTrek=zeros(trSize,1);
+DeltaMinTrek(MinInd)=Difer;
+
+MinSelectedInd=find(MinBool|SelectedBool);
+Difer=circshift(MinSelectedInd,-1)-MinSelectedInd;
+Difer(end)=0;
+DeltaMinSelectedTrek=zeros(trSize,1);
+DeltaMinSelectedTrek(MinSelectedInd)=Difer;
+MinPreSelBool=DeltaMinTrek-DeltaMinSelectedTrek>0;
+MinPreSelInd=find(MinPreSelBool);
+
+
+%Searching peaks on front of selected pulses
+%These are points on front where are minimums of trek derivation
+
+% search trek derivation minimums
+trD=diff(trek,1);
+trD(end+1)=0;
+trD(MaxInd)=0;
+trD(MinInd)=0;
+trDR=circshift(trD,1);
+trDL=circshift(trD,-1);
+trDMinBool=trD<trDL&trD<trDR;
+trDMinInd=find(trDMinBool);
+
+%At first choose such ^ points and minimums befor SelectedInd of trek
+%It's necceseary for calculating gap
+Bool=(trDMinBool&FrontBool)|MinPreSelBool;
+%Finding indexes of points ^
+Ind=find(Bool);
+IndSh=circshift(Ind,1);
+IndSh(1)=Ind(1);
+%array of gaps
+Difer=trek(Ind)-trek(IndSh);
+%array of size gaps in points
+DiferN=Ind-IndSh;
+%excluding points whith small gap or size gap in points is short or long
+bool=Difer<Threshold;%|abs(MaxFrontN-DiferN)>=2;
+
+Ind(bool)=[];
+
+PeakOnFrontBool=false(trSize,1); 
+PeakOnFrontBool(Ind)=true;
+% excluding minimums
+PeakOnFrontBool=PeakOnFrontBool&not(MinBool);
+PeakOnFrontBool(MaxInd)=false; %exclude Maximums
+PeakOnFrontInd=find(PeakOnFrontBool);
+
+%search peak on front without trD minimum 
+% bool=FrontN>=2*MaxFrontN
+
+
+TrekSet.PeakOnFrontInd=PeakOnFrontInd;
+PeakOnFrontN=size(PeakOnFrontInd,1);
 
 
 
