@@ -1,4 +1,4 @@
-function FIT=TrekGetFitInd(TrekSet,Ind,FIT)
+function FIT=TrekFitInShift(TrekSet,Ind,FIT)
 
 Ipulse=find(TrekSet.SelectedPeakInd==Ind);
 StpN=TrekSet.STP.size;
