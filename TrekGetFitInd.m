@@ -9,14 +9,38 @@ FrontN=TrekSet.STP.FrontN;
 
 
 
+
 MinSpace=1;
 
+
+FitInd=[1:StpN]'+Ind-maxI;
+FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
+FitIndPulse=FitInd-Ind+maxI;
+
+if Ipulse<numel(TrekSet.SelectedPeakInd)
+    FitInd=FitInd(FitInd<=TrekSet.SelectedPeakInd(Ipulse+1)-FrontN);
+    FitIndPulse=FitInd-Ind+maxI;
+end;
+Amax=max(TrekSet.trek(FitInd));
+if abs(FIT.A+FIT.B-Amax)>TrekSet.StdVal*TrekSet.OverSt
+    FIT.A=Amax;
+    FIT.B=0;
+end;
+FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 %  FitIndStrict=[FitInd(1):Ind];
 %  FitIndPulseStrict=FitIndStrict-Ind+maxI;
 
-[md,mdInd]=max(diff(TrekSet.STP.FinePulse));
-maxId=TrekSet.STP.TimeInd(mdInd);
-maxId=190;
+if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
+    FitIndStrict=FIT.FitIndStrict;
+else
+    FitIndStrict=FitInd(1):Ind;
+end;
+
+
+dPulse=diff(TrekSet.STP.FinePulse);
+[md,mdInd]=max(dPulse);
+maxId=find(dPulse(mdInd:end)*FIT.A<TrekSet.StdVal*TrekSet.OverSt,1,'first');
+maxId=TrekSet.STP.TimeInd(mdInd+maxId);
 if isfield(FIT,'FitIndPulseStrict')&&~isempty(FIT.FitIndPulseStrict)
     FitIndPulseStrict=FIT.FitIndPulseStrict;
 else
@@ -24,20 +48,14 @@ else
 end;
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
-FitInd=[1:StpN]'+Ind-maxI;
-FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
-FitIndPulse=FitInd-Ind+maxI;
-
-if Ipulse<numel(TrekSet.SelectedPeakInd)
-    FitInd=FitInd(FitInd<=TrekSet.SelectedPeakInd(Ipulse)-FrontN);
-    FitIndPulse=FitInd-Ind+maxI;
-end;
-Amax=max(TrekSet.trek(FitInd));
 
 
-FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 
 bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.Threshold;
+FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd));
+bool(FitIndPulseStrict)=true;
+FitIndPulseStrict=FitIndStrict-Ind+maxI;
+FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd));
 bool(FitIndPulseStrict)=true;
 
 FitInd=FitInd(bool);

@@ -112,6 +112,8 @@ while any(isinf(ShKhi(:,2)))
            FIT=TrekGetFitInd(TrekSet,Ind,FIT);
            FitInd=FIT.FitInd;
            FitIndPulse=FIT.FitIndPulse;
+           FIT.FitIndPulseStrict=FitIndPulse;
+           FIT.FitIndStrict=FitInd;
            N=0;
            while FIT.N-N>0
                N=FIT.N;
@@ -130,6 +132,7 @@ while any(isinf(ShKhi(:,2)))
                FIT=TrekGetFitInd(TrekSet,Ind,FIT);
                FitInd=FIT.FitInd;
                FitIndPulse=FIT.FitIndPulse;
+               FIT.FitIndStrict=FitInd;
                FIT.FitIndPulseStrict=FitIndPulse;
            end;
            AB(i,1)=FIT.A;
@@ -237,30 +240,31 @@ while any(isinf(ShKhi(:,2)))
         ShKhi(end+1,1)=ShKhi(li,1)+dS/gs;
         ShKhi(end,2)=inf;
      end;
- % gradient search
-        if KhiMinInd>2
-        bool=false(size(ShKhi,1),1);
-        bool(1:KhiMinInd-1,1)=true;
-        bool=bool&ShKhi(:,2)~=inf&~isnan(ShKhi(:,2));
-        [p,s,m]=polyfit(ShKhi(bool,1),ShKhi(bool,2),1);
-        r=roots(p)*m(2)+m(1);
-        if ~isempty(r)&&~any(ShKhi(:,1)==r)
-            ShKhi(end+1,1)= r;  
-            ShKhi(end,2)=inf;
-        end;
-      end;
-
-     
-        bool=false(size(ShKhi,1),1);
-        bool(KhiMinInd+1:endInd,1)=true;
-      if KhiMinInd<endInd-1          
-        [p,s,m]=polyfit(ShKhi(bool,1),ShKhi(bool,2),1);
-        r=roots(p)*m(2)+m(1);
-        if ~isempty(r)&&~any(ShKhi(:,1)==r)
-            ShKhi(end+1,1)= r;  
-            ShKhi(end,2)=inf;
-        end;
-      end;
+%  % gradient search
+%         if KhiMinInd>2
+%         bool=false(size(ShKhi,1),1);
+%         bool(1:KhiMinInd-1,1)=true;
+%         bool=bool&ShKhi(:,2)~=inf&~isnan(ShKhi(:,2));
+%         [p,s,m]=polyfit(ShKhi(bool,1),ShKhi(bool,2),1);
+%         
+%         r=roots(p)*m(2)+m(1);
+%         if ~isempty(r)&&~any(ShKhi(:,1)==r)
+%             ShKhi(end+1,1)= r;  
+%             ShKhi(end,2)=inf;
+%         end;
+%       end;
+% 
+%      
+%         bool=false(size(ShKhi,1),1);
+%         bool(KhiMinInd+1:endInd,1)=true;
+%       if KhiMinInd<endInd-1          
+%         [p,s,m]=polyfit(ShKhi(bool,1),ShKhi(bool,2),1);
+%         r=roots(p)*m(2)+m(1);
+%         if ~isempty(r)&&~any(ShKhi(:,1)==r)
+%             ShKhi(end+1,1)= r;  
+%             ShKhi(end,2)=inf;
+%         end;
+%       end;
 
     end;
 %% check for exit
