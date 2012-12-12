@@ -73,16 +73,20 @@ else
 end;
 [A,mi]=max(trek(Ind:Ind+ShiftRangeR));
 %%
-if mi-1~=0&&mi-1~=ShiftRangeR
-    ShKhi(1,1)=-(mi-1);
-    ShKhi(1,2)=inf;
+ShKhi(1,1)=-(mi-1);
+ShKhi(1,2)=inf;
+if ~any(0==ShKhi(:,1))
+    ShKhi(end+1,1)=0;
+    ShKhi(end,2)=inf;
 end;
-ShKhi(2,1)=0;
-ShKhi(2,2)=inf;
-ShKhi(3,1)=-ShiftRangeR;
-ShKhi(3,2)=inf;
-ShKhi(4,1)=ShiftRangeL;
-ShKhi(4,2)=inf;
+if ~any(-ShiftRangeR==ShKhi(:,1))
+    ShKhi(end+1,1)=-ShiftRangeR;
+    ShKhi(end,2)=inf;
+end;
+if ~any(ShiftRangeL==ShKhi(:,1))
+    ShKhi(end+1,1)=ShiftRangeL;
+    ShKhi(end,2)=inf;
+end;
 if ~any(-(STP.MaxInd-Iend)==ShKhi(:,1))
     ShKhi(end+1,1)=-(STP.MaxInd-Iend);
     ShKhi(end,2)=inf;
@@ -215,7 +219,7 @@ while any(isinf(ShKhi(:,2)))
     if ri-li>1
         [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,2),2);
          mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
-            if mid>-ShiftRangeR%&&mid<ShiftRangeL
+            if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeL
                 ShKhi(end+1,1)= mid;  
                 ShKhi(end,2)=inf;
             end;
@@ -224,7 +228,7 @@ while any(isinf(ShKhi(:,2)))
      if EndGoodInd-StGoodInd>1 %to avoid bad conditioned fit
         [KhiFit,s,m]=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),2),2);
         mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
-        if mid>-ShiftRangeR%&&mid<ShiftRangeLKhiFit(1)>0                
+        if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeLKhiFit(1)>0                
                 ShKhi(end+1,1)= mid;  
                 ShKhi(end,2)=inf;
         end;
