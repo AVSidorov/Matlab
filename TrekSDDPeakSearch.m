@@ -177,8 +177,10 @@ PeakOnFrontInd=find(PeakOnFrontBool);
 PeakOnFrontBool=PeakOnFrontBool|MinPreSelBool|SelectedBool;
 PeakOnFrontInd=find(PeakOnFrontBool);
 Difer=PeakOnFrontInd-circshift(PeakOnFrontInd,1);
-Difer(1)=0;
-PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/2);
+if ~isempty(Difer)
+    Difer(1)=0;
+end;
+PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/3);
 PeakOnFrontBool=false(trSize,1);
 PeakOnFrontBool(PeakOnFrontInd)=true;
 PeakOnFrontBool(MinInd)=false;
@@ -188,13 +190,19 @@ PeakOnFrontInd=find(PeakOnFrontBool);
 PeakOnFrontBool=PeakOnFrontBool|SelectedBool;
 PeakOnFrontInd=find(PeakOnFrontBool);
 Difer=circshift(PeakOnFrontInd,-1)-PeakOnFrontInd;
-Difer(end)=0;
-PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/2);
+if ~isempty(Difer)
+    Difer(end)=0;
+end;
+PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/3);
 PeakOnFrontBool=false(trSize,1);
 PeakOnFrontBool(PeakOnFrontInd)=true;
 PeakOnFrontBool(SelectedInd)=false;
 PeakOnFrontInd=find(PeakOnFrontBool);
+PeakOnFrontN=numel(PeakOnFrontInd);
 
+SelectedBool=SelectedBool|PeakOnFrontBool;
+SelectedInd=find(SelectedBool);
+SelectedN=numel(SelectedInd);
 
 % % Calculating Gaps from this points from minimum of trek
 % % and to SelectedPulseInd
@@ -250,6 +258,7 @@ if EndOut %to avoid statistic typing in short calls
     fprintf('OverSt is %3.1f\n',OverSt);
     fprintf('The total number of maximum = %7.0f \n',MaxN);
     fprintf('The number of selected peaks = %7.0f \n',SelectedN);
+    fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
     fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 end;
 %%
@@ -263,6 +272,10 @@ toc;
    if not(isempty(SelectedInd))
        plot(SelectedInd,trek(SelectedInd),'.r');
        s=char(s,'SelectedInd');
+   end;
+   if not(isempty(PeakOnFrontInd))
+       plot(PeakOnFrontInd,trek(PeakOnFrontInd),'db');
+       s=char(s,'OnFront');
    end;
    warning off; 
    legend(s);
