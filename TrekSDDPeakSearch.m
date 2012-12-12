@@ -116,7 +116,7 @@ HighPeakBool=MaxBool&trek>Threshold/2;
 %Exclude PeaksOnTail and etc.
 HighPeakBool(MaxInd(find(trek(MinInd)>=Threshold/2)))=false;
 HighPeakInd=find(HighPeakBool);
-HighPeakStartBool=trL>=Threshold/2&trek<Threshold/2;
+HighPeakStartBool=trL>Threshold/2&trek<Threshold/2;
 HighPeakStartBool(end)=false;
 HighPeakStartInd=find(HighPeakStartBool);
 HighPeakN=HighPeakInd-HighPeakStartInd; 
