@@ -42,7 +42,7 @@ while i<=PeakN %
      
      
      [TrekSet,ExcelentFit,TrekSet1]=TrekSubtract(TrekSet,FIT);
-     TrekSet1=TrekPeakReSearch(TrekSet1,FIT);
+     TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);
      TrekSet1=TrekBreakPoints(TrekSet1);
      PeakN=numel(TrekSet.SelectedPeakInd);
 
@@ -85,7 +85,7 @@ while i<=PeakN %
                         TrekSet=TrekSet1;
 %                    end;
 
-                   TrekSet=TrekPeakReSearch(TrekSet,STPC,FIT);
+                   TrekSet=TrekSDDPeakReSearch(TrekSet,STPC,FIT);
                    TrekSet=TrekBreakPoints(TrekSet,STP);
                    PeakN=numel(TrekSet.SelectedPeakInd);
                    if not(ExcelentFit)
