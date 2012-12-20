@@ -19,7 +19,7 @@ BadInd2=Ind(TrekSet1.trek(Ind)<=-TrekSet.Threshold);
 ts=figure;
 grid on; hold on;
 plot(SubtractInd,TrekSet.trek(SubtractInd));
-plot(SubtractInd,TrekSet1.trek(SubtractInd)),'k');
+plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
 plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,FIT.FitPulse*FIT.A+FIT.B,'r');
 % axis([FIT.FitInd(1),STP.TailInd(end)+FIT.MaxInd-STP.MaxInd,...
 %     min([min(TrekSet.trek(bool)),min(TrekSet1.trek(bool)),-TrekSet.Threshold]),...
