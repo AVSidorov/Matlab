@@ -52,7 +52,7 @@ while i<=PeakN %
 %      end;
        if ~ExcelentFit
            sound(B,5000);
-           [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT,STP);
+           [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT);
        end;
      TrekSet=TrekSDDPeakReSearch(TrekSet,FIT);
      TrekSet=TrekBreakPoints(TrekSet);
