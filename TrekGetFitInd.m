@@ -21,11 +21,11 @@ if Ipulse<numel(TrekSet.SelectedPeakInd)
     FitInd=FitInd(FitInd<=TrekSet.SelectedPeakInd(Ipulse+1)-FrontN);
     FitIndPulse=FitInd-Ind+maxI;
 end;
-Amax=max(TrekSet.trek(FitInd));
-if abs(FIT.A+FIT.B-Amax)>TrekSet.StdVal*TrekSet.OverSt
-    FIT.A=Amax;
-    FIT.B=0;
-end;
+% Amax=max(TrekSet.trek(FitInd));
+% if abs(FIT.A+FIT.B-Amax)>TrekSet.StdVal*TrekSet.OverSt
+%     FIT.A=Amax;
+%     FIT.B=0;
+% end;
 FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 %  FitIndStrict=[FitInd(1):Ind];
 %  FitIndPulseStrict=FitIndStrict-Ind+maxI;

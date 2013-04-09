@@ -16,9 +16,9 @@ Stp=STP.Stp;
 StpN=STP.size;
 
 trek=TrekSet.trek;
-MaxShift=min([STP.BckgFitN-1,STP.ZeroTailN-1]);
 
-if nargin<3
+
+if nargin<3||isempty(FitStruct)
     FitStruct.Good=false;
     FitStruct.A=1;
     FitStruct.B=0;
@@ -58,18 +58,24 @@ Iend=STP.TimeInd(A*diff(STP.FinePulse)./diff(STP.TimeInd)<2*TrekSet.StdVal);
 Iend(Iend<=Ist|Iend>=STP.MaxInd)=[];
 Iend=Iend(1);
 IstTrek=find(trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+1;
-if isfield(FIT,'ShifRangeL')&&~isempty(FIT.ShiftRangeL)
+MaxShift=[];
+if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
     ShiftRangeL=FIT.ShiftRangeL;
+    MaxShift=ShiftRangeL;
 else
     ShiftRangeL=STP.TimeInd(find(A*diff(STP.FinePulse)./diff(STP.TimeInd)<-2*TrekSet.StdVal,1,'first'));
 end;
 if isempty(ShiftRangeL)
     ShiftRangeL=Ind-find(trek(1:Ind)<TrekSet.StdVal*TrekSet.OverSt,1,'last');
 end;
-if isfield(FIT,'ShifRangeR')&&~isempty(FIT.ShiftRangeR)
-    ShiftRangeR=FIT.ShifRangeR;
+if isfield(FIT,'ShiftRangeR')&&~isempty(FIT.ShiftRangeR)
+    ShiftRangeR=FIT.ShiftRangeR;
+    MaxShift=max([ShiftRangeL;ShiftRangeR]);
 else
     ShiftRangeR=round(max([(STP.MaxInd-Iend),mi,STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse)]));
+end;
+if isempty(MaxShift)
+    MaxShift=min([STP.BckgFitN-1,STP.ZeroTailN-1]);
 end;
 [A,mi]=max(trek(Ind:Ind+ShiftRangeR));
 %%
@@ -91,7 +97,7 @@ if ~any(-(STP.MaxInd-Iend)==ShKhi(:,1))
     ShKhi(end+1,1)=-(STP.MaxInd-Iend);
     ShKhi(end,2)=inf;
 end;    
-if ~any(-(STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse))==ShKhi(:,1))
+if ~isempty(Ipulse)&&~any(-(STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse))==ShKhi(:,1))
     ShKhi(end+1,1)=-(STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse));
     ShKhi(end,2)=inf;
 end;    
@@ -104,6 +110,7 @@ if ~any(-(STP.FrontN-((Ind-IstTrek)+(Ist-STP.BckgFitN)))==ShKhi(:,1))       %Ind
 end;    
 
 Ns=numel(FIT.FitIndPulseStrict);
+NShKhi=0;
 while any(isinf(ShKhi(:,2)))
     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];
     while any(isinf(ShKhi(:,2)))
@@ -161,8 +168,8 @@ while any(isinf(ShKhi(:,2)))
       AB(bool,:)=[];
       endInd=size(ShKhi,1);
       EndGoodInd=1;
-      StGoodInd=1;
-      if isempty(ShKhi)
+      StGoodInd=1;     
+      if isempty(ShKhi)||(size(ShKhi,1)-NShKhi)<=0
         FitPulse=TrekSDDGetFitPulse(STP,0);
         FIT.FitPulse=FitPulse;
         FIT.Shift=0;
@@ -173,6 +180,7 @@ while any(isinf(ShKhi(:,2)))
         FIT=TrekGetFitInd(TrekSet,Ind,FIT);
         return; 
       end;
+      NShKhi=size(ShKhi,1);
 %% search for characteristic points
       if any(good)
          [KhiMin,KhiMinInd]=min(ShKhi(good,2));
