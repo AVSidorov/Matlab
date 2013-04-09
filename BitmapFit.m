@@ -1,4 +1,4 @@
-function [kx,ky]=BitmapFit(BitMap);
+function [kx,ky]=BitmapFit(BitMap)
 bm=image(BitMap);
 X=[];Y=[];ch=[];
 while isempty(ch)
