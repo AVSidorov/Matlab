@@ -19,11 +19,12 @@ end;
 
 
 
-
 trek=TrekSet.trek;
 StdVal=TrekSet.StdVal;
 trSize=TrekSet.size;
 OverSt=TrekSet.OverSt;
+
+
 
 % Threshold=StdVal*OverSt;
 Threshold=TrekSet.Threshold;
@@ -31,8 +32,20 @@ if isempty(Threshold)
     Threshold=OverSt*StdVal;
 end;
 
+dTrekSet=TrekSet;
+dTrekSet.trek=diff(dTrekSet.trek);
+dTrekSet.size=numel(dTrekSet.trek);
+dTrekSet=TrekStdVal(dTrekSet);
+dTrekSet.Threshold=OverSt*dTrekSet.StdVal;
+dTrekSet.STP=StpStruct([TrekSet.STP.TimeInd(1:end-1)+0.5,diff(TrekSet.STP.FinePulse)]);
+dTrekSet=TrekPeakSearch(dTrekSet);
+Ind=find(trek(dTrekSet.SelectedPeakInd)<Threshold);
+dTrekSet.SelectedPeakInd(Ind)=[];
+dTrekSet.SelectedPeakFrontN(Ind)=[];
 
-
+while any(trek==Threshold)
+    Threshold=Threshold+rand(1);
+end;
 Threshold=Threshold*2;
 % trekS=smooth(trek,SmoothPar);
 
@@ -112,11 +125,11 @@ HighFrontStartInd=find(HighFrontStartBool);
 HighFrontN=MaxInd(find(FrontHigh>=Threshold))-HighFrontStartInd;
 %for peaks whith good zero level this ^ condition is too strong
 %This is for good zero level peaks (for LongFrontSearch)
-HighPeakBool=MaxBool&trek>Threshold/2;
+HighPeakBool=MaxBool&trek>StdVal*OverSt;
 %Exclude PeaksOnTail and etc.
-HighPeakBool(MaxInd(find(trek(MinInd)>=Threshold/2)))=false;
+HighPeakBool(MaxInd(find(trek(MinInd)>=StdVal*OverSt)))=false;
 HighPeakInd=find(HighPeakBool);
-HighPeakStartBool=trL>Threshold/2&trek<Threshold/2;
+HighPeakStartBool=trL>StdVal*OverSt&trek<StdVal*OverSt;
 HighPeakStartBool(end)=false;
 HighPeakStartInd=find(HighPeakStartBool);
 HighPeakN=HighPeakInd-HighPeakStartInd; 
@@ -241,7 +254,7 @@ SelectedN=numel(SelectedInd);
 
 %% =====  End                                  
 
-
+SelectedInd=dTrekSet.SelectedPeakInd-dTrekSet.STP.MaxInd+TrekSet.STP.MaxInd;
 TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.SelectedPeakFrontN=FrontsN(SelectedInd);
 
