@@ -129,27 +129,48 @@ STP=StpStruct([TrekSet.STP.TimeInd(1:end-1)+0.5,diff(TrekSet.STP.FinePulse)]);
 % Fixed FrontN because diff of STP has flat part on front
 SelectedBool=MaxBool&trek>Threshold&FrontsHigh>Threshold&FrontsN>=3;
 
+
 % SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
 SelectedInd=find(SelectedBool);
+
+SelectedInd=SelectedInd((SelectedInd-STP.MaxInd+TrekSet.STP.MaxInd)>=1&(SelectedInd-STP.MaxInd+TrekSet.STP.MaxInd)<=TrekSet.size);
+SelectedInd=SelectedInd(TrekSet.trek(SelectedInd-STP.MaxInd+TrekSet.STP.MaxInd)>TrekSet.Threshold);
+SelectedBool=false(trSize,1);
+SelectedBool(SelectedInd)=true;
 SelectedN=numel(SelectedInd);
 
+%% search strictStInd and strictEndInd
+%Search Minimums are correspondig to SelectedInd
+%first way using FrontsN
+strictStInd=SelectedInd-FrontsN(SelectedInd);
+
+%other way more universal
+ DiferToNextMin=circshift(MinInd,-1)-MinInd;
+ DiferToNextMin(end)=0;
+ DeltaMinTrek=zeros(trSize,1);
+ DeltaMinTrek(MinInd)=DiferToNextMin;
+ 
+ MinSelectedInd=find(MinBool|SelectedBool);
+ Difer=circshift(MinSelectedInd,-1)-MinSelectedInd;
+ Difer(end)=0;
+ DeltaMinSelectedTrek=zeros(trSize,1);
+ DeltaMinSelectedTrek(MinSelectedInd)=Difer;
+ MinPreSelBool=DeltaMinTrek-DeltaMinSelectedTrek>0;
+ MinPreSelInd=find(MinPreSelBool);
+ 
+ %searach Minimums after SelectedInd
+ DeltaMinTrek(not(MinPreSelBool))=0;
+ MinAfterSelInd=MinPreSelInd+DeltaMinTrek(find(DeltaMinTrek));
+ %other way
+ strictEndInd=SelectedInd+DeltaMinSelectedTrek(SelectedInd) % in difer/DeltaMinSelectedTrek contains distances in points to next minimum/SelectedInd
+ 
+
+
+%strictEndInd=SelectedInd+Tail
 %% ====== PeakOnFront Search
 %Searching peaks on front of selected pulses
 %These are points on front where are minimums of trek derivation
 
-%Search Minimums are correspondig to SelectedInd
-% Difer=circshift(MinInd,-1)-MinInd;
-% Difer(end)=0;
-% DeltaMinTrek=zeros(trSize,1);
-% DeltaMinTrek(MinInd)=Difer;
-% 
-% MinSelectedInd=find(MinBool|SelectedBool);
-% Difer=circshift(MinSelectedInd,-1)-MinSelectedInd;
-% Difer(end)=0;
-% DeltaMinSelectedTrek=zeros(trSize,1);
-% DeltaMinSelectedTrek(MinSelectedInd)=Difer;
-% MinPreSelBool=DeltaMinTrek-DeltaMinSelectedTrek>0;
-% MinPreSelInd=find(MinPreSelBool);
 % 
 % 
 % 
@@ -242,12 +263,12 @@ SelectedN=numel(SelectedInd);
 %% =====  End                                  
 
 SelectedInd=SelectedInd-STP.MaxInd+TrekSet.STP.MaxInd;
-SelectedInd=SelectedInd(SelectedInd>=1&SelectedInd<=TrekSet.size);
-SelectedInd=SelectedInd(TrekSet.trek(SelectedInd)>TrekSet.Threshold);
 TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.SelectedPeakFrontN=FrontsN(SelectedInd);
 TrekSet.PeakOnFrontInd=[];
 TrekSet.LongFrontInd=[];
+TrekSet.strictStInd=strictStInd;
+TrekSet.strictEndInd=strictEndInd;
 
 % ZeroFrontInd=find(TrekSet.SelectedPeakFrontN==0);
 % TrekSet.SelectedPeakInd(ZeroFrontInd)=[];
