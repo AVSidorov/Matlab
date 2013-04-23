@@ -77,26 +77,6 @@ end;
  
  clear trL trR;
 
-%% ======= Special trek constructing
-FrontsN=zeros(trSize,1);
-FrontsHigh=zeros(trSize,1);
-
-FrontNMax=max(FrontN);
-TailNMax=max(TailN(TailHigh>1));
-% %additional condition to avoid long tails for reset pulses
-% TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
-trekS=zeros(trSize,1);
-for i=1:FrontNMax
-    Ind=find(FrontN>=i);
-    FrontsN(MinInd(Ind)+i)=i;
-    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
-end;
-for i=1:TailNMax
-    Ind=find(TailN>=i);
-    FrontsN(MaxInd(Ind)+i)=-i;
-    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
-end;
-
 
 %% working with diferential
 trekD=diff(TrekSet.trek);
@@ -150,7 +130,26 @@ end;
  FrontHighD=trekD(MaxIndD)-trekD(MinIndD);
  TailHighD=trekD(MaxIndD(1:end-1))-trekD(MinIndD(2:end));
 
-%% ======= Special trek constructing
+%% ======= Special trek constructing trek
+FrontsN=zeros(trSize,1);
+FrontsHigh=zeros(trSize,1);
+
+FrontNMax=max(FrontN);
+TailNMax=max(TailN(TailHigh>1));
+% %additional condition to avoid long tails for reset pulses
+% TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
+trekS=zeros(trSize,1);
+for i=1:FrontNMax
+    Ind=find(FrontN>=i);
+    FrontsN(MinInd(Ind)+i)=i;
+    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
+end;
+for i=1:TailNMax
+    Ind=find(TailN>=i);
+    FrontsN(MaxInd(Ind)+i)=-i;
+    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
+end;
+ %% ======= Special trek constructing diff
 FrontsND=zeros(trSizeD,1);
 FrontsHighD=zeros(trSizeD,1);
 
