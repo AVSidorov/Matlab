@@ -126,9 +126,15 @@ end;
  TailHighD=trekD(MaxIndD(1:end-1))-trekD(MinIndD(2:end));
 %% ========= Thresholds determenation
 if isfield(TrekSet,'Threshold')
-    Threshold=TrekSet.Threshold*2;
+    Threshold=TrekSet.Threshold;
 else
     Threshold=[];
+end;
+
+if isfield(TrekSet,'ThresholdFront')
+    ThresholdFront=TrekSet.ThresholdFront;
+else
+    ThresholdFront=[];
 end;
 
 if isfield(TrekSet,'ThresholdN')
@@ -143,17 +149,26 @@ else
     ThresholdD=[];
 end;
 
+if isfield(TrekSet,'ThresholdFrontD')
+    ThresholdFrontD=TrekSet.ThresholdFrontD;
+else
+    ThresholdFrontD=[];
+end;
+
+
 if isfield(TrekSet,'ThresholdND')
     ThresholdND=TrekSet.ThresholdND;
 else
     ThresholdND=[];
 end;
 if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(ThresholdND)
+    tabTrek=tabulateSid(trek);
     tabFrontHigh=tabulateSid(FrontHigh);
     tabTailHigh=tabulateSid(TailHigh);
     tabFrontN=tabulateSid(FrontN);
     tabTailN=tabulateSid(TailN);
     
+    tabTrekD=tabulateSid(trekD);
     tabFrontHighD=tabulateSid(FrontHighD);
     tabTailHighD=tabulateSid(TailHighD);
     tabFrontND=tabulateSid(FrontND);
@@ -163,31 +178,34 @@ if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(Thresho
     h1=subplot(2,2,1);
         grid on; hold on;
         set(gca,'YScale','log');
-        plot(tabFrontHigh(:,1),tabFrontHigh(:,2),'r');
-        plot(tabTailHigh(:,1),tabTailHigh(:,2),'b');
-        legend('Front High','Tail High');
+        plot(tabTrek(:,1),tabTrek(:,2),'k');
+        plot(tabTailHigh(:,1),tabTailHigh(:,2),'.b-');
+        plot(tabFrontHigh(:,1),tabFrontHigh(:,2),'.r-');
+        legend('trek','Tail High','Front High');
     h2=subplot(2,2,2);
         grid on; hold on;
         set(gca,'YScale','log');
-        plot(tabFrontN(:,1),tabFrontN(:,2),'r');
-        plot(tabTailN(:,1),tabTailN(:,2),'b');
+        plot(tabFrontN(:,1),tabFrontN(:,2),'.r-');
+        plot(tabTailN(:,1),tabTailN(:,2),'.b-');
         legend('FrontN','TailN');
     h3=subplot(2,2,3);
         grid on; hold on;
         set(gca,'YScale','log');
-        plot(tabFrontHighD(:,1),tabFrontHighD(:,2),'r');
-        plot(tabTailHighD(:,1),tabTailHighD(:,2),'b');
-        legend('FrontHighD','TailHighD');
+        plot(tabTrekD(:,1),tabTrekD(:,2),'k');
+        plot(tabTailHighD(:,1),tabTailHighD(:,2),'.b-');
+        plot(tabFrontHighD(:,1),tabFrontHighD(:,2),'.r-');
+        legend('trekD','TailHighD','FrontHighD');
     h4=subplot(2,2,4);
         grid on; hold on;
         set(gca,'YScale','log');
-        plot(tabFrontND(:,1),tabFrontND(:,2),'r');
-        plot(tabTailND(:,1),tabTailND(:,2),'b');
+        plot(tabFrontND(:,1),tabFrontND(:,2),'.r-');
+        plot(tabTailND(:,1),tabTailND(:,2),'.b-');
         legend('FrontND','TailND');
    
     ch='a';
     while ~isempty(ch)
-       T=input('Input Threshold (for Pulse Front High) ');
+       
+       T=input('Input Threshold (for trek Amplitude) ');
        if ~isempty(T)
            Threshold=T;
        end;
@@ -197,7 +215,25 @@ if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(Thresho
        if ~isempty(h)&&ishandle(h)
            delete(h);
        end;
-       plot([Threshold,Threshold],[1,max([max(tabFrontHigh(:,2));max(tabTailHigh(:,2))])],'k','LineWidth',2,'tag','ThrLine');
+       h=findobj('tag','ThrLine1');
+       if ~isempty(h)&&ishandle(h)
+           delete(h);
+       end;
+       plot([Threshold,Threshold],[1,max(tabTrek(:,2))],'k','LineWidth',2,'tag','ThrLine');
+       plot([-Threshold,-Threshold],[1,max(tabTrek(:,2))],'k','LineWidth',2,'tag','ThrLine1');
+       
+       T=input('Input Threshold (for Pulse Front High) ');
+       if ~isempty(T)
+           ThresholdFront=T;
+       end;
+
+       axes(h1);
+       
+       h=findobj('tag','ThrFLine');
+       if ~isempty(h)&&ishandle(h)
+           delete(h);
+       end;
+       plot([ThresholdFront,ThresholdFront],[1,max([max(tabFrontHigh(:,2));max(tabTailHigh(:,2))])],'m','LineWidth',2,'tag','ThrFLine');
 
        T=input('Input ThresholdN (for pulse front duration in N) ');
        if ~isempty(T)
@@ -212,17 +248,40 @@ if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(Thresho
 
        plot([ThresholdN,ThresholdN],[1,max([max(tabFrontN(:,2));max(tabTailN(:,2))])],'k','LineWidth',2,'tag','ThrNLine');
 
-       T=input('Input ThresholdD (for diff Pulse Front High) ');
+
+       
+       
+       T=input('Input ThresholdD (for trekD Amplitude) ');
        if ~isempty(T)
            ThresholdD=T;
        end;
-
        axes(h3);
-              h=findobj('tag','ThrDLine');
+       
+       h=findobj('tag','ThrDLine');
        if ~isempty(h)&&ishandle(h)
            delete(h);
        end;
-       plot([ThresholdD,ThresholdD],[1,max([max(tabFrontHighD(:,2));max(tabTailHighD(:,2))])],'k','LineWidth',2,'tag','ThrDLine');
+       h=findobj('tag','ThrDLine1');
+       if ~isempty(h)&&ishandle(h)
+           delete(h);
+       end;
+       plot([ThresholdD,ThresholdD],[1,max(tabTrekD(:,2))],'k','LineWidth',2,'tag','ThrDLine');
+       plot([-ThresholdD,-ThresholdD],[1,max(tabTrekD(:,2))],'k','LineWidth',2,'tag','ThrDLine1');
+       
+       
+       
+       
+       T=input('Input ThresholdFrontD (for diff Pulse Front High) ');
+       if ~isempty(T)
+           ThresholdFrontD=T;
+       end;
+
+       axes(h3);
+              h=findobj('tag','ThrFrDLine');
+       if ~isempty(h)&&ishandle(h)
+           delete(h);
+       end;
+       plot([ThresholdFrontD,ThresholdFrontD],[1,max([max(tabFrontHighD(:,2));max(tabTailHighD(:,2))])],'m','LineWidth',2,'tag','ThrFrDLine');
 
        T=input('Input ThresholdND (for diff pulse front duration in N) ');
        if ~isempty(T)
@@ -242,9 +301,14 @@ end
 FrontsN=zeros(trSize,1);
 FrontsHigh=zeros(trSize,1);
 
-FrontNMax=max(FrontN);
-TailNMax=max(TailN(TailHigh>1));
-% %additional condition to avoid long tails for reset pulses
+%additional condition to avoid long tails/fronts for reset pulses
+Ind=find(trek(MaxInd)<TrekSet.MaxSignal);
+FrontNMax=max(FrontN(Ind));
+Ind=find(trek(MinInd)>TrekSet.MinSignal);
+Ind=Ind-1; %TailN corresponds to previous Maximum 
+Ind=Ind(Ind>=1&Ind<MinN); %< becuase TailN contains MinN-1 elements
+TailNMax=max(TailN(Ind));
+
 % TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
 trekS=zeros(trSize,1);
 for i=1:FrontNMax
@@ -261,7 +325,7 @@ end;
 FrontsND=zeros(trSizeD,1);
 FrontsHighD=zeros(trSizeD,1);
 
-FrontNMaxD=max(FrontND);
+FrontNMaxD=max(FrontND(FrontHighD>1));
 TailNMaxD=max(TailND(TailHighD>1));
 % %additional condition to avoid long tails for reset pulses
 % TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
@@ -279,7 +343,7 @@ end;
 ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
 
 %% search markers by trek
-SelectedBool=MaxBool&FrontsHigh>Threshold/2&trek>Threshold/2&FrontsN>TrekSet.STP.FrontN/2;
+SelectedBool=MaxBool&FrontsHigh>ThresholdFront&trek>Threshold&FrontsN>ThresholdN;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
@@ -289,7 +353,7 @@ STPD=StpStruct([TrekSet.STP.TimeInd(1:end-1)+0.5,diff(TrekSet.STP.FinePulse)]);
 %% ============ Search Markers by diff
 %SelectedBool=ByFrontBool|PeakOnFrontBool|ByHighBool|LongFrontBool;
 % Fixed FrontN because diff of STP has flat part on front
-SelectedBoolD=MaxBoolD&trekD>ThresholdD&FrontsHighD>ThresholdD&FrontsND>=3;
+SelectedBoolD=MaxBoolD&trekD>ThresholdD&FrontsHighD>ThresholdFrontD&FrontsND>ThresholdND;
 
 
 % SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
