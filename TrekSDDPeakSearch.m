@@ -364,6 +364,36 @@ SelectedIndD=SelectedIndD(TrekSet.trek(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxI
 SelectedBoolD=false(trSizeD,1);
 SelectedBoolD(SelectedIndD)=true;
 SelectedND=numel(SelectedIndD);
+%% ============= Merging SelectedInd and SelectedIndD
+CombineBool=SelectedBool|[SelectedBoolD;false];
+CombineInd=find(CombineBool);
+DiferCombine=CombineInd-circshift(CombineInd,1); %array with distanse to previous marker
+DiferCombine(1)=0;
+DiferSelected=SelectedInd-circshift(SelectedInd,1);
+DiferSelected(1)=0;
+
+
+trekCombine=zeros(trSize,1);
+trekSelected=trekCombine;
+trekCombine(CombineInd)=DiferCombine;
+trekSelected(SelectedInd)=DiferSelected;
+
+Ind=find((trekCombine(SelectedInd)-trekSelected(SelectedInd))==0); % SelectedInd are markers on ends of fronts. Every front (which satisfy conditions) must have SelectedIndD
+Ind=SelectedInd(Ind);                    % so distance to previous SelectedInd (end of front ) must be greater then distance to previous SelectedIndD (marker on front)
+                                         % and difference must be negative
+                                         % if difference is equale zero,
+                                         % this means SelectedIndD is
+                                         % skipped
+
+% This method gives bad result. Marker may not to be in right position
+% Dist=mean(trekCombine(SelectedInd)); %mean distance between trek marker and correspond (previous) diff marker
+% SelectedBoolD(Ind-round(Dist))=true;
+for i=1:numel(Ind) %must be not many such points
+    [m,IndD]=max(trekD(Ind(i)-FrontsN(Ind(i)):Ind(i)));
+    SelectedBoolD(Ind(i)-FrontsN(Ind(i))+IndD-1)=true;
+end;
+SelectedIndD=find(SelectedBoolD);
+SelectedND=numel(SelectedIndD);
 
 %% search strictStInd and strictEndInd
 %Search Minimums are correspondig to SelectedInd
@@ -488,6 +518,12 @@ strictStInd=SelectedIndD-FrontsND(SelectedIndD);
 
 %% =====  End                                  
 
+TrekSet.Threshold=Threshold;
+TrekSet.ThresholdFront=ThresholdFront;
+TrekSet.ThresholdN=ThresholdN;
+TrekSet.ThresholdD=ThresholdD;
+TrekSet.ThresholdFrontD=ThresholdFrontD;
+TrekSet.ThresholdND=ThresholdND;
 SelectedIndD=SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd;
 TrekSet.SelectedPeakInd=SelectedIndD;
 TrekSet.SelectedPeakFrontN=FrontsND(SelectedIndD);
