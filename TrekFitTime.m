@@ -17,6 +17,7 @@ StpN=STP.size;
 
 trek=TrekSet.trek;
 
+Ipulse=find(TrekSet.SelectedPeakInd==Ind);
 
 if nargin<3||isempty(FitStruct)
     FitStruct.Good=false;
@@ -24,8 +25,13 @@ if nargin<3||isempty(FitStruct)
     FitStruct.B=0;
     FitStruct.Shift=0;
     FitStruct.Khi=inf;
-    FitStruct.FitIndPulse=[];
-    FitStruct.FitInd=[];
+    if ~isempty(Ipulse)
+        FitStruct.FitInd=TrekSet.strictStInd(Ipulse):TrekSet.strictEndInd(Ipulse);
+        FitStruct.FitIndPulse=FitStruct.FitInd-Ind+STP.MaxInd;
+    else
+        FitStruct.FitInd=[];    
+        FitStruct.FitIndPulse=[];
+    end;
     FitStruct.FitIndPulseStrict=[];
     FitStruct.N=StpN;
     FitStruct.FitPulse=Stp;
@@ -48,26 +54,28 @@ FitIndPulse=FitStruct.FitIndPulse;
 % of fit pulse much greater then trek pulse
 
 %% determenation shift ranges
-Ipulse=find(TrekSet.SelectedPeakInd==Ind);
-[A,mi]=max([FIT.A;trek(Ind);trek(Ind:Ind+STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse))]);
-if A<TrekSet.Threshold
-    return;
-end;
-Ist=find(TrekSet.STP.Stp*A>TrekSet.StdVal*TrekSet.OverSt/2,1,'first')-1;
-Iend=STP.TimeInd(A*diff(STP.FinePulse)./diff(STP.TimeInd)<2*TrekSet.StdVal);
-Iend(Iend<=Ist|Iend>=STP.MaxInd)=[];
-Iend=Iend(1);
-IstTrek=find(trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+1;
-MaxShift=[];
 if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
     ShiftRangeL=FIT.ShiftRangeL;
     MaxShift=ShiftRangeL;
-else
+end; 
+    [A,mi]=max([FIT.A;trek(Ind);trek(Ind:Ind+STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse))]);
+    if A<TrekSet.Threshold
+        return;
+    end;
+    Ist=find(TrekSet.STP.Stp*A>TrekSet.StdVal*TrekSet.OverSt/2,1,'first')-1;
+    Iend=STP.TimeInd(A*diff(STP.FinePulse)./diff(STP.TimeInd)<2*TrekSet.StdVal);
+    Iend(Iend<=Ist|Iend>=STP.MaxInd)=[];
+    Iend=Iend(1);
+    IstTrek=find(trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+1;
+    MaxShift=[];
     ShiftRangeL=STP.TimeInd(find(A*diff(STP.FinePulse)./diff(STP.TimeInd)<-2*TrekSet.StdVal,1,'first'));
-end;
+
+
 if isempty(ShiftRangeL)
     ShiftRangeL=Ind-find(trek(1:Ind)<TrekSet.StdVal*TrekSet.OverSt,1,'last');
 end;
+
+
 if isfield(FIT,'ShiftRangeR')&&~isempty(FIT.ShiftRangeR)
     ShiftRangeR=FIT.ShiftRangeR;
     MaxShift=max([ShiftRangeL;ShiftRangeR]);
@@ -78,7 +86,7 @@ if isempty(MaxShift)
     MaxShift=min([STP.BckgFitN-1,STP.ZeroTailN-1]);
 end;
 [A,mi]=max(trek(Ind:Ind+ShiftRangeR));
-%%
+%% initialization of ShKhi
 ShKhi(1,1)=-(mi-1);
 ShKhi(1,2)=inf;
 if ~any(0==ShKhi(:,1))
@@ -108,7 +116,7 @@ if ~any(-(STP.FrontN-((Ind-IstTrek)+(Ist-STP.BckgFitN)))==ShKhi(:,1))       %Ind
     ShKhi(end+1,1)=-(STP.FrontN-((Ind-IstTrek)+(Ist-STP.BckgFitN)));
     ShKhi(end,2)=inf;
 end;    
-
+%% fitting
 Ns=numel(FIT.FitIndPulseStrict);
 NShKhi=0;
 while any(isinf(ShKhi(:,2)))
