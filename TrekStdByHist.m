@@ -124,4 +124,5 @@ TrekSet.Threshold=Threshold;
 TrekSet.MinSignal=MinSignal;
 TrekSet.MaxSignal=MaxSignal;
 TrekSet.StdVal=std(trek(abs(trek)<Threshold));
+TrekSet.OverSt=max([TrekSet.OverSt,Threshold/TrekSet.StdVal]);
 close(gcf);
