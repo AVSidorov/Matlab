@@ -388,6 +388,8 @@ Ind=SelectedInd(Ind);                    % so distance to previous SelectedInd (
 % This method gives bad result. Marker may not to be in right position
 % Dist=mean(trekCombine(SelectedInd)); %mean distance between trek marker and correspond (previous) diff marker
 % SelectedBoolD(Ind-round(Dist))=true;
+
+Ind=Ind(Ind<trSize); %to avoid bad index for trekD (trSizeD=trSize-1)
 for i=1:numel(Ind) %must be not many such points
     [m,IndD]=max(trekD(Ind(i)-FrontsN(Ind(i)):Ind(i)));
     SelectedBoolD(Ind(i)-FrontsN(Ind(i))+IndD-1)=true;
