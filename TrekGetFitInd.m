@@ -11,45 +11,59 @@ FrontN=TrekSet.STP.FrontN;
 
 
 MinSpace=1;
+BckgFitN=5;
 
 
 FitInd=[1:StpN]'+Ind-maxI;
 FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
 FitIndPulse=FitInd-Ind+maxI;
 
-if Ipulse<numel(TrekSet.SelectedPeakInd)
-    FitInd=FitInd(FitInd<=TrekSet.SelectedPeakInd(Ipulse+1)-FrontN);
-    FitIndPulse=FitInd-Ind+maxI;
-end;
-% Amax=max(TrekSet.trek(FitInd));
-% if abs(FIT.A+FIT.B-Amax)>TrekSet.StdVal*TrekSet.OverSt
-%     FIT.A=Amax;
-%     FIT.B=0;
+%!!!That's may be bad for PeakOnFront
+% if Ipulse<numel(TrekSet.SelectedPeakInd)
+%     FitInd=FitInd(FitInd<=TrekSet.SelectedPeakInd(Ipulse+1)-FrontN);
+%     FitIndPulse=FitInd-Ind+maxI;
 % end;
+
+
 FitPulse=FIT.FitPulse*FIT.A+FIT.B;
+
+%% StrictInd determination
+ % This indexes are neccessary for not empty output for FitInd and
+ % FitIndPulse
+ 
+ % This indexes (in case of determination) haven't to start from 1 for
+ % proper working in case high B (peaks of tail of lost previouse pulse).
+
 %  FitIndStrict=[FitInd(1):Ind];
 %  FitIndPulseStrict=FitIndStrict-Ind+maxI;
 
 if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
     FitIndStrict=FIT.FitIndStrict;
 else
-    FitIndStrict=FitInd(1):Ind;
+    %!!!That's may be bad for PeakOnFront
+    %FitIndStrict=FitInd(1):Ind;
+    FitIndStrict=FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first')-2-BckgFitN:FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first');
 end;
 
 
 dPulse=diff(TrekSet.STP.FinePulse);
 [md,mdInd]=max(dPulse);
 maxId=find(dPulse(mdInd:end)*FIT.A<TrekSet.StdVal*TrekSet.OverSt,1,'first');
-maxId=TrekSet.STP.TimeInd(mdInd+maxId);
+stId=find(dPulse*FIT.A>TrekSet.ThresholdD,1,'first');
+if isempty(stId) stId=find(dPulse,1,'first'); end;
+%!!!That's may be bad for PeakOnFront
+%maxId=TrekSet.STP.TimeInd(mdInd+maxId);
+maxId=TrekSet.STP.TimeInd(mdInd);
+stId=TrekSet.STP.TimeInd(stId);
 if isfield(FIT,'FitIndPulseStrict')&&~isempty(FIT.FitIndPulseStrict)
     FitIndPulseStrict=FIT.FitIndPulseStrict;
 else
-    FitIndPulseStrict=1:round(maxId-FIT.Shift);
+    FitIndPulseStrict=round(stId-FIT.Shift):round(maxId-FIT.Shift);
 end;
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
 
-
+%% Main FitInd determination by Threshold
 
 bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.Threshold;
 FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd));
@@ -61,6 +75,7 @@ bool(FitIndPulseStrict)=true;
 FitInd=FitInd(bool);
 FitIndPulse=FitIndPulse(bool);
 
+%% Searching spaces in Fit indexes
 
 %if FitPulse is continious this arrays contains only 1
 dAfter=circshift(FitIndPulse,-1)-FitIndPulse; %dist to next
