@@ -45,9 +45,9 @@ end;
 FIT=FitStruct;
 FitFast=FIT.FitFast;
 
-N=FitStruct.N;
 FitInd=FitStruct.FitInd;
 FitIndPulse=FitStruct.FitIndPulse;
+N=numel(FitInd);
 
 
 % shT>0 means shift in time left. Conditions for shT are to Avoid fitting
@@ -68,81 +68,39 @@ if isfield(FIT,'ShiftRangeR')&&~isempty(FIT.ShiftRangeR)
 end;
 
 %% initialization of ShKhi
-ShKhi(1,1)=-(mi-1);
+ShKhi(1,1)=ShiftRangeL;
 ShKhi(1,2)=inf;
-if ~any(0==ShKhi(:,1))
-    ShKhi(end+1,1)=0;
-    ShKhi(end,2)=inf;
-end;
-if ~any(-ShiftRangeR==ShKhi(:,1))
-    ShKhi(end+1,1)=-ShiftRangeR;
-    ShKhi(end,2)=inf;
-end;
-if ~any(ShiftRangeL==ShKhi(:,1))
-    ShKhi(end+1,1)=ShiftRangeL;
-    ShKhi(end,2)=inf;
-end;
-if ~any(-(STP.MaxInd-Iend)==ShKhi(:,1))
-    ShKhi(end+1,1)=-(STP.MaxInd-Iend);
-    ShKhi(end,2)=inf;
-end;    
-if ~isempty(Ipulse)&&~any(-(STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse))==ShKhi(:,1))
-    ShKhi(end+1,1)=-(STP.FrontN-TrekSet.SelectedPeakFrontN(Ipulse));
-    ShKhi(end,2)=inf;
-end;    
+ShKhi(2,1)=0;
+ShKhi(2,2)=inf;
+ShKhi(3,1)=-ShiftRangeR;
+ShKhi(3,2)=inf;
+FITs=[FIT,FIT,FIT];
 
-if ~any(-(STP.FrontN-((Ind-IstTrek)+(Ist-STP.BckgFitN)))==ShKhi(:,1))       %Ind-IstTrek is real front length above noise level 
-                                                                            %to this value is added estimated front length below noise level
-                                                                            %shift is difference between full front length STP.FrontN and calculated value    
-    ShKhi(end+1,1)=-(STP.FrontN-((Ind-IstTrek)+(Ist-STP.BckgFitN)));
-    ShKhi(end,2)=inf;
-end;    
+
 %% fitting
-Ns=numel(FIT.FitIndPulseStrict);
-NShKhi=0;
+NShKhi=size(ShKhi,1);
 while any(isinf(ShKhi(:,2)))
     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];
     while any(isinf(ShKhi(:,2)))
         for i=find(isinf(ShKhi(:,2)))'
-           FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));
-           FIT.FitPulse=FitPulse;
-           FIT.Shift=ShKhi(i,1);
-           FIT.A=trek(round(Ind-ShKhi(i,1)));
-           FIT.B=0;
-           FIT=TrekGetFitInd(TrekSet,Ind,FIT);
-           FitInd=FIT.FitInd;
-           FitIndPulse=FIT.FitIndPulse;
-           FIT.FitIndPulseStrict=FitIndPulse;
-           FIT.FitIndStrict=FitInd;
-           N=0;
-           while FIT.N-N>0
-               N=FIT.N;
-               if FitFast
-                A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
-                B=0;
-               else
-                p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
-                A=p(1);
-                B=p(2);
-               end; 
-               ShKhi(i,2)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/FIT.N);
-               good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
-               FIT.A=A;
-               FIT.B=B;
-               FIT=TrekGetFitInd(TrekSet,Ind,FIT);
-               FitInd=FIT.FitInd;
-               FitIndPulse=FIT.FitIndPulse;
-               FIT.FitIndStrict=FitInd;
-               FIT.FitIndPulseStrict=FitIndPulse;
-           end;
-           AB(i,1)=FIT.A;
-           AB(i,2)=FIT.B;
-           dNs=numel(FIT.FitIndPulseStrict)-Ns;
-           if dNs>0
-               ShKhi(:,2)=inf;
-               Ns=numel(FIT.FitIndPulseStrict);
-               break;
-           end;
+           FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));           
+           if FitFast
+            A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+            B=0;
+           else
+            p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
+            A=p(1);
+            B=p(2);
+           end; 
+           ShKhi(i,2)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
+           good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
+           FITs(i).A=A;
+           FITs(i).B=B;
+           FITs(i).Good=good(i);
+           FITs(i).Shift=ShKhi(i,1);
+           FITs(i).Khi=ShKhi(i,2);
+           FITs(i).FitPulse=FitPulse;
+           FITs(i)=TrekGetFitInd(TrekSet,Ind,FITs(i));
         end;
     end;
     
@@ -150,15 +108,15 @@ while any(isinf(ShKhi(:,2)))
 %      good(not(good))=[];  
       [ShKhi,index]=sortrows(ShKhi);
       good=good(index);
-      AB=AB(index,:);
-      bool=AB(:,1)<TrekSet.Threshold|isnan(ShKhi(:,2));
+      FITs=FITs(index);
+      bool=isnan(ShKhi(:,2));
       ShKhi(bool,:)=[];
       good(bool)=[];
-      AB(bool,:)=[];
+      FITs(bool)=[];
       endInd=size(ShKhi,1);
       EndGoodInd=1;
       StGoodInd=1;     
-      if isempty(ShKhi)||(size(ShKhi,1)-NShKhi)<=0
+      if isempty(ShKhi)||(size(ShKhi,1)-NShKhi)<0
         FitPulse=TrekSDDGetFitPulse(STP,0);
         FIT.FitPulse=FitPulse;
         FIT.Shift=0;
@@ -299,11 +257,11 @@ FitPulse=TrekSDDGetFitPulse(STP,ShKhi(KhiMinInd,1));
 
 
 FIT.Good=good(KhiMinInd);
-FIT.A=AB(KhiMinInd,1);
-FIT.B=AB(KhiMinInd,2);
+FIT.A=FITs(KhiMinInd).A;
+FIT.B=FITs(KhiMinInd).B;
 FIT.Shift=ShKhi(KhiMinInd,1);
 FIT.Khi=ShKhi(KhiMinInd,2);
-FIT.FitPulse=FitPulse;
+FIT.FitPulse=FITs(KhiMinInd).FitPulse;
 FIT.FitPulseN=StpN;
 FIT.MaxInd=Ind;
 FIT=TrekGetFitInd(TrekSet,Ind,FIT);
