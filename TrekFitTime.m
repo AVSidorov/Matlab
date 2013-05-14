@@ -64,7 +64,7 @@ if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
 end; 
 if isfield(FIT,'ShiftRangeR')&&~isempty(FIT.ShiftRangeR)
     ShiftRangeR=FIT.ShiftRangeR;
-    MaxShift=max([ShiftRangeL;ShiftRangeR]);
+    MaxShift=max([ShiftRangeL;ShiftRangeR;STP.FrontN]);
 end;
 
 %% initialization of ShKhi
@@ -76,32 +76,35 @@ ShKhi(3,1)=-ShiftRangeR;
 ShKhi(3,2)=inf;
 FITs=[FIT,FIT,FIT];
 
-
+Nold=0;
+FitIndOld=0;
+while N~=Nold||~all(FitInd-FitIndOld==0)
 %% fitting
+
 NShKhi=size(ShKhi,1);
-while any(isinf(ShKhi(:,2)))
-    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];
-    while any(isinf(ShKhi(:,2)))
-        for i=find(isinf(ShKhi(:,2)))'
-           FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));           
-           if FitFast
-            A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
-            B=0;
-           else
-            p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
-            A=p(1);
-            B=p(2);
-           end; 
-           ShKhi(i,2)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
-           good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
-           FITs(i).A=A;
-           FITs(i).B=B;
-           FITs(i).Good=good(i);
-           FITs(i).Shift=ShKhi(i,1);
-           FITs(i).Khi=ShKhi(i,2);
-           FITs(i).FitPulse=FitPulse;
-           FITs(i)=TrekGetFitInd(TrekSet,Ind,FITs(i));
-        end;
+while any(isinf(ShKhi(:,end)))
+    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    
+
+    for i=find(isinf(ShKhi(:,end)))'
+       FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));           
+       if FitFast
+        A=sum(FitPulse(FitIndPulse).*trek(FitInd))/sum(FitPulse(FitIndPulse).^2);
+        B=0;
+       else
+        p=polyfit(FitPulse(FitIndPulse),trek(FitInd),1);
+        A=p(1);
+        B=p(2);
+       end; 
+       ShKhi(i,end)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
+       good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
+       FITs(i)=FIT;
+       FITs(i).A=A;
+       FITs(i).B=B;
+       FITs(i).Good=good(i);
+       FITs(i).Shift=ShKhi(i,1);
+       FITs(i).Khi=ShKhi(i,end);
+       FITs(i).FitPulse=FitPulse;
+       FITs(i)=TrekGetFitInd(TrekSet,Ind,FITs(i));        
     end;
     
 %      ShKhi(not(good),:)=[];  %in peak on front Khi can have not only one minimum
@@ -109,7 +112,7 @@ while any(isinf(ShKhi(:,2)))
       [ShKhi,index]=sortrows(ShKhi);
       good=good(index);
       FITs=FITs(index);
-      bool=isnan(ShKhi(:,2));
+      bool=isnan(ShKhi(:,end));
       ShKhi(bool,:)=[];
       good(bool)=[];
       FITs(bool)=[];
@@ -130,7 +133,7 @@ while any(isinf(ShKhi(:,2)))
       NShKhi=size(ShKhi,1);
 %% search for characteristic points
       if any(good)
-         [KhiMin,KhiMinInd]=min(ShKhi(good,2));
+         [KhiMin,KhiMinInd]=min(ShKhi(good,end));
          GoodInd=find(good);
          KhiMinInd=GoodInd(KhiMinInd);
          
@@ -147,8 +150,8 @@ while any(isinf(ShKhi(:,2)))
          MinInds=KhiMinInd;
          KhiMinIndMain=KhiMinInd;
       else
-         MinInds=find(ShKhi(:,2)<=circshift(ShKhi(:,2),1)&ShKhi(:,2)<=circshift(ShKhi(:,2),-1));
-         [KhiMin,KhiMinIndMain]=min(ShKhi(:,2));
+         MinInds=find(ShKhi(:,end)<=circshift(ShKhi(:,end),1)&ShKhi(:,end)<=circshift(ShKhi(:,end),-1));
+         [KhiMin,KhiMinIndMain]=min(ShKhi(:,end));
       end;
     
      
@@ -158,7 +161,7 @@ while any(isinf(ShKhi(:,2)))
     if KhiMinIndMain<=2
         notEx=true;
         ShKhi(end+1,1)=ShKhi(1,1)-1;
-        ShKhi(end,2)=inf;
+        ShKhi(end,end)=inf;
     end;
     
 %     if KhiMinIndMain>=endInd-1
@@ -172,20 +175,20 @@ while any(isinf(ShKhi(:,2)))
      li=max([KhiMinInd-1;1]);
      ri=min([KhiMinInd+1;size(ShKhi,1)]);
     if ri-li>1
-        [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,2),2);
+        [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,end),2);
          mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
             if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeL
                 ShKhi(end+1,1)= mid;  
-                ShKhi(end,2)=inf;
+                ShKhi(end,end)=inf;
             end;
      end;
    
      if EndGoodInd-StGoodInd>1 %to avoid bad conditioned fit
-        [KhiFit,s,m]=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),2),2);
+        [KhiFit,s,m]=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),end),2);
         mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
         if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeLKhiFit(1)>0                
                 ShKhi(end+1,1)= mid;  
-                ShKhi(end,2)=inf;
+                ShKhi(end,end)=inf;
         end;
      end;
 
@@ -193,11 +196,11 @@ while any(isinf(ShKhi(:,2)))
 
      if ~any(ShKhi(:,1)==ShKhi(ri,1)-dS/gs)
         ShKhi(end+1,1)=ShKhi(ri,1)-dS/gs;
-        ShKhi(end,2)=inf;
+        ShKhi(end,end)=inf;
      end;
      if ~any(ShKhi(:,1)==ShKhi(ri,1)+dS/gs)
         ShKhi(end+1,1)=ShKhi(li,1)+dS/gs;
-        ShKhi(end,2)=inf;
+        ShKhi(end,end)=inf;
      end;
 %  % gradient search
 %         if KhiMinInd>2
@@ -229,13 +232,13 @@ while any(isinf(ShKhi(:,2)))
 %% check for exit
     if ~notEx&&size(ShKhi,1)>Nfit||(min(diff(sortrows(ShKhi(:,1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
         if any(good)||size(ShKhi,1)>3*Nfit
-            ShKhi(isinf(ShKhi(:,2)),:)=[];
+            ShKhi(isinf(ShKhi(:,end)),:)=[];
         else
-            [KhiMin,KhiMinInd]=min(ShKhi(:,2));
+            [KhiMin,KhiMinInd]=min(ShKhi(:,end));
             for i=ShiftRangeL:-1:ShiftRangeL-Nfit
                 if ~any(ShKhi(:,1)==i)
                     ShKhi(end+1,1)= i;  
-                    ShKhi(end,2)=inf; 
+                    ShKhi(end,end)=inf; 
                 end;
             end
         end;
@@ -244,17 +247,23 @@ end;
 
 
 if any(good)
-         [KhiMin,KhiMinInd]=min(ShKhi(good,2));
+         [KhiMin,KhiMinInd]=min(ShKhi(good,end));
          GoodInd=find(good);
          KhiMinInd=GoodInd(KhiMinInd);
 else
-    [KhiMin,KhiMinInd]=min(ShKhi(:,2));
+    [KhiMin,KhiMinInd]=min(ShKhi(:,end));
 end;
 FitPulse=TrekSDDGetFitPulse(STP,ShKhi(KhiMinInd,1));
 
-
-
-
+%% Changing FitInd
+FitIndOld=FitInd;
+Nold=N;
+FitInd=FITs(KhiMinInd).FitInd;
+FitIndPulse=FITs(KhiMinInd).FitIndPulse;
+N=numel(FitInd);
+ShKhi=[ShKhi,inf(size(ShKhi,1),1)];
+end;
+ShKhi(:,end)=[];
 
 FIT.Good=good(KhiMinInd);
 FIT.A=FITs(KhiMinInd).A;
@@ -279,13 +288,16 @@ if TrekSet.Plot
             plot(FIT.FitInd(1)+[1,FIT.N],[TrekSet.Threshold,TrekSet.Threshold],'g');
             plot(FIT.FitInd(1)+[1,FIT.N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
         subplot(2,1,2);
-            plot(ShKhi(:,1),ShKhi(:,2),'.b');
             grid on; hold on;
+            for i=2:size(ShKhi,2)
+                plot(ShKhi(:,1),ShKhi(:,i),'b');
+            end;
+            plot(ShKhi(:,1),ShKhi(:,end),'b');
             plot(ShKhi(good,1),ShKhi(good,2),'or');
-            KhiFit=polyfit(ShKhi(:,1),ShKhi(:,2),2);
+            KhiFit=polyfit(ShKhi(:,1),ShKhi(:,end),2);
             plot(ShKhi(:,1),polyval(KhiFit,ShKhi(:,1)));
             if numel(find(good))>2
-                KhiFit=polyfit(ShKhi(good,1),ShKhi(good,2),2);
+                KhiFit=polyfit(ShKhi(good,1),ShKhi(good,end),2);
                 plot(ShKhi(good,1),polyval(KhiFit,ShKhi(good,1)),'r');
             end;
             plot(FIT.Shift,FIT.Khi,'d');
