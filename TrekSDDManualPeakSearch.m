@@ -89,8 +89,12 @@ switch s
         FIT.FitIndStrict=FitIndStrict;
         
         fprintf('Input PulseStrictInd. Format is [*:/,***]\n')
-        if isfield(FIT,'FitIndPulseStrict');
-            fprintf('Default is [%d:%d]\n',FIT.FitIndPulseStrict(1),FIT.FitIndPulseStrict(end));
+        if isfield(FIT,'FitIndPulseStrict')
+            if ~isempty(FIT.FitIndPulseStrict);
+                fprintf('Default is [%d:%d]\n',FIT.FitIndPulseStrict(1),FIT.FitIndPulseStrict(end));
+            else
+                fprintf('Default is empty\n');
+            end;
         end;
         FitIndPulseStrict=input('PulseStrictInd is ');
         if isempty(FitIndPulseStrict)&&isfield(FIT,'FitIndPulseStrict')
