@@ -128,7 +128,7 @@ if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitIn
     MinIndBool=tr<=trL&tr<=trR;
     MinInd=find(MinIndBool);
     FitInd=FitInd(1:MinInd(end));
-    FitIndPulse=FitInd(1:MinInd(end));
+    FitIndPulse=FitIndPulse(1:MinInd(end));
 end;
 %% Final
 FIT.FitInd=FitInd;
