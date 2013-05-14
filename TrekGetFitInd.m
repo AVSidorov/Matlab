@@ -43,6 +43,7 @@ else
     %!!!That's may be bad for PeakOnFront
     %FitIndStrict=FitInd(1):Ind;
     FitIndStrict=FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first')-2-BckgFitN:FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first');
+    FitIndStrict=FitIndStrict(FitIndStrict<=TrekSet.size&FitIndStrict>=1);
 end;
 
 
@@ -117,8 +118,19 @@ if ~isempty(PartInd)
 end;
 FitInd=FitIndPulse+Ind-maxI;
 
+%% Reducing last points in case PeakOnFront
+if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitInd(end)+1)-FitPulse(FitIndPulse(end)+1))>=TrekSet.Threshold
+    tr=diff(TrekSet.trek(FitInd));
+    trL=circshift(tr,-1);
+    trL(end)=max(tr);
+    trR=circshift(tr,1);
+    trR(1)=0;
+    MinIndBool=tr<=trL&tr<=trR;
+    MinInd=find(MinIndBool);
+    FitInd=FitInd(1:MinInd(end));
+    FitIndPulse=FitInd(1:MinInd(end));
+end;
+%% Final
 FIT.FitInd=FitInd;
 FIT.FitIndPulse=FitIndPulse;
 FIT.N=numel(FitInd);
-
-
