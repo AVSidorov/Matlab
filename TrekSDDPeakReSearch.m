@@ -18,12 +18,13 @@ if numel(SubtractInd)<StpSet.MaxInd||...
 end;
 
 
-  TrekSetIn.SelectedPeakFrontN(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
-  TrekSetIn.SelectedPeakInd(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end))=[];
+  Ind=find(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end));
+  TrekSetIn.SelectedPeakInd(Ind)=[];
+  TrekSetIn.SelectedPeakFrontN(Ind)=[];
+  TrekSetIn.strictStInd(Ind)=[];
+  TrekSetIn.strictEndInd(Ind)=[];
   TrekSetIn.PeakOnFrontInd(TrekSet.PeakOnFrontInd>=SubtractInd(1)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
   TrekSetIn.LongFrontInd(TrekSet.LongFrontInd>=SubtractInd(1)&TrekSet.LongFrontInd<=SubtractInd(end))=[]; 
-  TrekSetIn.strictStInd(TrekSet.strictStInd>=SubtractInd(1)&TrekSet.strictStInd<=SubtractInd(end))=[];
-  TrekSetIn.strictEndInd(TrekSet.strictEndInd>=SubtractInd(1)&TrekSet.strictEndInd<=SubtractInd(end))=[];
   
  TrekSet.Plot=false;
  TrekSet.trek=[TrekSet.StdVal;-TrekSet.StdVal;0;TrekSet.trek(SubtractInd)];
@@ -53,7 +54,7 @@ end;
              TrekSetIn.SelectedPeakInd=TrekSetIn.SelectedPeakInd';
          end;
          [TrekSetIn.SelectedPeakInd,index]=sortrows(TrekSetIn.SelectedPeakInd);
-         TrekSetIn.SelectedPeakFrontN=TrekSet.SelectedPeakFrontN(index);
+         TrekSetIn.SelectedPeakFrontN=TrekSetIn.SelectedPeakFrontN(index);
          TrekSetIn.strictStInd=TrekSetIn.strictStInd(index);
          TrekSetIn.strictEndInd=TrekSetIn.strictEndInd(index);
      end;
