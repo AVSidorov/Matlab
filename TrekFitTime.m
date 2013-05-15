@@ -81,7 +81,6 @@ FitIndOld=0;
 while N~=Nold||~all(FitInd-FitIndOld==0)
 %% fitting
 
-NShKhi=size(ShKhi,1);
 while any(isinf(ShKhi(:,end)))
     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    
 
@@ -119,7 +118,7 @@ while any(isinf(ShKhi(:,end)))
       endInd=size(ShKhi,1);
       EndGoodInd=1;
       StGoodInd=1;     
-      if isempty(ShKhi)||(size(ShKhi,1)-NShKhi)<0
+      if isempty(ShKhi)
         FitPulse=TrekSDDGetFitPulse(STP,0);
         FIT.FitPulse=FitPulse;
         FIT.Shift=0;
@@ -130,7 +129,6 @@ while any(isinf(ShKhi(:,end)))
         FIT=TrekGetFitInd(TrekSet,Ind,FIT);
         return; 
       end;
-      NShKhi=size(ShKhi,1);
 %% search for characteristic points
       if any(good)
          [KhiMin,KhiMinInd]=min(ShKhi(good,end));
@@ -164,11 +162,11 @@ while any(isinf(ShKhi(:,end)))
         ShKhi(end,end)=inf;
     end;
     
-%     if KhiMinIndMain>=endInd-1
-%         notEx=true;
-%         ShKhi(end+1,1)=ShKhi(endInd,1)+1;
-%         ShKhi(end,2)=inf;
-%     end;
+     if KhiMinIndMain>=endInd-1
+         notEx=true;
+         ShKhi(end+1,1)=ShKhi(endInd,1)+1;
+         ShKhi(end,2)=inf;
+     end;
 
   for i=1:numel(MinInds)
      KhiMinInd=MinInds(i);
@@ -269,7 +267,7 @@ FIT.Good=good(KhiMinInd);
 FIT.A=FITs(KhiMinInd).A;
 FIT.B=FITs(KhiMinInd).B;
 FIT.Shift=ShKhi(KhiMinInd,1);
-FIT.Khi=ShKhi(KhiMinInd,2);
+FIT.Khi=ShKhi(KhiMinInd,end);
 FIT.FitPulse=FITs(KhiMinInd).FitPulse;
 FIT.FitPulseN=StpN;
 FIT.MaxInd=Ind;
