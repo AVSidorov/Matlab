@@ -80,7 +80,11 @@ switch s
         
         fprintf('Input StrictInd. Format is [*:/,***]\n')
         if isfield(FIT,'FitIndStrict');
-            fprintf('Default is [%d:%d]\n',FIT.FitIndStrict(1),FIT.FitIndStrict(end));
+            if ~isempty(FIT.FitIndStrict);
+                fprintf('Default is [%d:%d]\n',FIT.FitIndStrict(1),FIT.FitIndStrict(end));
+            else
+                fprintf('Default is empty\n');
+            end;                
         end;
         FitIndStrict=input('StrictInd is ');
         if isempty(FitIndStrict)&&isfield(FIT,'FitIndStrict')
