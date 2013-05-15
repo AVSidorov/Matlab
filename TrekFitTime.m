@@ -292,10 +292,10 @@ if TrekSet.Plot
             for i=2:size(ShKhi,2)
                 plot(ShKhi(:,1),ShKhi(:,i),'b');
             end;
-            plot(ShKhi(:,1),ShKhi(:,end),'b');
-            plot(ShKhi(good,1),ShKhi(good,2),'or');
+            plot(ShKhi(:,1),ShKhi(:,end),'.b');
+            plot(ShKhi(good,1),ShKhi(good,end),'or');
             KhiFit=polyfit(ShKhi(:,1),ShKhi(:,end),2);
-            plot(ShKhi(:,1),polyval(KhiFit,ShKhi(:,1)));
+            plot(ShKhi(:,1),polyval(KhiFit,ShKhi(:,1)),'k');
             if numel(find(good))>2
                 KhiFit=polyfit(ShKhi(good,1),ShKhi(good,end),2);
                 plot(ShKhi(good,1),polyval(KhiFit,ShKhi(good,1)),'r');
