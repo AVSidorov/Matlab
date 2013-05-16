@@ -32,7 +32,7 @@ s=input('Subtract? If input is not empty, then black trek,else Default blue line
 if not(isempty(s))
     Subtracted=true;
     TrekSet=TrekSet1;
-    TrekSet.peaks(end,7)=0;
+%     TrekSet.peaks(end,7)=0;
 end;
 if not(isempty(ts))
     close(ts);
