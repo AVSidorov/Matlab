@@ -56,7 +56,7 @@ N=numel(FitInd);
 % of fit pulse much greater then trek pulse
 
 %% determenation shift ranges
-ShitfRangeL=3;
+ShiftRangeL=3;
 ShiftRangeR=3;
 if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
     ShiftRangeL=FIT.ShiftRangeL;
