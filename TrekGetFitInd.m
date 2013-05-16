@@ -31,18 +31,26 @@ FitPulse=FIT.FitPulse*FIT.A+FIT.B;
  % This indexes are neccessary for not empty output for FitInd and
  % FitIndPulse
  
- % This indexes (in case of determination) haven't to start from 1 for
- % proper working in case high B (peaks of tail of lost previouse pulse).
+% This indexes (in case of determination) haven't to start from 1 for
+% proper working in case high B (peaks of tail of lost previouse pulse).
 
-%  FitIndStrict=[FitInd(1):Ind];
-%  FitIndPulseStrict=FitIndStrict-Ind+maxI;
+% For FitIndStrict We choose start of front on trek
+% For FitIndPulseStrict We choose start of front of shifted pulse
 
+% FIT.B may be calculated wrong (if Pulse is shifted far from correct
+% position)
+% So zero level B is determined in another way. B is used for FitIndStrict
+% automatic determination
+
+B=mean(TrekSet.trek(Ind-TrekSet.STP.FrontN-BckgFitN:Ind-TrekSet.STP.FrontN));
+StI=min([FitInd(1)+find(TrekSet.trek(FitInd)-B>TrekSet.Threshold,1,'first')-2-BckgFitN,TrekSet.strictStInd(find(TrekSet.strictStInd<Ind,1,'last'))]);
+EndI=TrekSet.strictEndInd(find(TrekSet.strictEndInd>StI,1,'first'));
 if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
     FitIndStrict=FIT.FitIndStrict;
 else
     %!!!That's may be bad for PeakOnFront
     %FitIndStrict=FitInd(1):Ind;
-    FitIndStrict=FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first')-2-BckgFitN:FitInd(1)+find(TrekSet.trek(FitInd)-FIT.B>TrekSet.Threshold,1,'first');
+    FitIndStrict=StI:EndI;
     FitIndStrict=FitIndStrict(FitIndStrict<=TrekSet.size&FitIndStrict>=1);
 end;
 
@@ -59,7 +67,7 @@ stId=TrekSet.STP.TimeInd(stId);
 if isfield(FIT,'FitIndPulseStrict')&&~isempty(FIT.FitIndPulseStrict)
     FitIndPulseStrict=FIT.FitIndPulseStrict;
 else
-    FitIndPulseStrict=round(stId-FIT.Shift):round(maxId-FIT.Shift);
+    FitIndPulseStrict=round(TrekSet.STP.BckgFitN-FIT.Shift):round(maxId-FIT.Shift);
 end;
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
@@ -67,11 +75,13 @@ FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSe
 %% Main FitInd determination by Threshold
 
 bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.Threshold;
-FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd));
-bool(FitIndPulseStrict)=true;
-FitIndPulseStrict=FitIndStrict-Ind+maxI;
-FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd));
-bool(FitIndPulseStrict)=true;
+% map FitIndPulseStrict on to bool(=FitInd) adding
+FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
+bool(FitIndPulseStrict)=true; %map
+%map FitIndStrict to bool 
+FitIndPulseStrict=FitIndStrict-Ind+maxI;  %transform FitIndStrict to indexes in short (FitInd) space 
+FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
+bool(FitIndPulseStrict)=true; %map
 
 FitInd=FitInd(bool);
 FitIndPulse=FitIndPulse(bool);
