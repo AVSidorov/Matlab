@@ -34,6 +34,6 @@ if not(isempty(s))
     TrekSet=TrekSet1;
 %     TrekSet.peaks(end,7)=0;
 end;
-if not(isempty(ts))
+if not(isempty(ts))&&ishandle(ts)
     close(ts);
 end;
