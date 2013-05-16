@@ -60,13 +60,11 @@ ShiftRangeL=3;
 ShiftRangeR=3;
 if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
     ShiftRangeL=FIT.ShiftRangeL;
-    MaxShift=ShiftRangeL;
 end; 
 if isfield(FIT,'ShiftRangeR')&&~isempty(FIT.ShiftRangeR)
-    ShiftRangeR=FIT.ShiftRangeR;
-    MaxShift=max([ShiftRangeL;ShiftRangeR;STP.FrontN]);
+    ShiftRangeR=FIT.ShiftRangeR;    
 end;
-
+MaxShift=max([ShiftRangeL;ShiftRangeR;STP.FrontN]);
 %% initialization of ShKhi
 ShKhi(1,1)=ShiftRangeL;
 ShKhi(1,2)=inf;
