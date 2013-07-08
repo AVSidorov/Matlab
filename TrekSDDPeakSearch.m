@@ -65,11 +65,20 @@ end;
 
  FrontN=MaxInd-MinInd;
  TailN=MinInd(2:end)-MaxInd(1:end-1);
- 
+ DoubledFrontN=MaxInd-circshift(MinInd,1);
+ DoubledFrontN(1)=FrontN(1);
  
  FrontHigh=trek(MaxInd)-trek(MinInd);
+%  DoubledFrontHigh=trek(MaxInd)-trek(circshift(MinInd,1));
+%  DoubledFrontHigh(1)=FrontHigh(1);
+%  TripleFrontHigh=trek(MaxInd)-trek(circshift(MinInd,2));
+%  TripleFrontHigh(1:2)=DoubledFrontHigh(1:2);
+%  QuadFrontHigh=trek(MaxInd)-trek(circshift(MinInd,3));
+%  QuadFrontHigh(1:3)=TripleFrontHigh(1:3);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
- 
+%  for i=0:5
+%      tt(i+1,:)=trek(circshift(MaxInd,-i))-trek(MinInd);
+%  end;
  clear trL trR;
 
 
@@ -161,8 +170,9 @@ if isfield(TrekSet,'ThresholdND')
 else
     ThresholdND=[];
 end;
+
 if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(ThresholdND)
-    tabTrek=tabulateSid(trek);
+    tabTrek=tabulate(trek);
     tabFrontHigh=tabulateSid(FrontHigh);
     tabTailHigh=tabulateSid(TailHigh);
     tabFrontN=tabulateSid(FrontN);
@@ -340,7 +350,7 @@ for i=1:TailNMaxD
     FrontsND(MaxIndD(Ind)+i)=-i;
     FrontsHighD(MaxIndD(Ind)+i)=trekD(MaxIndD(Ind)+i)-trekD(MaxIndD(Ind));
 end;
-ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
+% ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
 
 %% search markers by trek
 SelectedBool=MaxBool&FrontsHigh>ThresholdFront&trek>Threshold&FrontsN>ThresholdN;
@@ -400,7 +410,11 @@ SelectedND=numel(SelectedIndD);
 %% search strictStInd and strictEndInd
 %Search Minimums are correspondig to SelectedInd
 %first way using FrontsN
-strictStInd=SelectedIndD-FrontsND(SelectedIndD);
+% strictStInd=SelectedIndD-FrontsND(SelectedIndD);
+strictStInd=SelectedIndD-abs(FrontsN(SelectedIndD)); %now take not Minimum in trekD, but Minimum in trek 
+%For plasma trek SelectedIndD can be in Minimum point of trek (after trek
+%merging and combining). So (abs) start Strict point will be in good
+%position
 
 %other way more universal
  DiferToNextMin=circshift(MinIndD,-1)-MinIndD;
