@@ -19,6 +19,9 @@ trek=TrekSet.trek;
 
 Ipulse=find(TrekSet.SelectedPeakInd==Ind);
 
+ShiftRangeL=10;
+ShiftRangeR=10;
+
 if nargin<3||isempty(FitStruct)
     FitStruct.Good=false;
     FitStruct.A=1;
@@ -38,8 +41,8 @@ if nargin<3||isempty(FitStruct)
     FitStruct.FitPulseN=StpN;
     FitStruct.MaxInd=STP.MaxInd;
     FitStruct.FitFast=FitFast;
-    FitStruct.ShiftRangeL=3;
-    FitStruct.ShiftRangeR=3;
+    FitStruct.ShiftRangeL=ShiftRangeL;
+    FitStruct.ShiftRangeR=ShiftRangeR;
 end;
 
 FIT=FitStruct;
@@ -56,8 +59,6 @@ N=numel(FitInd);
 % of fit pulse much greater then trek pulse
 
 %% determenation shift ranges
-ShiftRangeL=3;
-ShiftRangeR=3;
 if isfield(FIT,'ShiftRangeL')&&~isempty(FIT.ShiftRangeL)
     ShiftRangeL=FIT.ShiftRangeL;
 end; 
