@@ -149,8 +149,10 @@ while any(isinf(ShKhi(:,end)))
          MinInds=KhiMinInd;
          KhiMinIndMain=KhiMinInd;
       else
-         MinInds=find(ShKhi(:,end)<=circshift(ShKhi(:,end),1)&ShKhi(:,end)<=circshift(ShKhi(:,end),-1));
-         [KhiMin,KhiMinIndMain]=min(ShKhi(:,end));
+         MinInds=find(ShKhi(:,end)<=circshift(ShKhi(:,end),1)&ShKhi(:,end)<=circshift(ShKhi(:,end),-1)&ShKhi(:,end)>0);
+         NotZeroKhi=find(ShKhi(:,end)>0);
+         [KhiMin,KhiMinIndMain]=min(ShKhi(NotZeroKhi,end));
+         KhiMinIndMain=NotZeroKhi(KhiMinIndMain);
       end;
     
      
@@ -251,6 +253,9 @@ if any(good)
          KhiMinInd=GoodInd(KhiMinInd);
 else
     [KhiMin,KhiMinInd]=min(ShKhi(:,end));
+    NotZeroKhi=find(ShKhi(:,end)>0);
+    [KhiMin,KhiMinInd]=min(ShKhi(NotZeroKhi,end));
+    KhiMinInd=NotZeroKhi(KhiMinInd);
 end;
 FitPulse=TrekSDDGetFitPulse(STP,ShKhi(KhiMinInd,1));
 
