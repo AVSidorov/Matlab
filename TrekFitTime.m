@@ -31,6 +31,8 @@ if nargin<3||isempty(FitStruct)
     if ~isempty(Ipulse)
         FitStruct.FitInd=TrekSet.strictStInd(Ipulse):TrekSet.strictEndInd(Ipulse);
         FitStruct.FitIndPulse=FitStruct.FitInd-Ind+STP.MaxInd;
+        FitStruct.FitIndPulse(FitStruct.FitIndPulse<1|FitStruct.FitIndPulse>StpN)=[];
+        FitStruct.FitInd=FitStruct.FitIndPulse+Ind-STP.MaxInd;
     else
         FitStruct.FitInd=[];    
         FitStruct.FitIndPulse=[];
@@ -77,7 +79,7 @@ FITs=[FIT,FIT,FIT];
 
 Nold=0;
 FitIndOld=0;
-while N~=Nold||~all(FitInd-FitIndOld==0)
+while N>Nold||numel(intersect(FitInd,FitIndOld))~=N
 %% fitting
 
 while any(isinf(ShKhi(:,end)))
@@ -260,6 +262,7 @@ FitIndPulse=FITs(KhiMinInd).FitIndPulse;
 N=numel(FitInd);
 ShKhi=[ShKhi,inf(size(ShKhi,1),1)];
 end;
+
 ShKhi(:,end)=[];
 
 FIT.Good=good(KhiMinInd);
