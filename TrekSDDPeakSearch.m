@@ -69,8 +69,8 @@ end;
  DoubledFrontN(1)=FrontN(1);
  
  FrontHigh=trek(MaxInd)-trek(MinInd);
-%  DoubledFrontHigh=trek(MaxInd)-trek(circshift(MinInd,1));
-%  DoubledFrontHigh(1)=FrontHigh(1);
+ DoubledFrontHigh=trek(MaxInd)-trek(circshift(MinInd,1));
+ DoubledFrontHigh(1)=FrontHigh(1);
 %  TripleFrontHigh=trek(MaxInd)-trek(circshift(MinInd,2));
 %  TripleFrontHigh(1:2)=DoubledFrontHigh(1:2);
 %  QuadFrontHigh=trek(MaxInd)-trek(circshift(MinInd,3));
@@ -312,7 +312,7 @@ FrontsN=zeros(trSize,1);
 FrontsHigh=zeros(trSize,1);
 
 %additional condition to avoid long tails/fronts for reset pulses
-Ind=find(trek(MaxInd)<TrekSet.MaxSignal);
+Ind= trek(MaxInd)<TrekSet.MaxSignal;
 FrontNMax=max(FrontN(Ind));
 Ind=find(trek(MinInd)>TrekSet.MinSignal);
 Ind=Ind-1; %TailN corresponds to previous Maximum 
@@ -320,7 +320,6 @@ Ind=Ind(Ind>=1&Ind<MinN); %< becuase TailN contains MinN-1 elements
 TailNMax=max(TailN(Ind));
 
 % TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
-trekS=zeros(trSize,1);
 for i=1:FrontNMax
     Ind=find(FrontN>=i);
     FrontsN(MinInd(Ind)+i)=i;
@@ -331,7 +330,22 @@ for i=1:TailNMax
     FrontsN(MaxInd(Ind)+i)=-i;
     FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
 end;
- %% ======= Special trek constructing diff
+
+DoubledFrontsN=zeros(trSize,1);
+DoubledFrontsHigh=zeros(trSize,1);
+
+%additional condition to avoid long tails/fronts for reset pulses
+Ind= trek(MaxInd)<TrekSet.MaxSignal;
+DoubledFrontNMax=max(DoubledFrontN(Ind));
+
+for i=1:DoubledFrontNMax
+    Ind=find(DoubledFrontN>=i);
+    Ind(MinInd(Ind)+i>trSize)=[];
+    DoubledFrontsN(MinInd(Ind)+i)=i;
+    DoubledFrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
+end;
+
+%% ======= Special trek constructing diff
 FrontsND=zeros(trSizeD,1);
 FrontsHighD=zeros(trSizeD,1);
 
@@ -353,7 +367,7 @@ end;
 % ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
 
 %% search markers by trek
-SelectedBool=MaxBool&FrontsHigh>ThresholdFront&trek>Threshold&FrontsN>ThresholdN;
+SelectedBool=MaxBool&(FrontsHigh>ThresholdFront|DoubledFrontsHigh>ThresholdFront);
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
@@ -436,7 +450,11 @@ strictStInd=SelectedIndD-abs(FrontsN(SelectedIndD)); %now take not Minimum in tr
  %other way
  strictEndInd=SelectedIndD+DeltaMinSelectedTrek(SelectedIndD); % in difer/DeltaMinSelectedTrek contains distances in points to next minimum/SelectedInd
  
-
+DiferStrict=strictEndInd-strictStInd;
+Ind=DiferStrict<10;
+strictEndInd(Ind)=strictStInd(Ind)+10;
+Ind=DiferStrict>TrekSet.STP.FrontN;
+strictEndInd(Ind)=strictStInd(Ind)+TrekSet.STP.FrontN;
 
 %strictEndInd=SelectedInd+Tail
 %% ====== PeakOnFront Search

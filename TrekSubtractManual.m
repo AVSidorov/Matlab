@@ -7,15 +7,33 @@ else
 end;
 Subtracted=false;
 bool=TrekSet.trek~=TrekSet1.trek;
+
 SubtractInd=find(bool);
+SubtractInd=[SubtractInd(1):SubtractInd(end)];
+
 if isempty(SubtractInd)
     Subtracted=true;
     return;
 end;
 SubtractIndPulse=SubtractInd-FIT.MaxInd+STP.MaxInd;
-BadInd1=FIT.FitInd(abs(TrekSet1.trek(FIT.FitInd))>=TrekSet.Threshold);
+
+% x=Ind-STP.size:Ind+STP.size;
+% x(x<1|x>TrekSet.size)=[];
+% Xbool=false(size(TrekSet.trek));
+% Xbool(x)=true;
+% SelectedBool=false(size(TrekSet.trek));
+% SelectedBool(TrekSet.SelectedPeakInd)=true;
+% SelectedInds=find(SelectedBool&Xbool);
+
+
+
+BadInd1=FIT.FitInd(abs(TrekSet1.trek(FIT.FitInd(FIT.FitIndPulse>STP.BckgFitN))-FIT.B)>=TrekSet.Threshold);
 Ind=SubtractInd(SubtractIndPulse<=STP.TailInd);
-BadInd2=Ind(TrekSet1.trek(Ind)<=-TrekSet.Threshold);
+BadInd2=Ind(TrekSet1.trek(Ind)-FIT.B<=-TrekSet.Threshold);
+
+
+
+
 ts=figure;
 grid on; hold on;
 plot(SubtractInd,TrekSet.trek(SubtractInd));
@@ -26,8 +44,8 @@ plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,FIT.FitPulse*FIT.A+FIT.B,'r');
 %     max([max(TrekSet.trek(bool)),max(TrekSet1.trek(bool))])]);
 plot(BadInd1,TrekSet1.trek(BadInd1),'.r');
 plot(BadInd2,TrekSet1.trek(BadInd2),'+r');
-plot([FIT.FitInd(1),SubtractInd(end)],[TrekSet.Threshold,TrekSet.Threshold],'g');
-plot([FIT.FitInd(1),SubtractInd(end)],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+plot([FIT.FitInd(1),SubtractInd(end)],FIT.B+[TrekSet.Threshold,TrekSet.Threshold],'g');
+plot([FIT.FitInd(1),SubtractInd(end)],FIT.B+[-TrekSet.Threshold,-TrekSet.Threshold],'g');
 s=input('Subtract? If input is not empty, then black trek,else Default blue line \n','s');
 if not(isempty(s))
     Subtracted=true;
