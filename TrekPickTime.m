@@ -118,11 +118,13 @@ TrekSet.StartTime=StartTime;
 TrekSet.trek=TrekSet.trek(StI:EndI);
 TrekSet.size=numel(TrekSet.trek);
 % So as all indexes a changed
-TrekSet.SelectedPeakInd=[];
-TrekSet.BreakPointsInd=[];
-TrekSet.PeakOnFrontInd=[];
-TrekSet.LongFrontInd=[];
-TrekSet.SelectedPeakFrontN=[];
+if isfield(TrekSet,'SelectedPeakInd')
+    TrekSet.SelectedPeakInd=[];
+    TrekSet.BreakPointsInd=[];
+    TrekSet.PeakOnFrontInd=[];
+    TrekSet.LongFrontInd=[];
+    TrekSet.SelectedPeakFrontN=[];
+end;
 %% Correction of Interval 
 %!!!!!! Dodelat'
 % if isfield(TrekSet,'BreakPointsInd')
