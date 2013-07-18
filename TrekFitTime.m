@@ -2,6 +2,9 @@ function FIT=TrekFitTime(TrekSet,Ind,FitStruct)
 tic;
 fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
+T=0;
+Tmax=90;
+
 Nfit=30;
 BckgFitN=3;
 gs=(1+sqrt(5))/2;
@@ -81,10 +84,11 @@ FITs=[FIT,FIT,FIT];
 
 Nold=0;
 FitIndOld=0;
-while N>Nold||numel(intersect(FitInd,FitIndOld))~=N
+timeId=tic;
+while T<Tmax&&(N>Nold||numel(intersect(FitInd,FitIndOld))~=N)
 %% fitting
 
-while any(isinf(ShKhi(:,end)))
+while T<Tmax&&any(isinf(ShKhi(:,end)))
     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    
 
     for i=find(isinf(ShKhi(:,end)))'
@@ -232,8 +236,9 @@ while any(isinf(ShKhi(:,end)))
 %       end;
 
     end;
+    T=toc(timeId);
 %% check for exit
-    if ~notEx&&size(ShKhi,1)>Nfit||(min(diff(sortrows(ShKhi(:,1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
+    if T<Tmax&&~notEx&&size(ShKhi,1)>Nfit||(min(diff(sortrows(ShKhi(:,1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
         if any(good)||size(ShKhi,1)>3*Nfit
             ShKhi(isinf(ShKhi(:,end)),:)=[];
         else
