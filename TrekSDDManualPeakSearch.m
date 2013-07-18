@@ -51,10 +51,15 @@ s=input('Make you choice\n','s');
 s=lower(s);
 switch s
     case ''
+        fprintf('If Input is 0 (zero) then go to graph input\n');
         fprintf('Input Ind. Default is %d\n',Ind);
         Indn=input('Ind is ');
         if isempty(Indn)
             Indn=Ind;
+        end;
+        if Indn==0
+            [x,y]=ginput(1);
+            Indn=round(x);
         end;
         Ind=Indn;
         
@@ -89,6 +94,10 @@ switch s
         FitIndStrict=input('StrictInd is ');
         if isempty(FitIndStrict)&&isfield(FIT,'FitIndStrict')
             FitIndStrict=FIT.FitIndStrict;
+        end;
+        if FitIndStrict==0
+            [x,y]=ginput(2);
+            FitIndStrict=[min(round(x)):max(round(x))];
         end;
         FIT.FitIndStrict=FitIndStrict;
         
