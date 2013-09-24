@@ -17,7 +17,11 @@ end;
 OverSt=TrekSet.OverSt;
 
 %% working with trek
-trek=TrekSet.trek;
+% trek=TrekSet.trek;
+% It's important to correct find first marker so we will work with on
+% corrected base line. For trek before first pulse or with low count rate
+% it will be good (may be)
+trek=TrekSet.trek-smooth(TrekSet.trek,10001);
 StdVal=TrekSet.StdVal;
 trSize=TrekSet.size;
 
@@ -81,6 +85,8 @@ end;
 %  end;
  clear trL trR;
 
+%% working with special diferential
+trLongD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
 
 %% working with diferential
 trekD=diff(TrekSet.trek);
@@ -133,6 +139,7 @@ end;
  
  FrontHighD=trekD(MaxIndD)-trekD(MinIndD);
  TailHighD=trekD(MaxIndD(1:end-1))-trekD(MinIndD(2:end));
+ 
 %% ========= Thresholds determenation
 if isfield(TrekSet,'Threshold')
     Threshold=TrekSet.Threshold;
@@ -367,7 +374,7 @@ end;
 % ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
 
 %% search markers by trek
-SelectedBool=MaxBool&(FrontsHigh>ThresholdFront|DoubledFrontsHigh>ThresholdFront);
+SelectedBool=MaxBool&trLongD>Threshold&(FrontsHigh>ThresholdFront|DoubledFrontsHigh>ThresholdFront);
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
@@ -384,7 +391,7 @@ SelectedBoolD=MaxBoolD&trekD>ThresholdD&FrontsHighD>ThresholdFrontD&FrontsND>Thr
 SelectedIndD=find(SelectedBoolD);
 
 SelectedIndD=SelectedIndD((SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)>=1&(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)<=TrekSet.size);
-SelectedIndD=SelectedIndD(TrekSet.trek(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)>TrekSet.Threshold);
+SelectedIndD=SelectedIndD(TrekSet.trek(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)>Threshold);
 SelectedBoolD=false(trSizeD,1);
 SelectedBoolD(SelectedIndD)=true;
 SelectedND=numel(SelectedIndD);
