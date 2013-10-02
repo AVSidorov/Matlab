@@ -179,15 +179,15 @@ else
 end;
 
 if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(ThresholdND)
-    tabTrek=tabulate(trek);
-    tabFrontHigh=tabulateSid(FrontHigh);
-    tabTailHigh=tabulateSid(TailHigh);
+    tabTrek=HistOnNet(trek,[-2047.5:2047.5]);
+    tabFrontHigh=HistOnNet(FrontHigh,[-2047.5:2047.5]);
+    tabTailHigh=HistOnNet(TailHigh,[-2047.5:2047.5]);
     tabFrontN=tabulateSid(FrontN);
     tabTailN=tabulateSid(TailN);
     
-    tabTrekD=tabulateSid(trekD);
-    tabFrontHighD=tabulateSid(FrontHighD);
-    tabTailHighD=tabulateSid(TailHighD);
+    tabTrekD=HistOnNet(trekD,[-2047.5:2047.5]);
+    tabFrontHighD=HistOnNet(FrontHighD,[-2047.5:2047.5]);
+    tabTailHighD=HistOnNet(TailHighD,[-2047.5:2047.5]);
     tabFrontND=tabulateSid(FrontND);
     tabTailND=tabulateSid(TailND);
 
