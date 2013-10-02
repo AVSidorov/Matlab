@@ -27,9 +27,9 @@ x(x<1|x>TrekSet.size)=[];
 
 
 
-BadInd1=FIT.FitInd(abs(TrekSet1.trek(FIT.FitInd(FIT.FitIndPulse>STP.BckgFitN))-FIT.B)>=TrekSet.Threshold);
+BadInd1=FIT.FitInd(abs(TrekSet1.trek(FIT.FitInd(FIT.FitIndPulse>STP.BckgFitN))-FIT.B)>=TrekSet.OverSt*TrekSet.StdVal);
 Ind=SubtractInd(SubtractIndPulse<=STP.TailInd);
-BadInd2=Ind(TrekSet1.trek(Ind)-FIT.B<=-TrekSet.Threshold);
+BadInd2=Ind(TrekSet1.trek(Ind)-FIT.B<=-TrekSet.OverSt*TrekSet.StdVal);
 
 
 
@@ -44,8 +44,8 @@ plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,FIT.FitPulse*FIT.A+FIT.B,'r');
 %     max([max(TrekSet.trek(bool)),max(TrekSet1.trek(bool))])]);
 plot(BadInd1,TrekSet1.trek(BadInd1),'.r');
 plot(BadInd2,TrekSet1.trek(BadInd2),'+r');
-plot([x(1),x(end)],FIT.B+[TrekSet.Threshold,TrekSet.Threshold],'g');
-plot([x(1),x(end)],FIT.B+[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+plot([x(1),x(end)],FIT.B+[TrekSet.OverSt*TrekSet.StdVal,TrekSet.OverSt*TrekSet.StdVal],'g');
+plot([x(1),x(end)],FIT.B+[-TrekSet.OverSt*TrekSet.StdVal,-TrekSet.OverSt*TrekSet.StdVal],'g');
 s=input('Subtract? If input is not empty, then black trek,else Default blue line\n If leter is ''d/D'' then this pulse will be marked as good fitted\n','s');
 if not(isempty(s))
     Subtracted=true;

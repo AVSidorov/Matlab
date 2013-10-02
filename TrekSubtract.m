@@ -50,8 +50,8 @@ TrekSet.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
 TrekSet.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
 TrekSet.peaks(end,7)=-1;                     % means that Standing Alone or first from Overlaped pulses
 
-if all(abs(TrekSet.trek(FitInd(FitIndPulse>StpSet.BckgFitN))-FitStruct.B)<TrekSet.Threshold)&...    %check fitting quality
-   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))-FitStruct.B>-TrekSet.Threshold)&...
+if all(abs(TrekSet.trek(FitInd(FitIndPulse>StpSet.BckgFitN))-FitStruct.B)<TrekSet.OverSt*TrekSet.StdVal)&...    %check fitting quality
+   all(TrekSet.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd))-FitStruct.B>-TrekSet.OverSt*TrekSet.StdVal)&...
    FitStruct.A>0
    %check that FitPulse isn't moved right and fitted Pulse Amplitude much
    %greater than Amplitude of real signal pulse
@@ -85,8 +85,8 @@ if TrekSet.Plot
         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
         plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
         plot(SubtractInd(SubtractIndPulse<=StpSet.TailInd),TrekSet1.trek(SubtractInd(SubtractIndPulse<=StpSet.TailInd)),'ok');
-        plot([SubtractInd(1),SubtractInd(end)],[TrekSet.Threshold,TrekSet.Threshold],'g');
-        plot([SubtractInd(1),SubtractInd(end)],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
+        plot([SubtractInd(1),SubtractInd(end)],[TrekSet.OverSt*TrekSet.StdVal,TrekSet.OverSt*TrekSet.StdVal]+FitStruct.B,'g');
+        plot([SubtractInd(1),SubtractInd(end)],[-TrekSet.OverSt*TrekSet.StdVal,-TrekSet.OverSt*TrekSet.StdVal]+FitStruct.B,'g');
         set(gcf, 'Units', 'normalized', 'Position', [0.01, 0.01, 0.8, 0.8]);
     pause;
     figure(pp);

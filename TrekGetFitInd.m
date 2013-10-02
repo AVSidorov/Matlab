@@ -43,7 +43,7 @@ FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 % automatic determination
 
 B=mean(TrekSet.trek(Ind-TrekSet.STP.FrontN-BckgFitN:Ind-TrekSet.STP.FrontN));
-StI=min([FitInd(1)+find(TrekSet.trek(FitInd)-B>TrekSet.Threshold,1,'first')-2-BckgFitN,TrekSet.strictStInd(find(TrekSet.strictStInd<Ind,1,'last'))]);
+StI=min([FitInd(1)+find(TrekSet.trek(FitInd)-B>TrekSet.OverSt*TrekSet.StdVal,1,'first')-2-BckgFitN,TrekSet.strictStInd(find(TrekSet.strictStInd<Ind,1,'last'))]);
 EndI=TrekSet.strictEndInd(find(TrekSet.strictEndInd>StI,1,'first'));
 if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
     FitIndStrict=FIT.FitIndStrict;
@@ -72,9 +72,9 @@ end;
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
 
-%% Main FitInd determination by Threshold
+%% Main FitInd determination by StdVal
 
-bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.Threshold;
+bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.OverSt*TrekSet.StdVal;
 % map FitIndPulseStrict on to bool(=FitInd) adding
 FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
 bool(FitIndPulseStrict)=true; %map
@@ -129,7 +129,7 @@ end;
 FitInd=FitIndPulse+Ind-maxI;
 
 %% Reducing last points in case PeakOnFront
-if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitInd(end)+1)-FitPulse(FitIndPulse(end)+1))>=TrekSet.Threshold
+if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitInd(end)+1)-FitPulse(FitIndPulse(end)+1))>=TrekSet.OverSt*TrekSet.StdVal
     tr=diff(TrekSet.trek(FitInd));
     trL=circshift(tr,-1);
     trL(end)=max(tr);
