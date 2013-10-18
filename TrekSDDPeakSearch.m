@@ -9,143 +9,20 @@ TrekSet=TrekSetIn;
 if nargin<2
     EndOut=true;
 end;
-
+sm=10001;
 
 
 
 
 OverSt=TrekSet.OverSt;
 
+WeightTrek=zeros(TrekSet.size,1);
+
 %% working with trek
-% trek=TrekSet.trek;
-% It's important to correct find first marker so we will work with on
-% corrected base line. For trek before first pulse or with low count rate
-% it will be good (may be)
-trek=TrekSet.trek-smooth(TrekSet.trek,10001);
-StdVal=TrekSet.StdVal;
-trSize=TrekSet.size;
 
+trek=TrekSet.trek;
 
-
-
-
-FrontHigh=zeros(trSize,1);
-
-
-
-trR=circshift(trek,1); %circshift works on vectors (vertical arrays)
-trL=circshift(trek,-1);
-
-FrontBool=trek>=trR&trek<=trL;
-TailBool=trek>=trL&trek<=trR;
-MaxBool=trek>trR&trek>=trL;
-MinBool=trek<=trR&trek<trL;
-MaxBool(1)=false;    MaxBool(end)=false;
-MaxInd=find(MaxBool);
-MaxN=numel(MaxInd);
-
-MinBool(1)=false;    MinBool(end)=false;
-MinInd=find(MinBool);
-MinN=numel(MinInd);
-
-if MinInd(1)>MaxInd(1)
-    MinInd=[1;MinInd];    
-    MinN=MinN+1;
-end;
-
-
- 
-%making equal quantity of maximums and minimums
- if MinN>MaxN
-      MaxInd(end+1)=trSize; %earlier was removing MinInd, by this causes errors in HighPeak Search
-      MaxN=MaxN+1;
- end;
- 
- 
- MaxBool=false(trSize,1);
- MaxBool(MaxInd)=true;
- MinBool=false(trSize,1);
- MinBool(MinInd)=true;
-
- FrontN=MaxInd-MinInd;
- TailN=MinInd(2:end)-MaxInd(1:end-1);
- DoubledFrontN=MaxInd-circshift(MinInd,1);
- DoubledFrontN(1)=FrontN(1);
- 
- FrontHigh=trek(MaxInd)-trek(MinInd);
- DoubledFrontHigh=trek(MaxInd)-trek(circshift(MinInd,1));
- DoubledFrontHigh(1)=FrontHigh(1);
-%  TripleFrontHigh=trek(MaxInd)-trek(circshift(MinInd,2));
-%  TripleFrontHigh(1:2)=DoubledFrontHigh(1:2);
-%  QuadFrontHigh=trek(MaxInd)-trek(circshift(MinInd,3));
-%  QuadFrontHigh(1:3)=TripleFrontHigh(1:3);
- TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
-%  for i=0:5
-%      tt(i+1,:)=trek(circshift(MaxInd,-i))-trek(MinInd);
-%  end;
- clear trL trR;
-
-%% working with special diferential
-trLongD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
-
-%% working with diferential
-trekD=diff(TrekSet.trek);
-StdValD=std(trekD(trekD<0));
-trSizeD=TrekSet.size-1;
-
-
-
-FrontHighD=zeros(trSizeD,1);
-
-
-
-trDR=circshift(trekD,1); %circshift works on vectors (vertical arrays)
-trDL=circshift(trekD,-1);
-
-FrontBoolD=trekD>=trDR&trekD<=trDL;
-TailBoolD=trekD>=trDL&trekD<=trDR;
-MaxBoolD=trekD>trDR&trekD>=trDL;
-MinBoolD=trekD<=trDR&trekD<trDL;
-MaxBoolD(1)=false;    MaxBoolD(end)=false;
-MaxIndD=find(MaxBoolD);
-MaxND=numel(MaxIndD);
-
-MinBoolD(1)=false;    MinBoolD(end)=false;
-MinIndD=find(MinBoolD);
-MinND=numel(MinIndD);
-
-if MinIndD(1)>MaxIndD(1)
-    MinIndD=[1;MinIndD];    
-    MinND=MinND+1;
-end;
-
-
- 
-%making equal quantity of maximums and minimums
- if MinND>MaxND
-      MaxIndD(end+1)=trSizeD; %earlier was removing MinInd, by this causes errors in HighPeak Search
-      MaxND=MaxND+1;
- end;
- 
- 
- MaxBoolD=false(trSizeD,1);
- MaxBoolD(MaxIndD)=true;
- MinBoolD=false(trSizeD,1);
- MinBoolD(MinIndD)=true;
-
- FrontND=MaxIndD-MinIndD;
- TailND=MinIndD(2:end)-MaxIndD(1:end-1);
- 
- 
- FrontHighD=trekD(MaxIndD)-trekD(MinIndD);
- TailHighD=trekD(MaxIndD(1:end-1))-trekD(MinIndD(2:end));
- 
-%% ========= Thresholds determenation
-if isfield(TrekSet,'Threshold')
-    Threshold=TrekSet.Threshold;
-else
-    Threshold=[];
-end;
+STSet=SpecialTreks(trek);
 
 if isfield(TrekSet,'ThresholdFront')
     ThresholdFront=TrekSet.ThresholdFront;
@@ -153,167 +30,117 @@ else
     ThresholdFront=[];
 end;
 
+if isempty(ThresholdFront)
+ NoiseSet=NoiseFit(STSet.FrontHigh);
+ ThresholdFront=NoiseSet.Threshold+NoiseSet.MeanVal;
+end;
+
+WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFront))=WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFront))+1;
+
 if isfield(TrekSet,'ThresholdN')
     ThresholdN=TrekSet.ThresholdN;
 else
     ThresholdN=[];
 end;
 
-if isfield(TrekSet,'ThresholdD')
-    ThresholdD=TrekSet.ThresholdD;
-else
-    ThresholdD=[];
+if isempty(ThresholdN)
+    NoiseSet=NoiseFit(STSet.FrontN);
+    ThresholdN=NoiseSet.Threshold+NoiseSet.MeanVal;
 end;
 
-if isfield(TrekSet,'ThresholdFrontD')
-    ThresholdFrontD=TrekSet.ThresholdFrontD;
+WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdN))=WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdN))+1;
+
+
+%% working with smoothed trek
+trek=TrekSet.trek-smooth(TrekSet.trek,sm);
+
+STSet=SpecialTreks(trek);
+
+if isfield(TrekSet,'Threshold')
+    Threshold=TrekSet.Threshold;
 else
-    ThresholdFrontD=[];
+    Threshold=[];
 end;
-
-
-if isfield(TrekSet,'ThresholdND')
-    ThresholdND=TrekSet.ThresholdND;
-else
-    ThresholdND=[];
-end;
-
-if isempty(Threshold)||isempty(ThresholdD)||isempty(ThresholdN)||isempty(ThresholdND)
-    tabTrek=HistOnNet(trek,[-2047.5:2047.5]);
-    tabFrontHigh=HistOnNet(FrontHigh,[-2047.5:2047.5]);
-    tabTailHigh=HistOnNet(TailHigh,[-2047.5:2047.5]);
-    tabFrontN=tabulateSid(FrontN);
-    tabTailN=tabulateSid(TailN);
-    
-    tabTrekD=HistOnNet(trekD,[-2047.5:2047.5]);
-    tabFrontHighD=HistOnNet(FrontHighD,[-2047.5:2047.5]);
-    tabTailHighD=HistOnNet(TailHighD,[-2047.5:2047.5]);
-    tabFrontND=tabulateSid(FrontND);
-    tabTailND=tabulateSid(TailND);
-
-    figure;
-    h1=subplot(2,2,1);
-        grid on; hold on;
-        set(gca,'YScale','log');
-        plot(tabTrek(:,1),tabTrek(:,2),'k');
-        plot(tabTailHigh(:,1),tabTailHigh(:,2),'.b-');
-        plot(tabFrontHigh(:,1),tabFrontHigh(:,2),'.r-');
-        legend('trek','Tail High','Front High');
-    h2=subplot(2,2,2);
-        grid on; hold on;
-        set(gca,'YScale','log');
-        plot(tabFrontN(:,1),tabFrontN(:,2),'.r-');
-        plot(tabTailN(:,1),tabTailN(:,2),'.b-');
-        legend('FrontN','TailN');
-    h3=subplot(2,2,3);
-        grid on; hold on;
-        set(gca,'YScale','log');
-        plot(tabTrekD(:,1),tabTrekD(:,2),'k');
-        plot(tabTailHighD(:,1),tabTailHighD(:,2),'.b-');
-        plot(tabFrontHighD(:,1),tabFrontHighD(:,2),'.r-');
-        legend('trekD','TailHighD','FrontHighD');
-    h4=subplot(2,2,4);
-        grid on; hold on;
-        set(gca,'YScale','log');
-        plot(tabFrontND(:,1),tabFrontND(:,2),'.r-');
-        plot(tabTailND(:,1),tabTailND(:,2),'.b-');
-        legend('FrontND','TailND');
-   
-    ch='a';
-    while ~isempty(ch)
-       
-       T=input('Input Threshold (for trek Amplitude) ');
-       if ~isempty(T)
-           Threshold=T;
-       end;
-       axes(h1);
-       
-       h=findobj('tag','ThrLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       h=findobj('tag','ThrLine1');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       plot([Threshold,Threshold],[1,max(tabTrek(:,2))],'k','LineWidth',2,'tag','ThrLine');
-       plot([-Threshold,-Threshold],[1,max(tabTrek(:,2))],'k','LineWidth',2,'tag','ThrLine1');
-       
-       T=input('Input Threshold (for Pulse Front High) ');
-       if ~isempty(T)
-           ThresholdFront=T;
-       end;
-
-       axes(h1);
-       
-       h=findobj('tag','ThrFLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       plot([ThresholdFront,ThresholdFront],[1,max([max(tabFrontHigh(:,2));max(tabTailHigh(:,2))])],'m','LineWidth',2,'tag','ThrFLine');
-
-       T=input('Input ThresholdN (for pulse front duration in N) ');
-       if ~isempty(T)
-           ThresholdN=T;
-       end;
-     
-       axes(h2);
-       h=findobj('tag','ThrNLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-
-       plot([ThresholdN,ThresholdN],[1,max([max(tabFrontN(:,2));max(tabTailN(:,2))])],'k','LineWidth',2,'tag','ThrNLine');
-
-
-       
-       
-       T=input('Input ThresholdD (for trekD Amplitude) ');
-       if ~isempty(T)
-           ThresholdD=T;
-       end;
-       axes(h3);
-       
-       h=findobj('tag','ThrDLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       h=findobj('tag','ThrDLine1');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       plot([ThresholdD,ThresholdD],[1,max(tabTrekD(:,2))],'k','LineWidth',2,'tag','ThrDLine');
-       plot([-ThresholdD,-ThresholdD],[1,max(tabTrekD(:,2))],'k','LineWidth',2,'tag','ThrDLine1');
-       
-       
-       
-       
-       T=input('Input ThresholdFrontD (for diff Pulse Front High) ');
-       if ~isempty(T)
-           ThresholdFrontD=T;
-       end;
-
-       axes(h3);
-              h=findobj('tag','ThrFrDLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       plot([ThresholdFrontD,ThresholdFrontD],[1,max([max(tabFrontHighD(:,2));max(tabTailHighD(:,2))])],'m','LineWidth',2,'tag','ThrFrDLine');
-
-       T=input('Input ThresholdND (for diff pulse front duration in N) ');
-       if ~isempty(T)
-           ThresholdND=T;
-       end;
-
-       axes(h4);
-       h=findobj('tag','ThrNDLine');
-       if ~isempty(h)&&ishandle(h)
-           delete(h);
-       end;
-       plot([ThresholdND,ThresholdND],[1,max([max(tabFrontND(:,2));max(tabTailND(:,2))])],'k','LineWidth',2,'tag','ThrNDLine');
-       ch=input('If not empty input of Thresholds will be repeated \n','s');
+if isempty(Threshold)
+   NoiseSet=NoiseFit(trek);
+   TrekSet.trek=TrekSet.trek;-NoiseSet.MeanVal;
+   if numel(find(TrekSet.trek>NoiseSet.Threshold))>=numel(find(TrekSet.trek<-NoiseSet.Threshold))
+        PeakPolarity = 1;
+    else
+        PeakPolarity = -1;
     end;
-end
+    TrekSet.trek=PeakPolarity*TrekSet.trek;
+    MaxSignal=max([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
+    MinSignal=min([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
+
+    TrekSet.trek=trek;
+    TrekSet.MeanVal=NoiseSet.MeanVal;
+    TrekSet.Threshold=NoiseSet.Threshold;
+    TrekSet.MinSignal=MinSignal;
+    TrekSet.MaxSignal=MaxSignal;
+    TrekSet.StdVal=NoiseSet.Std;
+    TrekSet.OverSt=NoiseSet.OverSt;
+end;
+T=TrekSet;
+T.trek=trek;
+[isNoise,NoiseSet]=TrekSDDisNoise(T);
+bool=not(NoiseSet.noise)&STSet.MaxBool&trek>Threshold;
+Ind=find(bool);
+WeightTrek(Ind)=WeightTrek(Ind)+1;
+
+%% working with special diferential
+trek=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
+
+STSet=SpecialTreks(trek);
+if isfield(TrekSet,'ThresholdLD')
+    ThresholdLD=TrekSet.ThresholdLD;
+else
+    ThresholdLD=[];
+end;
+if isempty(ThresholdLD)
+   NoiseSet=NoiseFit(trek);
+   ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
+   StdLD=NoiseSet.StdVal;
+   OverStLD=NoiseSet.OverSt;
+end;
+T=TrekSet;
+T.trek=trek;
+T.OverSt=OverStLD;
+T.StdVal=StdLD;
+[isNoise,NoiseSet]=TrekSDDisNoise(T);
+bool=not(NoiseSet.noise)&STSet.MaxBool&trek>ThresholdLD;
+Ind=find(bool);
+WeightTrek(Ind)=WeightTrek(Ind)+1;
+
+if isfield(TrekSet,'ThresholdFrontLD')
+    ThresholdFrontLD=TrekSet.ThresholdFrontLD;
+else
+    ThresholdFrontLD=[];
+end;
+
+if isempty(ThresholdFrontLD)
+ NoiseSet=NoiseFit(STSet.FrontHigh);
+ ThresholdFrontLD=NoiseSet.Threshold+NoiseSet.MeanVal;
+end;
+
+WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFrontLD))=WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFrontLD))+1;
+
+if isfield(TrekSet,'ThresholdNLD')
+    ThresholdNLD=TrekSet.ThresholdNLD;
+else
+    ThresholdNLD=[];
+end;
+
+if isempty(ThresholdNLD)
+    NoiseSet=NoiseFit(STSet.FrontN);
+    ThresholdNLD=NoiseSet.Threshold+NoiseSet.MeanVal;
+end;
+
+WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdNLD))=WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdNLD))+1;
+
+trekD=diff(TrekSet.trek);
+
+
 %% ======= Special trek constructing trek
 FrontsN=zeros(trSize,1);
 FrontsHigh=zeros(trSize,1);
