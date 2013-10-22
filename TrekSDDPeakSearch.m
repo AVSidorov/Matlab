@@ -9,410 +9,46 @@ TrekSet=TrekSetIn;
 if nargin<2
     EndOut=true;
 end;
-sm=10001;
-
 
 
 
 OverSt=TrekSet.OverSt;
-
-WeightTrek=zeros(TrekSet.size,1);
-
-%% working with trek
-
 trek=TrekSet.trek;
-
-STSet=SpecialTreks(trek);
-
-if isfield(TrekSet,'ThresholdFront')
-    ThresholdFront=TrekSet.ThresholdFront;
-else
-    ThresholdFront=[];
-end;
-
-if isempty(ThresholdFront)
- NoiseSet=NoiseFit(STSet.FrontHigh);
- ThresholdFront=NoiseSet.Threshold+NoiseSet.MeanVal;
-end;
-
-WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFront))=WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFront))+1;
-
-if isfield(TrekSet,'ThresholdN')
-    ThresholdN=TrekSet.ThresholdN;
-else
-    ThresholdN=[];
-end;
-
-if isempty(ThresholdN)
-    NoiseSet=NoiseFit(STSet.FrontN);
-    ThresholdN=NoiseSet.Threshold+NoiseSet.MeanVal;
-end;
-
-WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdN))=WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdN))+1;
-
-
-%% working with smoothed trek
-trek=TrekSet.trek-smooth(TrekSet.trek,sm);
-
-STSet=SpecialTreks(trek);
-
-if isfield(TrekSet,'Threshold')
-    Threshold=TrekSet.Threshold;
-else
-    Threshold=[];
-end;
-if isempty(Threshold)
-   NoiseSet=NoiseFit(trek);
-   TrekSet.trek=TrekSet.trek;-NoiseSet.MeanVal;
-   if numel(find(TrekSet.trek>NoiseSet.Threshold))>=numel(find(TrekSet.trek<-NoiseSet.Threshold))
-        PeakPolarity = 1;
-    else
-        PeakPolarity = -1;
-    end;
-    TrekSet.trek=PeakPolarity*TrekSet.trek;
-    MaxSignal=max([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
-    MinSignal=min([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
-
-    TrekSet.trek=trek;
-    TrekSet.MeanVal=NoiseSet.MeanVal;
-    TrekSet.Threshold=NoiseSet.Threshold;
-    TrekSet.MinSignal=MinSignal;
-    TrekSet.MaxSignal=MaxSignal;
-    TrekSet.StdVal=NoiseSet.Std;
-    TrekSet.OverSt=NoiseSet.OverSt;
-end;
-T=TrekSet;
-T.trek=trek;
-[isNoise,NoiseSet]=TrekSDDisNoise(T);
-bool=not(NoiseSet.noise)&STSet.MaxBool&trek>Threshold;
-Ind=find(bool);
-WeightTrek(Ind)=WeightTrek(Ind)+1;
+trSize=TrekSet.size;
 
 %% working with special diferential
-trek=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
+longD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
 
-STSet=SpecialTreks(trek);
-if isfield(TrekSet,'ThresholdLD')
-    ThresholdLD=TrekSet.ThresholdLD;
+STSet=SpecialTreks(longD);
+if isfield(TrekSet,'Threshold')
+    ThresholdLD=TrekSet.Threshold;
 else
     ThresholdLD=[];
 end;
 if isempty(ThresholdLD)
-   NoiseSet=NoiseFit(trek);
+   NoiseSet=NoiseFit(longD);
    ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
-   StdLD=NoiseSet.StdVal;
-   OverStLD=NoiseSet.OverSt;
 end;
-T=TrekSet;
-T.trek=trek;
-T.OverSt=OverStLD;
-T.StdVal=StdLD;
-[isNoise,NoiseSet]=TrekSDDisNoise(T);
-bool=not(NoiseSet.noise)&STSet.MaxBool&trek>ThresholdLD;
-Ind=find(bool);
-WeightTrek(Ind)=WeightTrek(Ind)+1;
-
-if isfield(TrekSet,'ThresholdFrontLD')
-    ThresholdFrontLD=TrekSet.ThresholdFrontLD;
-else
-    ThresholdFrontLD=[];
-end;
-
-if isempty(ThresholdFrontLD)
- NoiseSet=NoiseFit(STSet.FrontHigh);
- ThresholdFrontLD=NoiseSet.Threshold+NoiseSet.MeanVal;
-end;
-
-WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFrontLD))=WeightTrek(STSet.MaxInd(STSet.FrontHigh>ThresholdFrontLD))+1;
-
-if isfield(TrekSet,'ThresholdNLD')
-    ThresholdNLD=TrekSet.ThresholdNLD;
-else
-    ThresholdNLD=[];
-end;
-
-if isempty(ThresholdNLD)
-    NoiseSet=NoiseFit(STSet.FrontN);
-    ThresholdNLD=NoiseSet.Threshold+NoiseSet.MeanVal;
-end;
-
-WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdNLD))=WeightTrek(STSet.MaxInd(STSet.FrontN>ThresholdNLD))+1;
-
-trekD=diff(TrekSet.trek);
-
-
-%% ======= Special trek constructing trek
-FrontsN=zeros(trSize,1);
-FrontsHigh=zeros(trSize,1);
-
-%additional condition to avoid long tails/fronts for reset pulses
-Ind= trek(MaxInd)<TrekSet.MaxSignal;
-FrontNMax=max(FrontN(Ind));
-Ind=find(trek(MinInd)>TrekSet.MinSignal);
-Ind=Ind-1; %TailN corresponds to previous Maximum 
-Ind=Ind(Ind>=1&Ind<MinN); %< becuase TailN contains MinN-1 elements
-TailNMax=max(TailN(Ind));
-
-% TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
-for i=1:FrontNMax
-    Ind=find(FrontN>=i);
-    FrontsN(MinInd(Ind)+i)=i;
-    FrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
-end;
-for i=1:TailNMax
-    Ind=find(TailN>=i);
-    FrontsN(MaxInd(Ind)+i)=-i;
-    FrontsHigh(MaxInd(Ind)+i)=trek(MaxInd(Ind)+i)-trek(MaxInd(Ind));
-end;
-
-DoubledFrontsN=zeros(trSize,1);
-DoubledFrontsHigh=zeros(trSize,1);
-
-%additional condition to avoid long tails/fronts for reset pulses
-Ind= trek(MaxInd)<TrekSet.MaxSignal;
-DoubledFrontNMax=max(DoubledFrontN(Ind));
-
-for i=1:DoubledFrontNMax
-    Ind=find(DoubledFrontN>=i);
-    Ind(MinInd(Ind)+i>trSize)=[];
-    DoubledFrontsN(MinInd(Ind)+i)=i;
-    DoubledFrontsHigh(MinInd(Ind)+i)=trek(MinInd(Ind)+i)-trek(MinInd(Ind));
-end;
-
-%% ======= Special trek constructing diff
-FrontsND=zeros(trSizeD,1);
-FrontsHighD=zeros(trSizeD,1);
-
-FrontNMaxD=max(FrontND(FrontHighD>1));
-TailNMaxD=max(TailND(TailHighD>1));
-% %additional condition to avoid long tails for reset pulses
-% TailNMax=max(TailN(trek(MinInd(2:end))>-Threshold));
-trekSD=zeros(trSizeD,1);
-for i=1:FrontNMaxD
-    Ind=find(FrontND>=i);
-    FrontsND(MinIndD(Ind)+i)=i;
-    FrontsHighD(MinIndD(Ind)+i)=trekD(MinIndD(Ind)+i)-trekD(MinIndD(Ind));
-end;
-for i=1:TailNMaxD
-    Ind=find(TailND>=i);
-    FrontsND(MaxIndD(Ind)+i)=-i;
-    FrontsHighD(MaxIndD(Ind)+i)=trekD(MaxIndD(Ind)+i)-trekD(MaxIndD(Ind));
-end;
-% ThresholdD=mean(FrontsHighD(FrontsHighD>0))*OverSt;
-
-%% search markers by trek
-SelectedBool=MaxBool&trLongD>Threshold&(FrontsHigh>ThresholdFront|DoubledFrontsHigh>ThresholdFront);
+SelectedBool=STSet.MaxBool&longD>=ThresholdLD;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
-%% ============ STP for diff trek
-STPD=StpStruct([TrekSet.STP.TimeInd(1:end-1)+0.5,diff(TrekSet.STP.FinePulse)]);
-
-%% ============ Search Markers by diff
-%SelectedBool=ByFrontBool|PeakOnFrontBool|ByHighBool|LongFrontBool;
-% Fixed FrontN because diff of STP has flat part on front
-SelectedBoolD=MaxBoolD&trekD>ThresholdD&FrontsHighD>ThresholdFrontD&FrontsND>ThresholdND;
-
-
-% SelectedBool(trSize-OnTailN:end)=false; %not proccessing tail
-SelectedIndD=find(SelectedBoolD);
-
-SelectedIndD=SelectedIndD((SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)>=1&(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)<=TrekSet.size);
-SelectedIndD=SelectedIndD(TrekSet.trek(SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd)>Threshold);
-SelectedBoolD=false(trSizeD,1);
-SelectedBoolD(SelectedIndD)=true;
-SelectedND=numel(SelectedIndD);
-%% ============= Merging SelectedInd and SelectedIndD
-CombineBool=SelectedBool|[SelectedBoolD;false];
-CombineInd=find(CombineBool);
-DiferCombine=CombineInd-circshift(CombineInd,1); %array with distanse to previous marker
-DiferCombine(1)=0;
-DiferSelected=SelectedInd-circshift(SelectedInd,1);
-DiferSelected(1)=0;
-
-
-trekCombine=zeros(trSize,1);
-trekSelected=trekCombine;
-trekCombine(CombineInd)=DiferCombine;
-trekSelected(SelectedInd)=DiferSelected;
-
-Ind=find((trekCombine(SelectedInd)-trekSelected(SelectedInd))==0); % SelectedInd are markers on ends of fronts. Every front (which satisfy conditions) must have SelectedIndD
-Ind=SelectedInd(Ind);                    % so distance to previous SelectedInd (end of front ) must be greater then distance to previous SelectedIndD (marker on front)
-                                         % and difference must be negative
-                                         % if difference is equale zero,
-                                         % this means SelectedIndD is
-                                         % skipped
-
-% This method gives bad result. Marker may not to be in right position
-% Dist=mean(trekCombine(SelectedInd)); %mean distance between trek marker and correspond (previous) diff marker
-% SelectedBoolD(Ind-round(Dist))=true;
-
-Ind=Ind(Ind<trSize); %to avoid bad index for trekD (trSizeD=trSize-1)
-for i=1:numel(Ind) %must be not many such points
-    [m,IndD]=max(trekD(Ind(i)-FrontsN(Ind(i)):Ind(i)));
-    SelectedBoolD(Ind(i)-FrontsN(Ind(i))+IndD-1)=true;
-end;
-SelectedIndD=find(SelectedBoolD);
-SelectedND=numel(SelectedIndD);
-
-%% search strictStInd and strictEndInd
-%Search Minimums are correspondig to SelectedInd
-%first way using FrontsN
-% strictStInd=SelectedIndD-FrontsND(SelectedIndD);
-strictStInd=SelectedIndD-abs(FrontsN(SelectedIndD)); %now take not Minimum in trekD, but Minimum in trek 
-%For plasma trek SelectedIndD can be in Minimum point of trek (after trek
-%merging and combining). So (abs) start Strict point will be in good
-%position
-
-%other way more universal
- DiferToNextMin=circshift(MinIndD,-1)-MinIndD;
- DiferToNextMin(end)=0;
- DeltaMinTrek=zeros(trSizeD,1);
- DeltaMinTrek(MinIndD)=DiferToNextMin;
- 
- MinSelectedInd=find(MinBoolD|SelectedBoolD);
- Difer=circshift(MinSelectedInd,-1)-MinSelectedInd;
- Difer(end)=0;
- DeltaMinSelectedTrek=zeros(trSizeD,1);
- DeltaMinSelectedTrek(MinSelectedInd)=Difer;
- MinPreSelBool=DeltaMinTrek-DeltaMinSelectedTrek>0;
- MinPreSelInd=find(MinPreSelBool);
- 
- %searach Minimums after SelectedInd
- DeltaMinTrek(not(MinPreSelBool))=0;
- MinAfterSelInd=MinPreSelInd+DeltaMinTrek(find(DeltaMinTrek));
- %other way
- strictEndInd=SelectedIndD+DeltaMinSelectedTrek(SelectedIndD); % in difer/DeltaMinSelectedTrek contains distances in points to next minimum/SelectedInd
- 
-DiferStrict=strictEndInd-strictStInd;
-Ind=DiferStrict<10;
-strictEndInd(Ind)=strictStInd(Ind)+10;
-Ind=DiferStrict>TrekSet.STP.FrontN;
-strictEndInd(Ind)=strictStInd(Ind)+TrekSet.STP.FrontN;
-
-%strictEndInd=SelectedInd+Tail
-%% ====== PeakOnFront Search
-%Searching peaks on front of selected pulses
-%These are points on front where are minimums of trek derivation
-
-% 
-% 
-% 
-% 
-% 
-% % search trek derivation minimums
-% trD=diff(trek,1);
-% trD(end+1)=0;
-% trD(MaxInd)=0;
-% trD(MinInd)=0;
-% trDR=circshift(trD,1);
-% trDL=circshift(trD,-1);
-% trDMinBool=trD<trDL&trD<trDR;
-% trDMinInd=find(trDMinBool);
-% 
-% %Select from trDMinInd points whith large enough front length and high
-% PeakOnFrontInd=trDMinInd;
-% PeakOnFrontInd=PeakOnFrontInd(FrontsHigh(PeakOnFrontInd)>Threshold);
-% PeakOnFrontInd=PeakOnFrontInd(trek(PeakOnFrontInd)>Threshold);
-% PeakOnFrontBool=false(trSize,1);
-% PeakOnFrontBool(PeakOnFrontInd)=true;
-% PeakOnFrontBool(SelectedInd)=false;
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% 
-% PeakOnFrontBool=PeakOnFrontBool|MinPreSelBool|SelectedBool;
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% Difer=PeakOnFrontInd-circshift(PeakOnFrontInd,1);
-% if ~isempty(Difer)
-%     Difer(1)=0;
-% end;
-% PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/3);
-% PeakOnFrontBool=false(trSize,1);
-% PeakOnFrontBool(PeakOnFrontInd)=true;
-% PeakOnFrontBool(MinInd)=false;
-% PeakOnFrontBool(SelectedInd)=false;
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% 
-% PeakOnFrontBool=PeakOnFrontBool|SelectedBool;
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% Difer=circshift(PeakOnFrontInd,-1)-PeakOnFrontInd;
-% if ~isempty(Difer)
-%     Difer(end)=0;
-% end;
-% PeakOnFrontInd=PeakOnFrontInd(Difer>TrekSet.STP.FrontN/3);
-% PeakOnFrontBool=false(trSize,1);
-% PeakOnFrontBool(PeakOnFrontInd)=true;
-% PeakOnFrontBool(SelectedInd)=false;
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% PeakOnFrontN=numel(PeakOnFrontInd);
-% 
-% SelectedBool=SelectedBool|PeakOnFrontBool;
-% SelectedInd=find(SelectedBool);
-% SelectedN=numel(SelectedInd);
-
-% % Calculating Gaps from this points from minimum of trek
-% % and to SelectedPulseInd
-% 
-% %Gaps from Minimum
-% %At first choose such ^ points and minimums befor SelectedInd of trek
-% Bool=(trDMinBool&FrontBool)|MinPreSelBool;
-% %Finding indexes of points ^
-% Ind=find(Bool);
-% IndSh=circshift(Ind,1);
-% IndSh(1)=Ind(1);
-% %array of gaps
-% Difer=trek(Ind)-trek(IndSh);
-% %array of size gaps in points
-% DiferN=Ind-IndSh;
-% %excluding points whith small gap or size gap in points is short or long
-% bool=Difer<Threshold;%|abs(MaxFrontN-DiferN)>=2;
-% 
-% Ind(bool)=[];
-% 
-% PeakOnFrontBool=false(trSize,1); 
-% PeakOnFrontBool(Ind)=true;
-% % excluding minimums
-% PeakOnFrontBool=PeakOnFrontBool&not(MinBool);
-% PeakOnFrontBool(MaxInd)=false; %exclude Maximums
-% PeakOnFrontInd=find(PeakOnFrontBool);
-% 
-% %search peak on front without trD minimum 
-% % bool=FrontN>=2*MaxFrontN
-% 
-% 
-% TrekSet.PeakOnFrontInd=PeakOnFrontInd;
-% PeakOnFrontN=size(PeakOnFrontInd,1);
-
-
-
 %% =====  End                                  
 
-TrekSet.Threshold=Threshold;
-TrekSet.ThresholdFront=ThresholdFront;
-TrekSet.ThresholdN=ThresholdN;
-TrekSet.ThresholdD=ThresholdD;
-TrekSet.ThresholdFrontD=ThresholdFrontD;
-TrekSet.ThresholdND=ThresholdND;
-SelectedPeakFrontN=FrontsN(SelectedIndD)-STPD.MaxInd+TrekSet.STP.MaxInd;
-SelectedIndD=SelectedIndD-STPD.MaxInd+TrekSet.STP.MaxInd;
-TrekSet.SelectedPeakInd=SelectedIndD;
-TrekSet.SelectedPeakFrontN=SelectedPeakFrontN;
+TrekSet.Threshold=ThresholdLD;
+TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.PeakOnFrontInd=[];
 TrekSet.LongFrontInd=[];
-TrekSet.strictStInd=strictStInd;
-TrekSet.strictEndInd=strictEndInd;
-
-% ZeroFrontInd=find(TrekSet.SelectedPeakFrontN==0);
-% TrekSet.SelectedPeakInd(ZeroFrontInd)=[];
-% TrekSet.SelectedPeakFrontN(ZeroFrontInd)=[];
-
+TrekSet.strictStInd=SelectedInd-TrekSet.STP.MaxInd;
+TrekSet.strictEndInd=SelectedInd;
 
 %% ===== End information
 if EndOut %to avoid statistic typing in short calls
     fprintf('=====  Search of peak tops      ==========\n');
     fprintf('The number of measured points  = %7.0f during %7.0f us \n',trSize,trSize*TrekSet.tau);
-    fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',ThresholdD/StdValD,StdValD,ThresholdD);
+    fprintf('Threshold is %3.1f*%5.3f = %5.3f \n',ThresholdLD/TrekSet.StdVal,TrekSet.StdVal,ThresholdLD);
     fprintf('OverSt is %3.1f\n',OverSt);
-    fprintf('The total number of maximum = %7.0f \n',MaxND);
+%     fprintf('The total number of maximum = %7.0f \n',MaxND);
     fprintf('The number of selected peaks = %7.0f \n',SelectedN);
 %    fprintf('The number peaks selected on Front= %7.0f \n',PeakOnFrontN);
     fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
@@ -425,14 +61,10 @@ toc;
    plot(TrekSet.trek);
    s='trek';
    grid on; hold on;
-   if not(isempty(SelectedIndD))
-       plot(SelectedIndD,TrekSet.trek(SelectedIndD),'.r');
+   if not(isempty(SelectedInd))
+       plot(SelectedInd,TrekSet.trek(SelectedInd),'.r');
        s=char(s,'SelectedInd');
    end;
-%    if not(isempty(PeakOnFrontInd))
-%        plot(PeakOnFrontInd,trek(PeakOnFrontInd),'db');
-%        s=char(s,'OnFront');
-%    end;
    warning off; 
    legend(s);
    warning on;

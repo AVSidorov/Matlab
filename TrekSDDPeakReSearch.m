@@ -20,7 +20,6 @@ end;
 
   Ind=find(TrekSet.SelectedPeakInd>=SubtractInd(1)&TrekSet.SelectedPeakInd<=SubtractInd(end));
   TrekSetIn.SelectedPeakInd(Ind)=[];
-  TrekSetIn.SelectedPeakFrontN(Ind)=[];
   TrekSetIn.strictStInd(Ind)=[];
   TrekSetIn.strictEndInd(Ind)=[];
   TrekSetIn.PeakOnFrontInd(TrekSet.PeakOnFrontInd>=SubtractInd(1)&TrekSet.PeakOnFrontInd<=SubtractInd(end))=[];
@@ -32,7 +31,6 @@ end;
  %minimum before pulse 
  TrekSet.size=numel(TrekSet.trek);
  TrekSet.SelectedPeakInd=[];
- TrekSet.SelectedPeakFrontN=[];
  TrekSet.PeakOnFrontInd=[];
  TrekSet.LongFrontInd=[];
  TrekSet.strictStInd=[];
@@ -47,14 +45,12 @@ end;
  for IndI=1:numel(TrekSet.SelectedPeakInd)
      if isempty(find(TrekSet.SelectedPeakInd(IndI)==TrekSetIn.SelectedPeakInd(:)))
          TrekSetIn.SelectedPeakInd(end+1)=TrekSet.SelectedPeakInd(IndI);
-         TrekSetIn.SelectedPeakFrontN(end+1)=TrekSet.SelectedPeakFrontN(IndI);
          TrekSetIn.strictStInd(end+1)=TrekSet.strictStInd(IndI);
          TrekSetIn.strictEndInd(end+1)=TrekSet.strictEndInd(IndI);        
          if ~iscolumn(TrekSetIn.SelectedPeakInd)
              TrekSetIn.SelectedPeakInd=TrekSetIn.SelectedPeakInd';
          end;
          [TrekSetIn.SelectedPeakInd,index]=sortrows(TrekSetIn.SelectedPeakInd);
-         TrekSetIn.SelectedPeakFrontN=TrekSetIn.SelectedPeakFrontN(index);
          TrekSetIn.strictStInd=TrekSetIn.strictStInd(index);
          TrekSetIn.strictEndInd=TrekSetIn.strictEndInd(index);
      end;
