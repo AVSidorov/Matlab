@@ -42,7 +42,10 @@ FitPulse=FIT.FitPulse*FIT.A+FIT.B;
 % So zero level B is determined in another way. B is used for FitIndStrict
 % automatic determination
 
-B=mean(TrekSet.trek(Ind-TrekSet.STP.FrontN-BckgFitN:Ind-TrekSet.STP.FrontN));
+bckgInd=Ind-TrekSet.STP.FrontN-BckgFitN:Ind-TrekSet.STP.FrontN;
+bckgInd(bckgInd<1|bckgInd>TrekSet.size)=[];
+B=mean(bckgInd);
+if isempty(B) B=0; end;
 StI=min([FitInd(1)+find(TrekSet.trek(FitInd)-B>TrekSet.OverSt*TrekSet.StdVal,1,'first')-2-BckgFitN,TrekSet.strictStInd(find(TrekSet.strictStInd<Ind,1,'last'))]);
 EndI=TrekSet.strictEndInd(find(TrekSet.strictEndInd>StI,1,'first'));
 if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
@@ -58,7 +61,7 @@ end;
 dPulse=diff(TrekSet.STP.FinePulse);
 [md,mdInd]=max(dPulse);
 maxId=find(dPulse(mdInd:end)*FIT.A<TrekSet.StdVal*TrekSet.OverSt,1,'first');
-stId=find(dPulse*FIT.A>TrekSet.ThresholdD,1,'first');
+stId=find(dPulse*FIT.A>TrekSet.Threshold,1,'first');
 if isempty(stId) stId=find(dPulse,1,'first'); end;
 %!!!That's may be bad for PeakOnFront
 %maxId=TrekSet.STP.TimeInd(mdInd+maxId);
