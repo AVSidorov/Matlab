@@ -20,8 +20,8 @@ trSize=TrekSet.size;
 longD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
 
 STSet=SpecialTreks(longD);
-if isfield(TrekSet,'Threshold')
-    ThresholdLD=TrekSet.Threshold;
+if isfield(TrekSet,'ThresholdLD')
+    ThresholdLD=TrekSet.ThresholdLD;
 else
     ThresholdLD=[];
 end;
@@ -29,7 +29,7 @@ if isempty(ThresholdLD)
    NoiseSet=NoiseFit(longD);
    ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
 end;
-SelectedBool=STSet.MaxBool&longD>=ThresholdLD;
+SelectedBool=STSet.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
@@ -40,6 +40,7 @@ TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.PeakOnFrontInd=[];
 TrekSet.LongFrontInd=[];
 TrekSet.strictStInd=SelectedInd-TrekSet.STP.MaxInd;
+TrekSet.strictStInd(TrekSet.strictStInd<1)=1;
 TrekSet.strictEndInd=SelectedInd;
 
 %% ===== End information
