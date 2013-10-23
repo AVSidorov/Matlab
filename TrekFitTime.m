@@ -3,7 +3,7 @@ tic;
 fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
 T=0;
-Tmax=90;
+Tmax=10;
 
 Nfit=30;
 BckgFitN=3;
@@ -38,6 +38,9 @@ if nargin<3||isempty(FitStruct)
         FitStruct.FitIndPulse(FitStruct.FitIndPulse<1|FitStruct.FitIndPulse>StpN)=[];
         FitStruct.FitIndPulse=[STP.BckgFitN-BckgFitN:FitStruct.FitIndPulse(end)];
         FitStruct.FitInd=FitStruct.FitIndPulse+Ind-STP.MaxInd;
+        FitStruct.FitInd(FitStruct.FitInd<1|FitStruct.FitInd>TrekSet.size)=[];
+        FitStruct.FitIndPulse=FitStruct.FitInd-Ind+STP.MaxInd;
+        FitStruct.FitIndPulse(FitStruct.FitIndPulse<1|FitStruct.FitIndPulse>StpN)=[];
     else
         FitStruct.FitInd=[];    
         FitStruct.FitIndPulse=[];
