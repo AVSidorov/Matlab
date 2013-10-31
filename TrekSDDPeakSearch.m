@@ -15,11 +15,11 @@ end;
 OverSt=TrekSet.OverSt;
 trek=TrekSet.trek;
 trSize=TrekSet.size;
-
+STSet=SpecialTreks(trek);
 %% working with special diferential
 longD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
 longD(1:TrekSet.STP.FrontN)=0;
-STSet=SpecialTreks(longD);
+STSetL=SpecialTreks(longD);
 if isfield(TrekSet,'ThresholdLD')
     ThresholdLD=TrekSet.ThresholdLD;
 else
@@ -29,7 +29,7 @@ if isempty(ThresholdLD)
    NoiseSet=NoiseFit(longD);
    ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
 end;
-SelectedBool=STSet.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
+SelectedBool=STSet.MaxBool&STSetL.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
