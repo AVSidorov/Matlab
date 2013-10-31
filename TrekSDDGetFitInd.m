@@ -119,4 +119,6 @@ end;
 FIT.FitInd=FitInd;
 FIT.FitIndPulse=FitIndPulse;
 FIT.N=numel(FitInd);
-FIT.BGLineFit=polyfit(FIT.FitInd,TrekSet.trek(FIT.FitInd)-FIT.FitPulse(FitIndPulse)*FIT.A,1);
+% FIT.BGLineFit=polyfit(FIT.FitInd,TrekSet.trek(FIT.FitInd)-FIT.FitPulse(FitIndPulse)*FIT.A,1);
+FIT.BGLineFit=[0,0];
+
