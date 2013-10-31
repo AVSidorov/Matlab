@@ -36,7 +36,9 @@ if nargin<3||isempty(FitStruct)
         FitStruct.FitInd=TrekSet.strictStInd(Ipulse):TrekSet.strictEndInd(Ipulse);
         FitStruct.FitIndPulse=FitStruct.FitInd-Ind+STP.MaxInd;
         FitStruct.FitIndPulse(FitStruct.FitIndPulse<1|FitStruct.FitIndPulse>StpN)=[];
-        FitStruct.FitIndPulse=[STP.BckgFitN-BckgFitN:FitStruct.FitIndPulse(end)];
+        if ~isempty(FitStruct.FitIndPulse)
+            FitStruct.FitIndPulse=[STP.BckgFitN-BckgFitN:FitStruct.FitIndPulse(end)];
+        end;
         FitStruct.FitInd=FitStruct.FitIndPulse+Ind-STP.MaxInd;
         FitStruct.FitInd(FitStruct.FitInd<1|FitStruct.FitInd>TrekSet.size)=[];
         FitStruct.FitIndPulse=FitStruct.FitInd-Ind+STP.MaxInd;
@@ -104,7 +106,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
         A=p(1);
         B=p(2);
        end; 
-       ShKhi(i,end)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.Threshold).^2)/N);
+       ShKhi(i,end)=sqrt(sum(((trek(FitInd)-A*FitPulse(FitIndPulse)-B)/TrekSet.StdVal).^2)/N);
        good(i)=all(abs(trek(FitInd)-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
        FITs(i)=FIT;
        FITs(i).A=A;

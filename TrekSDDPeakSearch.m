@@ -18,7 +18,7 @@ trSize=TrekSet.size;
 
 %% working with special diferential
 longD=TrekSet.trek-circshift(TrekSet.trek,TrekSet.STP.FrontN);
-
+longD(1:TrekSet.STP.FrontN)=0;
 STSet=SpecialTreks(longD);
 if isfield(TrekSet,'ThresholdLD')
     ThresholdLD=TrekSet.ThresholdLD;

@@ -57,8 +57,10 @@ end;
 %  end;
  clear trL trR;
  
+ 
  STSet.MinInd=MinInd;
  STSet.MaxInd=MaxInd;
+ STSet.N=MinN;
  STSet.MaxBool=MaxBool;
  STSet.MinBool=MinBool;
  STSet.FrontHigh=FrontHigh;

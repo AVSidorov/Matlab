@@ -51,6 +51,7 @@ s=input('Make you choice\n','s');
 s=lower(s);
 switch s
     case ''
+        FIT.BGLineFit=[0,0];
         fprintf('If Input is 0 (zero) then go to graph input\n');
         fprintf('Input Ind. Default is %d\n',Ind);
         Indn=input('Ind is ');
@@ -62,6 +63,7 @@ switch s
             Indn=round(x);
         end;
         Ind=Indn;
+        FIT.MaxInd=Ind;
         
         fprintf('Input ShiftRangeL\n')
         if isfield(FIT,'ShiftRangeL');
@@ -148,10 +150,7 @@ switch s
         Ch=1;
     case 'n'
         Ind=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>Ind,1,'first'));
-        FIT.FitIndStrict=[];
-        FIT.FitIndPulseStrict=[];
-        FIT.ShiftRangeL=[];
-        FIT.ShiftRangeR=[];
+        FIT=[];
         Ch=3;
     case 'p'
         Ind=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd<Ind,1,'last'));

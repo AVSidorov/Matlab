@@ -1,0 +1,21 @@
+function H=Algur(trek)
+T=0;
+Tmax=30;
+Ind=[];
+timeId=tic;
+i=1;
+Ind{1}=[1:numel(trek)];
+while T<Tmax&&numel(trek)>100;
+    STSet=SpecialTreks(trek);
+    Inds=[STSet.MinInd;STSet.MaxInd];
+    Inds=sortrows(Inds);
+    MaxTrek=interp1(STSet.MaxInd,trek(STSet.MaxInd),Inds,'spline','extrap');
+    MinTrek=interp1(STSet.MinInd,trek(STSet.MinInd),Inds,'spline','extrap');
+    trek=(MaxTrek+MinTrek)/2;
+    i=i+1;
+    ii=Ind{i-1};
+    Ind{i}=ii(Inds);
+    T=toc(timeId);
+end;
+H(:,1)=Ind{end};
+H(:,2)=trek;

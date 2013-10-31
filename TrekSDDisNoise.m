@@ -28,7 +28,7 @@ dAfter(end)=0;
 dBefore=noiseInd-circshift(noiseInd,1); %dist to previous
 dBefore(1)=0;
 
-%take first not short part after maximum
+
 HoleStart=find(dAfter>MinSpace);    % search for breaks 
 HoleEnd=find(dBefore>MinSpace);     % very small breaks is not important and take breaks more than 
    
