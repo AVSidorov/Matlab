@@ -33,9 +33,11 @@ FitIndPulseStrict=[1:endIndPulse]';
 
 
 FitInd=FitIndPulseStrict+Ind-STP.MaxInd;
-endI=max([Ind;FitInd(end);find(TrekSet.trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+STP.FrontN]);
+nextMarker=find(TrekSet.SelectedPeakInd>Ind+STP.FrontN,1,'first');
+endI=max([nextMarker-STP.FrontN;Ind;FitInd(end);find(TrekSet.trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+STP.FrontN]);
 FitInd=[FitInd(1):endI]';
 FitInd(FitInd<1|FitInd>TrekSet.size)=[];
+FitInd(FitInd>FitInd(1)+StpN-1)=[];
 
 FitIndPulse=FitInd-Ind+STP.MaxInd;
 

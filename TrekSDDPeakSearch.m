@@ -29,7 +29,8 @@ if isempty(ThresholdLD)
    NoiseSet=NoiseFit(longD);
    ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
 end;
-SelectedBool=STSet.MaxBool&STSetL.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
+% SelectedBool=STSet.MaxBool&STSetL.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
+SelectedBool=STSetL.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
