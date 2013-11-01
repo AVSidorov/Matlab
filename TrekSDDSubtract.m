@@ -43,8 +43,8 @@ TrekSet1.trek(SubtractInd)=TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPu
 TrekSet1.peaks=[TrekSet1.peaks;zeros(1,7)];
 
 TrekSet1.peaks(end,1)=Ind;             %TrekSet.SelectedPeakInd Max initial
-TrekSet1.peaks(end,2)=TrekSet.StartTime+Ind*TrekSet.tau-FitStruct.Shift*TrekSet.tau;  %Peak Max Time fitted
-TrekSet1.peaks(end,3)=TrekSet.peaks(end,2);     % for peak-to-peak interval
+TrekSet1.peaks(end,2)=TrekSet1.StartTime+Ind*TrekSet1.tau-FitStruct.Shift*TrekSet1.tau;  %Peak Max Time fitted
+TrekSet1.peaks(end,3)=TrekSet1.peaks(end,2);     % for peak-to-peak interval
 TrekSet1.peaks(end,4)=FitStruct.B;                       %Peak Zero Level
 TrekSet1.peaks(end,5)=FitStruct.A;                     %Peak Amplitude
 TrekSet1.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
