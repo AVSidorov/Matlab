@@ -39,7 +39,7 @@ while i<=PeakN %
 %          continue;
 %      end;
     if isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks);
-        inew=find(TrekSet.SelectedPeakInd>(TrekSet.peaks(end,2)-TrekSet.StartTime)/TrekSet.tau,1,'first');   
+        inew=find(TrekSet.SelectedPeakInd>(TrekSet.peaks(end,2)-TrekSet.StartTime)/TrekSet.tau-TrekSet.STP.MaxInd,1,'first');   
 
          if inew==i&&inew==PeakN 
              i=i+1;
@@ -66,6 +66,12 @@ while i<=PeakN %
      ExcelentFit=false;
      FIT=[];
      while ~ExcelentFit
+         if isempty(FIT)
+            FIT=TrekSDDFitByMove(TrekSet,Ind-TrekSet.STP.MaxInd);
+%             if FIT.MaxInd<Ind
+%              FIT.MaxInd=Ind;
+%             end;
+         end;
          FIT=TrekSDDFitTime(TrekSet,Ind,FIT);
          [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);         
          TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);

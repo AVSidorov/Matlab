@@ -33,7 +33,7 @@ FitIndPulseStrict=[1:endIndPulse]';
 
 
 FitInd=FitIndPulseStrict+Ind-STP.MaxInd;
-nextMarker=find(TrekSet.SelectedPeakInd>Ind+STP.FrontN,1,'first');
+nextMarker=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>Ind+STP.FrontN,1,'first'));
 endI=max([nextMarker-STP.FrontN;Ind;FitInd(end);find(TrekSet.trek(1:Ind)<TrekSet.OverSt*TrekSet.StdVal,1,'last')+STP.FrontN]);
 FitInd=[FitInd(1):endI]';
 FitInd(FitInd<1|FitInd>TrekSet.size)=[];
@@ -53,7 +53,7 @@ FitIndPulse=FitInd-Ind+STP.MaxInd;
 BGLineFit=polyfit(FitInd(FitIndPulse<=STP.BckgFitN),trek(FitInd(FitIndPulse<=STP.BckgFitN)),1);
 BGLineFit=[0,0];
 
-if nargin<3||isempty(FitStruct)
+if nargin<3||isempty(FitStruct)||~FitStruct.Good
 
     fit=polyfit(Stp(FitIndPulse),trek(FitInd),1);
     
