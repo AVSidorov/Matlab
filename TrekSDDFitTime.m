@@ -53,8 +53,7 @@ FitIndPulse=FitInd-Ind+STP.MaxInd;
 BGLineFit=polyfit(FitInd(FitIndPulse<=STP.BckgFitN),trek(FitInd(FitIndPulse<=STP.BckgFitN)),1);
 BGLineFit=[0,0];
 
-if nargin<3||isempty(FitStruct)||~FitStruct.Good
-
+if nargin<3||isempty(FitStruct)
     fit=polyfit(Stp(FitIndPulse),trek(FitInd),1);
     
     FitStruct.Good=false;
@@ -115,21 +114,22 @@ FITs=[FIT,FIT,FIT];
 
 STSet=SpecialTreks(trek(1:Ind));
 stI=max([STSet.MinInd(trek(STSet.MinInd)<TrekSet.OverSt*TrekSet.StdVal);Ind-STP.FrontN]);
-IndNew=stI+STP.FrontN;
-if IndNew~=Ind
-    IndMean=(IndNew+Ind)/2;
-    if all((Ind-IndNew)~=ShKhi(:,1))
-        ShKhi(end+1,1)=Ind-IndNew;
-        ShKhi(end,2)=inf;
-        FITs=[FITs,FIT];
-    end;
-    if all((Ind-IndMean)~=ShKhi(:,1))
-        ShKhi(end+1,1)=Ind-IndMean;
-        ShKhi(end,2)=inf;
-        FITs=[FITs,FIT];
+if ~FIT.Good
+    IndNew=stI+STP.FrontN;
+    if IndNew~=Ind
+        IndMean=(IndNew+Ind)/2;
+        if all((Ind-IndNew)~=ShKhi(:,1))
+            ShKhi(end+1,1)=Ind-IndNew;
+            ShKhi(end,2)=inf;
+            FITs=[FITs,FIT];
+        end;
+        if all((Ind-IndMean)~=ShKhi(:,1))
+            ShKhi(end+1,1)=Ind-IndMean;
+            ShKhi(end,2)=inf;
+            FITs=[FITs,FIT];
+        end;
     end;
 end;
-
 
 
 %% fitting
