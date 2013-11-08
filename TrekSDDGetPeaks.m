@@ -79,7 +79,7 @@ while i<=PeakN %
          [ExcelentFit,TrekSet]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT);
          if ~ExcelentFit    
             TrekSet.Plot=true;                
-            [TrekSet,Ind,FIT,Ch]=TrekSDDManualPeakSearch(TrekSet,Ind,FIT);
+            [TrekSet,Ind,FIT,Ch]=TrekSDDManualPeakSearch(TrekSet,FIT);
             if Ch==1
                 break;
             end;                   

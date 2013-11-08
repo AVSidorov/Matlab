@@ -1,10 +1,11 @@
-function [TrekSet,Ind,FIT,Ch]=TrekSDDManualPeakSearch(TrekSet,Ind,FIT)
+function [TrekSet,Ind,FIT,Ch]=TrekSDDManualPeakSearch(TrekSet,FIT)
 Ch=0;
 if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)
     STP=TrekSet.STP;
 else
     STP=StpStruct;
 end;
+Ind=FIT.MaxInd;
 while Ch~=1&&Ch~=3
 x=Ind-STP.size:Ind+STP.size;
 x(x<1|x>TrekSet.size)=[];
@@ -36,7 +37,7 @@ plot(SelectedInds,TrekSet.trek(SelectedInds),'.r');
 plot([Ind-FIT.Shift,Ind-FIT.Shift],[0,FIT.A],'r');
 plot(SubtractInd,PulseSubtract(SubtractIndPulse)+FIT.B,'r');
 if isfield(FIT,'FitIndPulseStrict');
-    plot(FIT.FitIndPulseStrict+Ind-TrekSet.STP.MaxInd,PulseSubtract(FIT.FitIndPulseStrict),'.r');
+    plot(FIT.FitIndPulseStrict+Ind-TrekSet.STP.MaxInd,PulseSubtract(FIT.FitIndPulseStrict)+FIT.B,'.r');
 end;
 %%
 disp('What to do?');
