@@ -6,18 +6,19 @@ NoiseSet=NoiseFit(trek);
 
 
 trek=TrekSet.trek;
-trek=trek-NoiseSet.MeanVal;
+MeanVal=mean(trek(NoiseSet.Ind));
+trek=trek-MeanVal;
 if numel(find(trek>NoiseSet.Threshold))>=numel(find(trek<-NoiseSet.Threshold))
     PeakPolarity = 1;
 else
     PeakPolarity = -1;
 end;
 trek=PeakPolarity*trek;
-MaxSignal=max([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
-MinSignal=min([PeakPolarity*(TrekSet.MaxSignal-NoiseSet.MeanVal);PeakPolarity*(TrekSet.MinSignal-NoiseSet.MeanVal)]);
+MaxSignal=max([PeakPolarity*(TrekSet.MaxSignal-MeanVal);PeakPolarity*(TrekSet.MinSignal-MeanVal)]);
+MinSignal=min([PeakPolarity*(TrekSet.MaxSignal-MeanVal);PeakPolarity*(TrekSet.MinSignal-MeanVal)]);
 
 TrekSet.trek=trek;
-TrekSet.MeanVal=TrekSet.MeanVal+NoiseSet.MeanVal;
+TrekSet.MeanVal=MeanVal;
 TrekSet.Threshold=NoiseSet.Threshold;
 TrekSet.MinSignal=MinSignal;
 TrekSet.MaxSignal=MaxSignal;
