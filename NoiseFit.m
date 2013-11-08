@@ -15,6 +15,7 @@ while isempty(ch)
     title('Input fit borders. Y is important too (for histogram borders)');
     [x,y]=ginput(2);
     Ind=[Ind,round(min(x)):round(max(x))];
+    %TODO whats bad work on non normilized trek (MeanVal~=0)
     HighBorder=round(max([HighBorder,max(y)]))-0.5;
     LowBorder=round(min([LowBorder,min(y)]))-0.5;
     plot([round(min(x)),round(min(x))],[LowBorder,HighBorder],'r','LineWidth',2);
@@ -156,3 +157,4 @@ NoiseSet.MeanVal=MeanVal;
 NoiseSet.StdVal=StdDev;
 NoiseSet.Threshold=Threshold;
 NoiseSet.OverSt=OverSt;
+NoiseSet.Ind=Ind;
