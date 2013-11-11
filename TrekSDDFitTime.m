@@ -145,16 +145,19 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
 
     for i=find(isinf(ShKhi(:,end)))'
        FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));
+       bool=trek(FitInd)<TrekSet.MaxSignal;
        if FitFast
-        A=sum(FitPulse(FitIndPulse).*(trek(FitInd)-BGLine))/sum(FitPulse(FitIndPulse).^2);
+        A=sum(FitPulse(FitIndPulse(bool)).*(trek(FitInd(bool))-BGLine))/sum(FitPulse(FitIndPulse(bool)).^2);
         B=0;
-       else
-        p=polyfit(FitPulse(FitIndPulse),(trek(FitInd)-BGLine),1);
+       else           
+        p=polyfit(FitPulse(FitIndPulse(bool)),(trek(FitInd(bool))-BGLine(bool)),1);
         A=p(1);
         B=p(2);
        end; 
-       ShKhi(i,end)=sqrt(sum(((trek(FitInd)-BGLine-A*FitPulse(FitIndPulse)-B)/TrekSet.StdVal).^2)/N);
-       good(i)=all(abs(trek(FitInd)-BGLine-A*FitPulse(FitIndPulse)-B)<TrekSet.Threshold)&A>TrekSet.Threshold;
+       PulseSubtract=BGLine+A*FitPulse(FitIndPulse)+B;
+       PulseSubtract(PulseSubtract>=TrekSet.MaxSignal)=trek(FitInd(PulseSubtract>=TrekSet.MaxSignal));
+       ShKhi(i,end)=sqrt(sum(((trek(FitInd)-PulseSubtract)/TrekSet.StdVal).^2)/N);
+       good(i)=all(abs(trek(FitInd)-PulseSubtract)<TrekSet.Threshold)&A>TrekSet.Threshold;
        FITs(i)=FIT;
        FITs(i).A=A;
        FITs(i).B=B;
@@ -354,7 +357,9 @@ if TrekSet.Plot
             grid on; hold on;
             plot(Ind,trek(Ind),'*r');
             plot(FIT.FitInd,FIT.A*FitPulse(FIT.FitIndPulse)+FIT.B+BGLine,'r');
-            plot(FIT.FitInd,trek(FIT.FitInd)-FIT.A*FitPulse(FIT.FitIndPulse)-FIT.B-BGLine,'k');
+            PulseSubtract=BGLine+A*FitPulse(FitIndPulse)+B;
+            PulseSubtract(PulseSubtract>=TrekSet.MaxSignal)=0;
+            plot(FIT.FitInd,trek(FIT.FitInd)-PulseSubtract,'k');
             plot(FIT.FitInd(1)+[1,FIT.N],[TrekSet.Threshold,TrekSet.Threshold],'g');
             plot(FIT.FitInd(1)+[1,FIT.N],[-TrekSet.Threshold,-TrekSet.Threshold],'g');
 %             plot(FIT.FitInd,polyval(FIT.BGLineFit,FIT.FitInd),'m');

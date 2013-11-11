@@ -49,6 +49,8 @@ FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSe
 %% Main FitInd determination by StdVal
 
 bool=abs(TrekSet.trek(FitInd)-BGLine-FitPulse(FitIndPulse))<TrekSet.OverSt*TrekSet.StdVal;
+%
+bool(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)=true;
 % map FitIndPulseStrict on to bool(=FitInd) adding
 FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
 bool(FitIndPulseStrict)=true; %map
