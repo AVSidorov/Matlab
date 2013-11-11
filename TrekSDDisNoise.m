@@ -5,6 +5,7 @@ MinSpace=2;
 noise=abs(TrekSet.trek)<TrekSet.OverSt*TrekSet.StdVal;
 noiseInd=find(noise);
 
+if ~isempty(noiseInd)
 %% searching spaces
 
 %if noise is continious this arrays contains only 1
@@ -37,9 +38,19 @@ HoleEnd=[1;HoleEnd];
 PartLength=noiseInd(HoleStart)-noiseInd(HoleEnd)+1;
 
 isNoise=numel(noiseInd)==TrekSet.size;
+else
+  isNoise=false;
+end;
 NoiseSet.noise=false(TrekSet.size,1);
 NoiseSet.noise(noiseInd)=true;
-NoiseSet.nParts=numel(PartLength);
-NoiseSet.PartLength=PartLength;
-NoiseSet.HoleStart=HoleStart;
-NoiseSet.HoleEnd=HoleEnd;
+if ~isempty(noiseInd)
+    NoiseSet.nParts=numel(PartLength);
+    NoiseSet.PartLength=PartLength;
+    NoiseSet.HoleStart=HoleStart;
+    NoiseSet.HoleEnd=HoleEnd;
+else
+    NoiseSet.nParts=1;
+    NoiseSet.PartLength=TrekSet.size;
+    NoiseSet.HoleStart=TrekSet.size;
+    NoiseSet.HoleEnd=1;
+end;
