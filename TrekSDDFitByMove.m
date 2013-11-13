@@ -54,21 +54,21 @@ B(Ind,1:2)=p;
 B(Ind,3)=khi;
 
 
-if A(Ind,1)>TrekSet.OverSt*TrekSet.StdVal
+if A(Ind,1)>TrekSet.Threshold
     Flag(1)=true;
 else
     Flag(1)=false;    
 end;
-if B(Ind,1)>TrekSet.OverSt*TrekSet.StdVal
+if B(Ind,1)>TrekSet.Threshold
     Flag(2)=true;
 else
     Flag(2)=false;    
 end;
-if  Ind>2&&Flag(1)&&A(Ind,3)>A(Ind-1,3)&&A(Ind-2,3)>A(Ind-1,3)
+if  Ind>2&&I(1)==0&&Flag(1)&&A(Ind,3)>A(Ind-1,3)&&A(Ind-2,3)>A(Ind-1,3) %&&A(Ind-1,1)-TrekSet.trek(Ind-1-1+STP.MaxInd)<TrekSet.Threshold
     Flag(3)=true;
     I(1)=Ind-1;
 end;
-if  Ind>2&&Flag(2)&&B(Ind,3)>B(Ind-1,3)&&B(Ind-2,3)>B(Ind-1,3)
+if  Ind>2&&I(2)==0&&Flag(2)&&B(Ind,3)>B(Ind-1,3)&&B(Ind-2,3)>B(Ind-1,3)
     Flag(4)=true;
     I(2)=Ind-1;
 end;
@@ -113,11 +113,11 @@ if all(Flag(1:2))&&any(Flag(3:4))&&any(Flag(5:6))
     end;        
     FIT.Good=all((TrekSet.trek(FIT.FitIndStrict-1)-FIT.A*FIT.FitPulse(FIT.FitIndPulseStrict)-FIT.B)<TrekSet.OverSt*TrekSet.StdVal);
     if FIT.Good
-        FIT.ShiftRangeR=3;
-        FIT.ShiftRangeL=3;
-    else
         FIT.ShiftRangeR=5;
         FIT.ShiftRangeL=5;
+    else
+        FIT.ShiftRangeR=10;
+        FIT.ShiftRangeL=10;
     end;
     FIT=TrekSDDGetFitInd(TrekSet,FIT);
     FIT.FitFast=false;
