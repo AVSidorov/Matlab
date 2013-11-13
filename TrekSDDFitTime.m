@@ -141,7 +141,7 @@ while T<Tmax&&(N>Nold||numel(intersect(FitInd,FitIndOld))~=N)
 
 
 while T<Tmax&&any(isinf(ShKhi(:,end)))
-    ShKhi(ShKhi(:,1)<-(MaxShiftR+1),:)=[];    %don't move to far right
+%     ShKhi(ShKhi(:,1)<-(MaxShiftR+1),:)=[];    %don't move to far right
 
     for i=find(isinf(ShKhi(:,end)))'
        FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));
@@ -157,7 +157,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
        PulseSubtract=BGLine+A*FitPulse(FitIndPulse)+B;
        PulseSubtract(PulseSubtract>=TrekSet.MaxSignal)=trek(FitInd(PulseSubtract>=TrekSet.MaxSignal));
        ShKhi(i,end)=sqrt(sum(((trek(FitInd)-PulseSubtract)/TrekSet.StdVal).^2)/N);
-       good(i)=all(abs(trek(FitInd)-PulseSubtract)<TrekSet.Threshold)&A>TrekSet.Threshold;
+       good(i)=all(abs(trek(FitInd)-PulseSubtract)<TrekSet.Threshold)&A>TrekSet.StdVal;
        FITs(i)=FIT;
        FITs(i).A=A;
        FITs(i).B=B;
