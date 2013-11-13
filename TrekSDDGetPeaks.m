@@ -67,7 +67,11 @@ while i<=PeakN %
      FIT=[];
      while ~ExcelentFit
          if isempty(FIT)
-            FIT=TrekSDDFitByMove(TrekSet,Ind-TrekSet.STP.MaxInd);
+            Istart=Ind-2*TrekSet.STP.MaxInd+find(TrekSet.trek(Ind-2*TrekSet.STP.MaxInd:Ind-TrekSet.STP.MaxInd)<TrekSet.OverSt*TrekSet.StdVal,1,'last');
+            if isempty(Istart)
+                Istart=Ind-TrekSet.STP.MaxInd;
+            end;
+            FIT=TrekSDDFitByMove(TrekSet,Istart);
 %             if FIT.MaxInd<Ind
 %              FIT.MaxInd=Ind;
 %             end;
