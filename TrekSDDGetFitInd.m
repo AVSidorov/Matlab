@@ -5,6 +5,9 @@ maxI=TrekSet.STP.MaxInd;
 
 TailInd=TrekSet.STP.TailInd;
 FrontN=TrekSet.STP.FrontN;
+%TODO introduce point into STP (where is min of diff on Pulse front)
+%for coorect min length determination
+MinPartLength=20; %This is better
 
 
 
@@ -49,8 +52,13 @@ FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSe
 %% Main FitInd determination by StdVal
 
 bool=abs(TrekSet.trek(FitInd)-BGLine-FitPulse(FitIndPulse))<TrekSet.OverSt*TrekSet.StdVal;
-%
-bool(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)=true;
+%adding points over limits
+if any(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)
+    if find(TrekSet.trek(FitInd)>=TrekSet.MaxSignal,1,'first')>1&&... %to avoid adding points on interval ends
+        find(TrekSet.trek(FitInd)>=TrekSet.MaxSignal,1,'last')<FitIndPulse(end) 
+        bool(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)=true;
+    end;
+end;
 % map FitIndPulseStrict on to bool(=FitInd) adding
 FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
 bool(FitIndPulseStrict)=true; %map
@@ -99,7 +107,13 @@ PartLength(HoleEnd>TailInd)=[]; %remove parts after TailInd
 
 % This is till TailFit is not introduced
 
-PartInd=find(PartLength>=FrontN,1,'first'); %take first longenough part
+if ~isempty(FitIndPulseStrict)
+    PartInd=find(FitIndPulse(HoleStart)>=FitIndPulseStrict(end),1,'first');
+elseif ~isempty(FitIndPulse)
+    PartInd=find(FitInd(HoleStart)>=FitIndStrict(end),1,'first');
+else
+    PartInd=find(PartLength>=MinPartLength,1,'first'); %take first longenough part
+end;
 if ~isempty(PartInd)
     FitIndPulse=FitIndPulse(HoleStart(PartInd)-PartLength(PartInd)+1:HoleStart(PartInd));
 end;
@@ -114,8 +128,10 @@ if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitIn
     trR(1)=0;
     MinIndBool=tr<=trL&tr<=trR;
     MinInd=find(MinIndBool);
-    FitInd=FitInd(1:MinInd(end));
-    FitIndPulse=FitIndPulse(1:MinInd(end));
+    if ~isempty(MinInd)
+        FitInd=FitInd(1:MinInd(end));
+        FitIndPulse=FitIndPulse(1:MinInd(end));
+    end;
 end;
 %% Final
 FIT.FitInd=FitInd;
