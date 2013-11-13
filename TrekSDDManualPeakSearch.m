@@ -6,6 +6,7 @@ else
     STP=StpStruct;
 end;
 Ind=FIT.MaxInd;
+%FIT.FitPulse=STP.Stp;
 while Ch~=1&&Ch~=3
 x=Ind-STP.size:Ind+STP.size;
 x(x<1|x>TrekSet.size)=[];
@@ -34,7 +35,7 @@ end;
 
 plot(Ind,TrekSet.trek(Ind),'*r');
 plot(SelectedInds,TrekSet.trek(SelectedInds),'.r');
-plot([Ind-FIT.Shift,Ind-FIT.Shift],[0,FIT.A],'r');
+plot([Ind,Ind],[0,FIT.A]+FIT.B,'r');
 plot(SubtractInd,PulseSubtract(SubtractIndPulse)+FIT.B,'r');
 if isfield(FIT,'FitIndPulseStrict');
     plot(FIT.FitIndPulseStrict+Ind-TrekSet.STP.MaxInd,PulseSubtract(FIT.FitIndPulseStrict)+FIT.B,'.r');
@@ -127,13 +128,21 @@ switch s
             A=FIT.A;
         end;
         FIT.A=A;
-        if ~(isfield(FIT,'B')&&~isempty(FIT.B))
-            FIT.B=0;
+
+        fprintf('Input Background level\n')
+        if isfield(FIT,'B');
+            fprintf('Default is %4.0f\n',FIT.B);
         end;
+        B=input('Background level is ');
+        if isempty(B)&&isfield(FIT,'B')
+            B=FIT.B;
+        end;
+        FIT.B=B;
+        
         FitPulse=TrekSDDGetFitPulse(STP,0);
         FIT.FitPulse=FitPulse;
         FIT.Shift=0;
-        FIT=TrekGetFitInd(TrekSet,Ind,FIT);
+        FIT=TrekSDDGetFitInd(TrekSet,FIT);
         FitIndPulse=FIT.FitIndPulse;
         FitInd=FIT.FitInd;
         if FIT.FitFast
