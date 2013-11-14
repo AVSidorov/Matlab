@@ -6,7 +6,7 @@ else
     STP=StpStruct;
 end;
 Ind=FIT.MaxInd;
-%FIT.FitPulse=STP.Stp;
+FIT.FitPulse=STP.Stp;
 while Ch~=1&&Ch~=3
 x=Ind-STP.size:Ind+STP.size;
 x(x<1|x>TrekSet.size)=[];
