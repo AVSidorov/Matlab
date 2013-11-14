@@ -30,7 +30,8 @@ if isempty(ThresholdLD)
    ThresholdLD=NoiseSet.Threshold+NoiseSet.MeanVal;
 end;
 % SelectedBool=STSet.MaxBool&STSetL.MaxBool&longD>=ThresholdLD&trek<TrekSet.MaxSignal;
-SelectedBool=STSetL.MaxBool&longD>=ThresholdLD;%&trek<TrekSet.MaxSignal;
+% SelectedBool=STSetL.MaxBool&longD>=ThresholdLD;%&trek<TrekSet.MaxSignal;
+ SelectedBool=longD>=ThresholdLD;%&trek<TrekSet.MaxSignal;
 SelectedInd=find(SelectedBool);
 SelectedN=numel(SelectedInd);
 
@@ -56,7 +57,7 @@ if EndOut %to avoid statistic typing in short calls
     fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 end;
 %%
-toc;
+fprintf('TrekSDDPeakSearch time %3.2f\n',toc);
 %% end plot
  if TrekSet.Plot&&EndOut
    figure;
