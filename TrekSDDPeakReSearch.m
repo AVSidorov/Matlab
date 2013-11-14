@@ -73,4 +73,4 @@ end;
  
 TrekSet=TrekSetIn;
 
-toc;
+fprintf('TrekSDDPeakReSearch time %3.2f\n',toc);;
