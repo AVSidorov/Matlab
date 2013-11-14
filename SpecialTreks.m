@@ -33,8 +33,10 @@ end;
       MaxInd=[MaxInd;trSize]; %earlier was removing MinInd, by this causes errors in HighPeak Search
       MaxN=MaxN+1;
  end;
- 
- 
+ if MinN==0
+     STSet=[];
+     return;
+ end;
  MaxBool=false(trSize,1);
  MaxBool(MaxInd)=true;
  MinBool=false(trSize,1);
