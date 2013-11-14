@@ -20,16 +20,17 @@ MinBool(1)=false;    MinBool(end)=false;
 MinInd=find(MinBool);
 MinN=numel(MinInd);
 
-if MinInd(1)>MaxInd(1)
-    MinInd=[1;MinInd];    
-    MinN=MinN+1;
+if ~isempty(MaxInd)
+    if isempty(MinInd)||MinInd(1)>MaxInd(1)
+        MinInd=[1;MinInd];    
+        MinN=MinN+1;
+    end;
 end;
-
 
  
 %making equal quantity of maximums and minimums
  if MinN>MaxN
-      MaxInd(end+1)=trSize; %earlier was removing MinInd, by this causes errors in HighPeak Search
+      MaxInd=[MaxInd;trSize]; %earlier was removing MinInd, by this causes errors in HighPeak Search
       MaxN=MaxN+1;
  end;
  
