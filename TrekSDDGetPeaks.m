@@ -78,7 +78,7 @@ while i<=PeakN %
          end;
          FIT=TrekSDDFitTime(TrekSet,Ind,FIT);
          [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);         
-         TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);
+         TrekSet1=TrekSDDPeakSearch(TrekSet1,false);
          TrekSet1=TrekBreakPoints(TrekSet1);
          [ExcelentFit,TrekSet]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT);
          if ~ExcelentFit    
@@ -90,8 +90,8 @@ while i<=PeakN %
          end;          
      end;  
      TrekSet.Plot=TrekSetIn.Plot;
-     TrekSet=TrekSDDPeakReSearch(TrekSet,FIT);
-     TrekSet=TrekBreakPoints(TrekSet);
+%      TrekSet=TrekSDDPeakSearch(TrekSet,FIT);
+%      TrekSet=TrekBreakPoints(TrekSet);
      PeakN=numel(TrekSet.SelectedPeakInd);
      assignin('base','TrekSet',TrekSet);
 end; %while i<=PeakN 
