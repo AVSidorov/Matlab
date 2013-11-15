@@ -28,7 +28,7 @@ if isempty(endIndPulse)||endIndPulse>=STP.MaxInd
     endIndPulse=round((STPD.MaxInd+STP.MaxInd)/2);
 end;
 FitIndPulseStrict=[1:endIndPulse]';
-
+MaxShift=STP.MaxInd;
 %% initial fit ind determination        
 
 
@@ -141,7 +141,7 @@ while T<Tmax&&(N>Nold||numel(intersect(FitInd,FitIndOld))~=N)
 
 
 while T<Tmax&&any(isinf(ShKhi(:,end)))
-%     ShKhi(ShKhi(:,1)<-(MaxShiftR+1),:)=[];    %don't move to far right
+    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
 
     for i=find(isinf(ShKhi(:,end)))'
        FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));

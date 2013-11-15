@@ -48,7 +48,7 @@ TrekSet.STP=StpStruct('D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_2.dat');
 %      assignin('base','T',TrekSet);
 %   end;
 % return;
-    TrekSet=TrekPickTime(TrekSet,18900,31100);
+    TrekSet=TrekPickTime(TrekSet,18000,32000);
     TrekSet.Plot=true;
      TrekSet=TrekSDDPeakSearch(TrekSet);
 %     TrekSet.SelectedPeakInd=TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>7e5);
