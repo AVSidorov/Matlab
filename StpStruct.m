@@ -83,6 +83,17 @@ STP.IndPositiveTail=IndPositiveTail;
 STP.IndPulse=IndPulse;
 STP.TimeInd=TimeInd;
 STP.FinePulse=FinePulse;
+
+
+SPSetStpD=SpecialTreks(diff(FinePulse));
+TimeIndD=STP.TimeInd(1:end-1);
+[m,MaxIndD]=max(diff(FinePulse));
+MaxIndD=round(TimeIndD(MaxIndD));
+MinFitPoint=round(TimeIndD(SPSetStpD.MinInd(find(TimeIndD(SPSetStpD.MinInd)>MaxIndD,1,'first'))));
+if isempty(MinFitPoint)||MinFitPoint>=STP.MaxInd
+    MinFitPoint=round((MaxIndD+STP.MaxInd)/2);
+end;
+STP.MinFitPoint=MinFitPoint;
 %%
 toc;
 %%
