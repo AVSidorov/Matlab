@@ -1,4 +1,4 @@
-function [isGood,TrekSet]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT)
+function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1)
  isGood=false;
  
  
@@ -15,12 +15,10 @@ SubtractInd=[SubtractInd(1):SubtractInd(end)];
 
  
  MaxInd=round(FIT.MaxInd-FIT.Shift);
+ %TODO make stI more far from current peak for beter Background fit
  stI=MaxInd-TrekSet.STP.MaxInd;
- nextMarker=min(TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>stI));
- fit=TrekSDDFitByMove(TrekSet1,nextMarker-TrekSet.STP.MaxInd);
- nextMarker=fit.MaxInd;
+ nextMarker=FIT1.MaxInd;
  endMarker=min(TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>MaxInd));
- trek=TrekSet1.trek;
  endI=min([nextMarker-STP.FrontN;stI-1+find(TrekSet1.trek(stI:nextMarker)-FIT.B<TrekSet.OverSt*TrekSet.StdVal,1,'last');stI+TrekSet.STP.size;TrekSet.size]);
  endI=max([endI;FIT.FitIndPulseStrict(end)+MaxInd-STP.MaxInd]);
  if isempty(endI)
@@ -55,7 +53,9 @@ if FIT.A>TrekSet.StdVal*TrekSet.OverSt
         isGood=true;
     elseif nextMarker>MaxInd&&all(abs(trek(not(NoiseSet.noise)))<TrekSet.Threshold)
         isGood=true;
-        BadInd=stI-1+find(abs(trek(not(NoiseSet.noise)))<TrekSet.Threshold);
+        BadInd=stI-1+find(abs(trek(not(NoiseSet.noise)))>=TrekSet.Threshold);
+    else
+        BadInd=stI-1+find(abs(trek(not(NoiseSet.noise)))>=TrekSet.Threshold);
     end;
 end;    
 s='d';
@@ -108,4 +108,5 @@ if isGood
     if lower(s)=='d'
       TrekSet.peaks(end,7)=0;
     end;
+    FIT=FIT1;
 end;

@@ -1,5 +1,11 @@
-function FIT=TrekSDDFitTime(TrekSet,Ind,FitStruct)
-tic;
+function FIT=TrekSDDFitTime(TrekSet,FitStruct)
+FullTimeId=tic;
+if isstruct(FitStruct)&&~isempty(FitStruct)&&isfield(FitStruct,'MaxInd')&&~isempty(FitStruct.MaxInd)
+    Ind=FitStruct.MaxInd;
+else
+    Ind=FitStruct;
+end;
+
 fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
 T=0;
@@ -21,13 +27,7 @@ end;
 trek=TrekSet.trek;
 Stp=STP.Stp;
 StpN=STP.size;
-STPD=StpStruct([STP.TimeInd(1:end-1),diff(STP.FinePulse)]);
-SPSetStpD=SpecialTreks(STPD.FinePulse);
-endIndPulse=round(STPD.TimeInd(SPSetStpD.MinInd(find(STPD.TimeInd(SPSetStpD.MinInd)>STPD.MaxInd,1,'first'))));
-if isempty(endIndPulse)||endIndPulse>=STP.MaxInd
-    endIndPulse=round((STPD.MaxInd+STP.MaxInd)/2);
-end;
-FitIndPulseStrict=[1:endIndPulse]';
+FitIndPulseStrict=[1:STP.MinFitPoint]';
 MaxShift=STP.MaxInd;
 %% initial fit ind determination        
 
@@ -53,7 +53,7 @@ FitIndPulse=FitInd-Ind+STP.MaxInd;
 BGLineFit=polyfit(FitInd(FitIndPulse<=STP.BckgFitN),trek(FitInd(FitIndPulse<=STP.BckgFitN)),1);
 BGLineFit=[0,0];
 
-if nargin<3||isempty(FitStruct)
+if ~isstruct(FitStruct)||isempty(FitStruct)
     fit=polyfit(Stp(FitIndPulse),trek(FitInd),1);
     
     FitStruct.Good=false;
@@ -137,9 +137,17 @@ end;
 Nold=0;
 FitIndOld=0;
 timeId=tic;
+KhiMinInd=[];
 while T<Tmax&&(N>Nold||numel(intersect(FitInd,FitIndOld))~=N)
-
-
+    if ~isempty(KhiMinInd)
+        idx=find(ShKhi(:,1)>=ShKhi(KhiMinInd,1)-2&ShKhi(:,1)<=ShKhi(KhiMinInd,1)+2&~isinf(ShKhi(:,end)));
+        KhiMinInd=find(ShKhi(idx,1)==ShKhi(KhiMinInd,1));
+        idx(idx<1|idx>size(ShKhi,1))=[];
+        FITs=FITs(~isinf(ShKhi(idx,end)));
+        good=good(~isinf(ShKhi(idx,end)));
+        ShKhi=ShKhi(idx,:);
+        ShKhi=[ShKhi,inf(size(ShKhi,1),1)];        
+    end;
 while T<Tmax&&any(isinf(ShKhi(:,end)))
     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
 
@@ -230,7 +238,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
      if KhiMinIndMain>=endInd-1
          notEx=true;
          ShKhi(end+1,1)=ShKhi(endInd,1)+1;
-         ShKhi(end,2)=inf;
+         ShKhi(end,end)=inf;
      end;
 
   for i=1:numel(MinInds)
@@ -294,7 +302,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
     end;
     T=toc(timeId);
 %% check for exit
-    if T<Tmax&&~notEx&&size(ShKhi,1)>Nfit||(min(diff(sortrows(ShKhi(:,1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
+    if T<Tmax&&~notEx&&size(ShKhi(~isinf(ShKhi(:,end)),:),1)>Nfit||(min(diff(sortrows(ShKhi(~isinf(ShKhi(:,end)),1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
         if any(good)||size(ShKhi,1)>3*Nfit
             ShKhi(isinf(ShKhi(:,end)),:)=[];
         else
@@ -330,11 +338,9 @@ FitIndPulse=FITs(KhiMinInd).FitIndPulse;
 BGLineFit=FITs(KhiMinInd).BGLineFit;
 BGLine=polyval(BGLineFit,FitInd);
 N=numel(FitInd);
-MaxShiftR=FitInd(end)-Ind+STP.MaxInd-FIT.FitIndPulseStrict(end);
-ShKhi=[ShKhi,inf(size(ShKhi,1),1)];
 end;
 
-ShKhi(:,end)=[];
+
 
 FIT.Good=good(KhiMinInd);
 FIT.A=FITs(KhiMinInd).A;
@@ -348,7 +354,7 @@ FIT=TrekSDDGetFitInd(TrekSet,FITs(KhiMinInd));
 BGLine=polyval(FIT.BGLineFit,FIT.FitInd);
 
 %%
-toc;
+fprintf('TrekSDDFitTime working time is %5.3f s\n',toc(FullTimeId));
 %%
 if TrekSet.Plot
     figure;
