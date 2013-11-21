@@ -51,7 +51,7 @@ TrekSet1.peaks(end,6)=FitStruct.Khi ;%MinKhi2;% /Ampl;% KhiMin
 TrekSet1.peaks(end,7)=-1;                     % means that Standing Alone or first from Overlaped pulses
 
 
-toc;
+fprintf('TrekSDDSubtract working time is %4.2f s \n',toc);
 %%
 if TrekSet.Plot
     pp=figure;

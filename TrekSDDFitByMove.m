@@ -1,5 +1,7 @@
  function FIT=TrekSDDFitByMove(TrekSetIn,Ind)
 % function TrekSet=TrekSDDFitByMove(TrekSetIn,Ind)
+timeId=tic;
+disp('>>>TrekSDDFitByMove Started');
 T=0;
 Tmax=120;
 
@@ -12,13 +14,7 @@ else
     STP=StpStruct;
 end;
 
-STPD=StpStruct([STP.TimeInd(1:end-1),diff(STP.FinePulse)]);
-SPSetStpD=SpecialTreks(STPD.FinePulse);
-endIndPulse=round(STPD.TimeInd(SPSetStpD.MinInd(find(STPD.TimeInd(SPSetStpD.MinInd)>STPD.MaxInd,1,'first'))));
-if isempty(endIndPulse)||endIndPulse>=STP.MaxInd
-    endIndPulse=round((STPD.MaxInd+STP.MaxInd)/2);
-end;
-FitIndPulse=[1:endIndPulse]';
+FitIndPulse=[1:STP.MinFitPoint]';
 N=numel(FitIndPulse);
 FitIndPulseL=[1:STP.MaxInd]';
 %%
@@ -36,7 +32,7 @@ end;
 
 Flag=false(4,1);
 I=zeros(2,1);
-timeId=tic;
+
 
 while T<Tmax&&Ind<TrekSet.size-STP.MaxInd;
 FitInd=FitIndPulse+Ind-1;
@@ -102,7 +98,7 @@ if all(Flag(1:2))&&all(Flag(3:4))
             MinInd=S2.MinInd(B(S2.MinInd+IndInitial-1,1)>TrekSet.Threshold)+IndInitial-1;
         end;            
         if isempty(MinInd)
-            MinInd=S2.MinInd;
+            MinInd=S2.MinInd+IndInitial-1;
         end;            
         II=round(mean(MinInd(abs(MinInd-I(1))<2))); %mean to obtain one index
         if isempty(II)||isnan(II)
