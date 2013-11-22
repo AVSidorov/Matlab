@@ -151,7 +151,9 @@ plot([1,trSize],MeanVal+[-Threshold,-Threshold],'r');
 pause;
 
 close(HistFig);
-close(TrekFig);
+if ~isempty(TrekFig)&&ishandle(TrekFig)
+    close(TrekFig);
+end;
 
 NoiseSet.MeanVal=MeanVal;
 NoiseSet.StdVal=StdDev;
