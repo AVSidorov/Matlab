@@ -228,7 +228,15 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
          [KhiMin,KhiMinIndMain]=min(ShKhi(NotZeroKhi,end));
          KhiMinIndMain=NotZeroKhi(KhiMinIndMain);
       end;
-    
+     
+      
+      d=inf;
+      if KhiMinIndMain>1
+          d=min([d;ShKhi(KhiMinIndMain,1)-ShKhi(KhiMinIndMain-1,1)]);
+      end;
+      if KhiMinIndMain<size(ShKhi,1)
+          d=min([d;ShKhi(KhiMinIndMain+1,1)-ShKhi(KhiMinIndMain,1)]);
+      end;
      
 %% adding shift points for search     
    % if point on edge 
@@ -304,9 +312,10 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
 %       end;
 
     end;
+ 
     T=toc(timeId);
 %% check for exit
-    if T<Tmax&&~notEx&&size(ShKhi(~isinf(ShKhi(:,end)),:),1)>Nfit||(min(diff(sortrows(ShKhi(~isinf(ShKhi(:,end)),1))))<=1/Nfit&&good(KhiMinInd))%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
+    if ~notEx&&(size(ShKhi(~isinf(ShKhi(:,end)),:),1)>Nfit||d<=1/Nfit)%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
         if any(good)||size(ShKhi,1)>3*Nfit
             ShKhi(isinf(ShKhi(:,end)),:)=[];
         else
