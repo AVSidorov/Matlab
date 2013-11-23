@@ -1,22 +1,14 @@
 function STSet=SpecialTreks(trek)
 trSize=numel(trek);
 
-FrontHigh=zeros(trSize,1);
 
-
-
-trR=circshift(trek,1); %circshift works on vectors (vertical arrays)
-trL=circshift(trek,-1);
-
-FrontBool=trek>=trR&trek<=trL;
-TailBool=trek>=trL&trek<=trR;
-MaxBool=trek>trR&trek>=trL;
-MinBool=trek<=trR&trek<trL;
-MaxBool(1)=false;    MaxBool(end)=false;
+MaxBool=false(trSize,1);
+MaxBool(2:end-1)=trek(2:end-1)>trek(1:end-2)&trek(2:end-1)>=trek(3:end);
 MaxInd=find(MaxBool);
 MaxN=numel(MaxInd);
 
-MinBool(1)=false;    MinBool(end)=false;
+MinBool=false(trSize,1);
+MinBool(2:end-1)=trek(2:end-1)<=trek(1:end-2)&trek(2:end-1)<trek(3:end);
 MinInd=find(MinBool);
 MinN=numel(MinInd);
 
@@ -58,7 +50,7 @@ end;
 %  for i=0:5
 %      tt(i+1,:)=trek(circshift(MaxInd,-i))-trek(MinInd);
 %  end;
- clear trL trR;
+
  
  
  STSet.MinInd=MinInd;

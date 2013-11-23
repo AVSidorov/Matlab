@@ -156,6 +156,7 @@ if all(Flag(1:2))&&all(Flag(3:4))
     end;
     FIT=TrekSDDGetFitInd(TrekSet,FIT);
     FIT.FitFast=false;
+    FIT.BGLineFit=[0,0];
     break;
 end;    
 Ind=Ind+1;
