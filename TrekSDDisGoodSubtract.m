@@ -1,6 +1,8 @@
 function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1)
  isGood=false;
- 
+
+ t=0:1/5000:0.5;
+ B=500*t.^2.*exp(-t/0.05).*sin(2*pi*1000*t);
  
  if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)
     STP=TrekSet.STP;
@@ -92,6 +94,7 @@ if ~isGood||TrekSet.Plot
     set(ts, 'Units', 'normalized', 'Position', [0.01, 0.01, 0.8, 0.8]);
 %     axis([stI-TrekSet.STP.MaxInd,endI+TrekSet.STP.MaxInd,min(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd)),max(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd))]);
     if ~isGood
+        sound(B,5000);
         s=input('Subtract? If input is not empty, then black trek,else Default blue line\n If leter is ''d/D'' then this pulse will be marked as good fitted\n','s');
         if not(isempty(s))
             isGood=true;
