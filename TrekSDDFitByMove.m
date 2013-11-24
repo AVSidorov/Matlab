@@ -30,8 +30,9 @@ FitPulse=TrekSet.STP.Stp(FitIndPulse);
 FitPulseL=TrekSet.STP.Stp(FitIndPulseL);
 
 IndStart=1;
+FIT=[];
 
-while T<Tmax&&Ind<TrekSet.size-STP.MaxInd;
+while T<Tmax&&Ind<TrekSetIn.size-STP.MaxInd;
 IndStart=IndStart-1+Ind;
 Ind=1;
 TrekSet.trek=TrekSetIn.trek(IndStart:IndStart+STP.size);
@@ -88,6 +89,9 @@ if all(Flag(1:2))&&all(Flag(3:4))
         MaxInd=S3.MaxInd(find(A(S3.MaxInd,1)>TrekSet.Threshold,1,'first'));
         MinInd=S1.MinInd(A(S1.MinInd,1)>TrekSet.Threshold&good(S1.MinInd,1));
         if isempty(MinInd)
+            MinInd=S1.MinInd(A(S1.MinInd,1)>TrekSet.OverSt*TrekSet.StdVal&good(S1.MinInd,1));
+        end;
+        if isempty(MinInd)
             MinInd=S1.MinInd(A(S1.MinInd,1)>TrekSet.Threshold);
         end;
         if isempty(MinInd)
@@ -104,6 +108,9 @@ if all(Flag(1:2))&&all(Flag(3:4))
     if ~isempty(S2)
         MaxInd=S4.MaxInd(find(B(S4.MaxInd,1)>TrekSet.Threshold,1,'first'));
         MinInd=S2.MinInd(B(S2.MinInd,1)>TrekSet.Threshold&good(S2.MinInd,2));
+        if isempty(MinInd)
+            MinInd=S2.MinInd(B(S2.MinInd,1)>TrekSet.OverSt*TrekSet.StdVal&good(S2.MinInd,2));
+        end;            
         if isempty(MinInd)
             MinInd=S2.MinInd(B(S2.MinInd,1)>TrekSet.Threshold);
         end;            
@@ -125,12 +132,12 @@ if all(Flag(1:2))&&all(Flag(3:4))
     FIT.BGLineFit=[0,0];
     if  I(1)>0&&I(2)>0&&good(I(1),1)&&good(I(2),2)&&range(I)<3&&abs(A(I(1),1)-B(I(1),1))<TrekSet.OverSt*TrekSet.StdVal
         FIT.MaxInd=round(mean(I(I>0))-1+TrekSet.STP.MaxInd)+IndStart-1;
-        FIT.A=B(I(2),1);
-        FIT.B=B(I(2),2);
-        FIT.Khi=B(I(2),3);
-        FIT.N=TrekSet.STP.MaxInd;
-        FIT.FitIndPulseStrict=FitIndPulseL;
-        FIT.FitIndStrict=FitIndPulseL+FIT.MaxInd+1-TrekSet.STP.MaxInd;
+        FIT.A=A(I(1),1);
+        FIT.B=A(I(1),2);
+        FIT.Khi=A(I(1),3);
+        FIT.FitIndPulseStrict=FitIndPulse;
+        FIT.FitIndStrict=FitIndPulse+FIT.MaxInd+1-TrekSet.STP.MaxInd;
+        FIT.N=N;
     elseif I(1)>0&&A(I(1))-B(I(1))<TrekSet.Threshold
         FIT.MaxInd=I(1)-1+TrekSet.STP.MaxInd+IndStart-1;
         FIT.A=A(I(1),1);
