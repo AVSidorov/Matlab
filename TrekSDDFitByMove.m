@@ -19,7 +19,8 @@ end;
 
 IndInitial=Ind;
 
-
+i=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>IndInitial,1,'first'));
+TrekSet.Threshold=TrekSet.trek(i)-TrekSet.trek(i-STP.FrontN);
 
 FitIndPulse=[1:STP.MinFitPoint]';
 N=numel(FitIndPulse);
@@ -138,7 +139,7 @@ if all(Flag(1:2))&&all(Flag(3:4))
         FIT.FitIndPulseStrict=FitIndPulse;
         FIT.FitIndStrict=FitIndPulse+FIT.MaxInd+1-TrekSet.STP.MaxInd;
         FIT.N=N;
-    elseif I(1)>0&&A(I(1))-B(I(1))<TrekSet.Threshold
+    elseif I(1)>0&&A(I(1))>TrekSet.Threshold&&A(I(1))-B(I(1))<TrekSet.OverSt*TrekSet.StdVal
         FIT.MaxInd=I(1)-1+TrekSet.STP.MaxInd+IndStart-1;
         FIT.A=A(I(1),1);
         FIT.B=A(I(1),2);
