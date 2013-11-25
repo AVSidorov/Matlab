@@ -7,6 +7,7 @@ else
 end;
 Ind=FIT.MaxInd;
 FIT.FitPulse=STP.Stp;
+axLimits=[];
 while Ch~=1&&Ch~=3
 x=Ind-STP.size:Ind+STP.size;
 x(x<1|x>TrekSet.size)=[];
@@ -27,16 +28,23 @@ fprintf('Ind is %d\n',Ind);
 fprintf('Shift is %5.3f\n',FIT.Shift);
 %%
 h=figure;
-plot(x,TrekSet.trek(x),'.b-');
+plot(x,TrekSet.trek(x),'b');
 grid on; hold on;
+if isempty(axLimits)
+    axis([SubtractInd(1),SubtractInd(end),min(TrekSet.trek(SubtractInd)),max(TrekSet.trek(SubtractInd))]);
+else
+    axis(axLimits);
+end;
 if isfield(FIT,'FitIndStrict');
     plot(FIT.FitIndStrict,TrekSet.trek(FIT.FitIndStrict),'ob');
 end;
 
 plot(Ind,TrekSet.trek(Ind),'*r');
+plot(FIT.FitInd,TrekSet.trek(FIT.FitInd),'.b');
 plot(SelectedInds,TrekSet.trek(SelectedInds),'.r');
 plot([Ind,Ind],[0,FIT.A]+FIT.B,'r');
 plot(SubtractInd,PulseSubtract(SubtractIndPulse)+FIT.B,'r');
+plot(SubtractInd,TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPulse),'k');
 if isfield(FIT,'FitIndPulseStrict');
     plot(FIT.FitIndPulseStrict+Ind-TrekSet.STP.MaxInd,PulseSubtract(FIT.FitIndPulseStrict)+FIT.B,'.r');
 end;
@@ -173,6 +181,7 @@ switch s
         Ch=3;
 end;
 if exist('h','var')&&~isempty(h)&&ishandle(h)
+    axLimits=axis;
     close(h);        
 end;
 end;

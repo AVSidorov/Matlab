@@ -9,7 +9,7 @@ end;
 fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 
 T=0;
-Tmax=10;
+Tmax=1;
 
 Nfit=30;
 BckgFitN=3;

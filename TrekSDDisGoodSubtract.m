@@ -92,7 +92,7 @@ if ~isGood||TrekSet.Plot
     plot([stI,endI],FIT.B+[TrekSet.Threshold,TrekSet.Threshold],'r');
     plot([stI,endI],FIT.B+[-TrekSet.Threshold,-TrekSet.Threshold],'r');
     set(ts, 'Units', 'normalized', 'Position', [0.01, 0.01, 0.8, 0.8]);
-%     axis([stI-TrekSet.STP.MaxInd,endI+TrekSet.STP.MaxInd,min(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd)),max(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd))]);
+    axis([stI-TrekSet.STP.MaxInd,endI+TrekSet.STP.MaxInd,min(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd)),max(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd))]);
     if ~isGood
         sound(B,5000);
         s=input('Subtract? If input is not empty, then black trek,else Default blue line\n If leter is ''d/D'' then this pulse will be marked as good fitted\n','s');

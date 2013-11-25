@@ -52,6 +52,7 @@ TrekSet1.peaks(end,7)=-1;                     % means that Standing Alone or fir
 
 
 fprintf('TrekSDDSubtract working time is %4.2f s \n',toc);
+return;
 %%
 if TrekSet.Plot
     pp=figure;
