@@ -17,8 +17,10 @@ if nargin<2
     Pass=1;
 end;
 
+if ~isfield(TrekSet,'SelectedPeakInd')||isempty(TrekSet.SelectedPeakInd)   
+    TrekSet=TrekSDDPeakSearch(TrekSet);
+end;
 PeakN=numel(TrekSet.SelectedPeakInd);  
-
 tau=TrekSet.tau;
 
 %%
