@@ -33,7 +33,7 @@ SelectedN=numel(SelectedInd);
 
 %% =====  End                                  
 
-TrekSet.Threshold=ThresholdLD;
+TrekSet.ThresholdLD=ThresholdLD;
 TrekSet.SelectedPeakInd=SelectedInd;
 TrekSet.PeakOnFrontInd=[];
 TrekSet.LongFrontInd=[];
