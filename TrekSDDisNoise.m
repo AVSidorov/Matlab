@@ -36,6 +36,9 @@ HoleEnd=find(dBefore>MinSpace);     % very small breaks is not important and tak
 HoleStart=[HoleStart;numel(noiseInd)]; %to make equal quantity PartLength and HoleStart
 HoleEnd=[1;HoleEnd];
 PartLength=noiseInd(HoleStart)-noiseInd(HoleEnd)+1;
+HoleStart=noiseInd(HoleStart);
+HoleEnd=noiseInd(HoleEnd);
+
 
 isNoise=numel(noiseInd)==TrekSet.size;
 else
@@ -43,6 +46,7 @@ else
 end;
 NoiseSet.noise=false(TrekSet.size,1);
 NoiseSet.noise(noiseInd)=true;
+NoiseSet.noiseInd=noiseInd;
 if ~isempty(noiseInd)
     NoiseSet.nParts=numel(PartLength);
     NoiseSet.PartLength=PartLength;
