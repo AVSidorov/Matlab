@@ -11,4 +11,4 @@ FitPulse(bool)=0;
 FitPulse(1:STP.BckgFitN-round(Shift))=0;
 FitPulse(end-(STP.ZeroTailN-1+round(Shift)):end)=0; 
 
-FitPulse=FitPulse/max(FitPulse);
+% FitPulse=FitPulse/max(FitPulse);
