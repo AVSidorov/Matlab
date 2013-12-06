@@ -1,5 +1,56 @@
-function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1)
+function [isGood,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1)
+
 isGood=false;
+if FIT.Good&&FIT.FitIndPulse(1)<=TrekSet.STP.BckgFitN-5
+    isGood=true;
+else
+    B=mean(TrekSet.peaks(TrekSet.peaks(:,7)>=0,4));
+    trek=TrekSet1.trek(FIT.FitInd)-FIT.B;
+    T=TrekSet1;
+    T.trek=trek;
+    T.size=numel(T.trek);
+    [isNoise,NoiseSet]=TrekSDDisNoise(T);
+    if isNoise
+        isGood = true;
+    elseif NoiseSet.HoleStart(1)+FIT.FitInd(1)-1>=FIT.FitInd(end)
+        isGood = true;
+    elseif numel(NoiseSet.HoleStart)==2&&FIT.B>=B-TrekSet.OverSt*TrekSet.StdVal&&FIT.B<=TrekSet.ThresholdLD+TrekSet.OverSt*TrekSet.StdVal&&...
+           all(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1)>=0)&&...
+           all(abs(T.trek(1:NoiseSet.HoleEnd(1)))<=TrekSet.OverSt*TrekSet.StdVal)
+        FIT.MaxInd=round(FIT.MaxInd-FIT.Shift)-(NoiseSet.HoleEnd(2)-NoiseSet.HoleStart(1))-1;
+        FIT.FitIndPulseStrict=[1:TrekSet.STP.MinFitPoint]';
+        FIT.FitIndStrict=[FIT.FitInd(1):FIT.FitInd(1)-1+NoiseSet.HoleEnd(2)]';
+        FIT.FitInd=FIT.FitIndStrict;
+        FIT.FitIndPulse=FIT.FitInd-round(FIT.MaxInd-FIT.Shift)+TrekSet.STP.MaxInd;
+        FIT.FitIndPulse=FIT.FitIndPulse(FIT.FitIndPulse>=1&FIT.FitIndPulse<=TrekSet.STP.size);
+        FIT.FitInd=FIT.FitIndPulse+round(FIT.MaxInd-FIT.Shift)-TrekSet.STP.MaxInd;
+        FIT.Shift=0;
+        fit=polyfit(TrekSet.STP.Stp(FIT.FitIndPulse),TrekSet.trek(FIT.FitInd),1);
+        FIT.A=fit(1);
+        FIT.B=fit(2);
+        isGood=false;
+        Istart=[];
+        return;
+    elseif numel(NoiseSet.HoleStart)==2&&FIT.B>=B-TrekSet.OverSt*TrekSet.StdVal&&FIT.B<=TrekSet.OverSt*TrekSet.StdVal&&...
+           ((sum(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1))/numel(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1)<=TrekSet.OverSt*TrekSet.StdVal&&...
+           any(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1)>0)&&any(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1)<0))||...
+           all(abs(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1))<=TrekSet.Threshold))
+        TrekSet=TrekSet1;
+        FIT=FIT1;
+        Istart=[];
+        return;
+    elseif FIT1.MaxInd>FIT.MaxInd
+        FIT=FIT1;
+        Istart=[];
+        return;
+    else
+        Istart=FIT.MaxInd;
+        FIT=[];
+        return;
+    end;
+end;
+
+if ~isGood
 stI=[];
 endI=[];
 BadInd=[];
@@ -94,6 +145,7 @@ if FIT.A>TrekSet.StdVal*TrekSet.OverSt
         end;
     end;    
 end;
+end;
 
 s='d';
 if ~isGood||TrekSet.Plot
@@ -164,4 +216,5 @@ if isGood
       TrekSet.peaks(end,7)=0;
     end;
     FIT=FIT1;
+    Istart=[];
 end;

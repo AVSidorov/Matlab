@@ -33,10 +33,12 @@ FitPulseL=TrekSet.STP.Stp(FitIndPulseL);
 IndStart=1;
 FIT=[];
 
-while T<Tmax&&Ind<TrekSetIn.size-STP.MaxInd;
+while T<Tmax&&IndStart-1+Ind<TrekSetIn.size-STP.MaxInd;
 IndStart=IndStart-1+Ind;
 Ind=1;
-TrekSet.trek=TrekSetIn.trek(IndStart:IndStart+STP.size);
+i=IndStart:IndStart+STP.size;
+i=i(i>=1&i<=TrekSetIn.size);
+TrekSet.trek=TrekSetIn.trek(i);
 TrekSet.size=numel(TrekSet.trek);
 A=zeros(TrekSet.size,3);
 B=zeros(TrekSet.size,3);
