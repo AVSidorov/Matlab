@@ -20,7 +20,7 @@ end;
 IndInitial=Ind;
 
 i=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>IndInitial,1,'first'));
-TrekSet.Threshold=TrekSet.trek(i)-TrekSet.trek(i-STP.FrontN);
+
 
 FitIndPulse=[1:STP.MinFitPoint]';
 N=numel(FitIndPulse);

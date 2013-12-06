@@ -117,18 +117,20 @@ if ~FIT.Good
     idx=(Ind-STP.MaxInd:Ind);
     idx=idx(idx>=1&idx<=TrekSet.size);
     STSet=SpecialTreks(trek(idx));
-    STSet.MinInd=STSet.MinInd+idx(1)-1;
-    stI=max([STSet.MinInd(trek(STSet.MinInd)<TrekSet.OverSt*TrekSet.StdVal);Ind-STP.FrontN]);
-    IndNew=stI+STP.FrontN;
-    if IndNew~=Ind
-        IndMean=(IndNew+Ind)/2;
-        if all((Ind-IndNew)~=ShKhi(:,1))
-            ShKhi(end+1,1)=Ind-IndNew;
-            ShKhi(end,2)=inf;
-        end;
-        if all((Ind-IndMean)~=ShKhi(:,1))
-            ShKhi(end+1,1)=Ind-IndMean;
-            ShKhi(end,2)=inf;
+    if ~isempty(STSet)
+        STSet.MinInd=STSet.MinInd+idx(1)-1;
+        stI=max([STSet.MinInd(trek(STSet.MinInd)<TrekSet.OverSt*TrekSet.StdVal);Ind-STP.FrontN]);
+        IndNew=stI+STP.FrontN;
+        if IndNew~=Ind
+            IndMean=(IndNew+Ind)/2;
+            if all((Ind-IndNew)~=ShKhi(:,1))
+                ShKhi(end+1,1)=Ind-IndNew;
+                ShKhi(end,2)=inf;
+            end;
+            if all((Ind-IndMean)~=ShKhi(:,1))
+                ShKhi(end+1,1)=Ind-IndMean;
+                ShKhi(end,2)=inf;
+            end;
         end;
     end;
 end;
