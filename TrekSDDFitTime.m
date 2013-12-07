@@ -162,11 +162,19 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
            FitPulse=TrekSDDGetFitPulse(STP,ShKhi(i,1));
        end;
        bool=trek(FitInd)<TrekSet.MaxSignal;
+       x=FitPulse(FitIndPulse(bool));
+       y=(trek(FitInd(bool))-BGLine(bool));
+       N=numel(x);
        if FitFast
         A=sum(FitPulse(FitIndPulse(bool)).*(trek(FitInd(bool))-BGLine))/sum(FitPulse(FitIndPulse(bool)).^2);
         B=0;
        else           
-        p=polyfit(FitPulse(FitIndPulse(bool)),(trek(FitInd(bool))-BGLine(bool)),1);
+%         p=polyfit(FitPulse(FitIndPulse(bool)),(trek(FitInd(bool))-BGLine(bool)),1);
+        
+        p(1)=(N*sum(x.*y)-sum(x)*sum(y))/(N*sum(x.^2)-sum(x)^2);
+        p(2)=(sum(y)-p(1)*sum(x))/N;
+        
+        
         A=p(1);
         B=p(2);
        end; 
@@ -182,7 +190,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
        FITs(i).Khi=ShKhi(i,end);
        FITs(i).FitPulse=FitPulse;
        FITs(i).BGLineFit=BGLineFit;
-       FITs(i)=TrekSDDGetFitInd(TrekSet,FITs(i));        
+%        FITs(i)=TrekSDDGetFitInd(TrekSet,FITs(i));        
     end;
     
 %      ShKhi(not(good),:)=[];  %in peak on front Khi can have not only one minimum
@@ -350,6 +358,7 @@ FitPulse=TrekSDDGetFitPulse(STP,ShKhi(KhiMinInd,1));
 %% Changing FitInd
 FitIndOld=FitInd;
 Nold=N;
+FITs(KhiMinInd)=TrekSDDGetFitInd(TrekSet,FITs(KhiMinInd));  
 FitInd=FITs(KhiMinInd).FitInd;
 FitIndPulse=FITs(KhiMinInd).FitIndPulse;
 BGLineFit=FITs(KhiMinInd).BGLineFit;
@@ -371,7 +380,7 @@ FIT=TrekSDDGetFitInd(TrekSet,FITs(KhiMinInd));
 BGLine=polyval(FIT.BGLineFit,FIT.FitInd);
 
 %%
-fprintf('TrekSDDFitTime working time is %5.3f s\n',toc(FullTimeId));
+
 %%
 if TrekSet.Plot
     figure;

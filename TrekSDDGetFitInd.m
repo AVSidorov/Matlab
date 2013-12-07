@@ -29,7 +29,8 @@ FitIndPulse=FitInd-Ind+maxI;
 
 
 FitPulse=FIT.FitPulse*FIT.A+FIT.B;
-BGLine=polyval(FIT.BGLineFit,FitInd);
+% BGLine=polyval(FIT.BGLineFit,FitInd);
+BGLine=zeros(numel(FitInd),1);
 
 %% StrictInd determination
 

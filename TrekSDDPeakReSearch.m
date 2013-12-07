@@ -1,6 +1,4 @@
 function TrekSet=TrekSDDPeakReSearch(TrekSetIn,FIT)
-tic;
-disp('>>>>>>>>TrekPeakReSearch started');
 
 
 StpSet=TrekSetIn.STP;
@@ -35,4 +33,3 @@ end;
  
 TrekSet=TrekSetIn;
 
-fprintf('TrekSDDPeakReSearch time %3.2f\n',toc);

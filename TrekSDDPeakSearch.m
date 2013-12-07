@@ -1,8 +1,5 @@
 function TrekSet=TrekSDDPeakSearch(TrekSetIn,EndOut)
 
-tic;
-disp('>>>>>>>>TrekPeakSearch started');
-
 TrekSet=TrekSetIn;
 
 
@@ -53,7 +50,7 @@ if EndOut %to avoid statistic typing in short calls
     fprintf('>>>>>>>>>>>>>>>>>>>>>>Search by Front Finished\n');
 end;
 %%
-fprintf('TrekSDDPeakSearch time %3.2f\n',toc);
+
 %% end plot
  if TrekSet.Plot&&EndOut
    figure;

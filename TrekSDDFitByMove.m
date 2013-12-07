@@ -1,7 +1,6 @@
  function FIT=TrekSDDFitByMove(TrekSetIn,Ind)
 % function TrekSet=TrekSDDFitByMove(TrekSetIn,Ind)
 timeId=tic;
-disp('>>>TrekSDDFitByMove Started');
 T=0;
 Tmax=120;
 
@@ -25,6 +24,7 @@ i=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>IndInitial,1,'first'));
 FitIndPulse=[1:STP.MinFitPoint]';
 N=numel(FitIndPulse);
 FitIndPulseL=[1:STP.MaxInd]';
+NL=numel(FitIndPulseL);
 %%
 
 FitPulse=TrekSet.STP.Stp(FitIndPulse);
@@ -50,15 +50,24 @@ I=zeros(2,1);
 
 while T<Tmax&&Ind<TrekSet.size-STP.MaxInd;
 FitInd=FitIndPulse+Ind-1;
-p=polyfit(FitPulse,TrekSet.trek(FitInd),1);
+% p=polyfit(FitPulse,TrekSet.trek(FitInd),1);
+
+p(1)=(N*sum(FitPulse.*TrekSet.trek(FitInd))-sum(FitPulse)*sum(TrekSet.trek(FitInd)))/...
+     (N*sum(FitPulse.^2)-sum(FitPulse)^2);
+p(2)=(sum(TrekSet.trek(FitInd))-p(1)*sum(FitPulse))/N;
+
 khi=sqrt(sum(((TrekSet.trek(FitInd)-p(1)*FitPulse-p(2))/TrekSet.StdVal).^2)/N);
 good(Ind,1)=all(TrekSet.trek(FitInd)-p(1)*FitPulse-p(2)<TrekSet.StdVal*TrekSet.OverSt);
 A(Ind,1:2)=p;
 A(Ind,3)=khi;
 
 FitInd=FitIndPulseL+Ind-1;
-p=polyfit(FitPulseL,TrekSet.trek(FitInd),1);
-khi=sqrt(sum(((TrekSet.trek(FitInd)-p(1)*FitPulseL-p(2))/TrekSet.StdVal).^2)/N);
+% p=polyfit(FitPulseL,TrekSet.trek(FitInd),1);
+p(1)=(NL*sum(FitPulseL.*TrekSet.trek(FitInd))-sum(FitPulseL)*sum(TrekSet.trek(FitInd)))/...
+     (NL*sum(FitPulseL.^2)-sum(FitPulseL)^2);
+p(2)=(sum(TrekSet.trek(FitInd))-p(1)*sum(FitPulseL))/NL;
+
+khi=sqrt(sum(((TrekSet.trek(FitInd)-p(1)*FitPulseL-p(2))/TrekSet.StdVal).^2)/NL);
 good(Ind,2)=all(TrekSet.trek(FitInd)-p(1)*FitPulseL-p(2)<TrekSet.StdVal*TrekSet.OverSt);
 B(Ind,1:2)=p;
 B(Ind,3)=khi;
@@ -187,5 +196,5 @@ end; %while Short
     end;
 end;%while Long
     
-fprintf('Fit by move time %3.2f\n',toc(timeId));
+
 
