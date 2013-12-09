@@ -18,7 +18,7 @@ end;
 
 IndInitial=Ind;
 
-i=TrekSet.SelectedPeakInd(find(TrekSet.SelectedPeakInd>IndInitial,1,'first'));
+
 
 
 FitIndPulse=[1:STP.MinFitPoint]';
