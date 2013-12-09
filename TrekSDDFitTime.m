@@ -11,7 +11,12 @@ fprintf('>>>>>>>>TrekFitTime started. Ind is %6d\n',Ind);
 T=0;
 Tmax=1;
 
-Nfit=30;
+if isfield(TrekSet,'Nfit')&&~isempty(TrekSet.Nfit)
+    Nfit=TrekSet.Nfit;
+else
+    Nfit=30;
+end;
+
 BckgFitN=3;
 gs=(1+sqrt(5))/2;
 FitFast=false;
@@ -153,8 +158,6 @@ while T<Tmax&&(N>Nold||numel(intersect(FitInd,FitIndOld))~=N)
         ShKhi=[ShKhi,inf(size(ShKhi,1),1)];        
     end;
 while T<Tmax&&any(isinf(ShKhi(:,end)))
-    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
-    ShKhi(diff(ShKhi(:,1))==0,:)=[];
     for i=find(isinf(ShKhi(:,end)))'
        if exist('FITs','var')>0&&~isempty(FITs)&&i<=numel(FITs)
            FitPulse=FITs(i).FitPulse;
@@ -289,12 +292,17 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
 
      dS=ShKhi(ri,1)-ShKhi(li,1);
 
-     if ~any(ShKhi(:,1)==ShKhi(ri,1)-dS/gs)
+     Rgs=ShKhi(ri,1)-dS/gs;
+     Rgs=round(Rgs*Nfit)/Nfit;
+     if ~any(ShKhi(:,1)==Rgs)
         ShKhi(end+1,1)=ShKhi(ri,1)-dS/gs;
         ShKhi(end,end)=inf;
      end;
-     if ~any(ShKhi(:,1)==ShKhi(ri,1)+dS/gs)
-        ShKhi(end+1,1)=ShKhi(li,1)+dS/gs;
+     
+     Lgs=ShKhi(li,1)+dS/gs;
+     Lgs=round(Lgs*Nfit)/Nfit;
+     if ~any(ShKhi(:,1)==Lgs)
+        ShKhi(end+1,1)=Lgs;
         ShKhi(end,end)=inf;
      end;
 %  % gradient search
@@ -324,7 +332,8 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
 %       end;
 
     end;
- 
+    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
+    ShKhi(diff(ShKhi(:,1))==0,:)=[];
     T=toc(timeId);
 %% check for exit
     if ~notEx&&(size(ShKhi(~isinf(ShKhi(:,end)),:),1)>Nfit||d<=1/Nfit)%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit
