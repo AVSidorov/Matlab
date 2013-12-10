@@ -32,11 +32,6 @@ SelectedN=numel(SelectedInd);
 
 TrekSet.ThresholdLD=ThresholdLD;
 TrekSet.SelectedPeakInd=SelectedInd;
-TrekSet.PeakOnFrontInd=[];
-TrekSet.LongFrontInd=[];
-TrekSet.strictStInd=SelectedInd-TrekSet.STP.MaxInd;
-TrekSet.strictStInd(TrekSet.strictStInd<1)=1;
-TrekSet.strictEndInd=SelectedInd;
 
 %% ===== End information
 if EndOut %to avoid statistic typing in short calls

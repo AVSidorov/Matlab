@@ -3,7 +3,7 @@ Stp=STP.FinePulse;
 StpN=STP.size;
 TimeInd=STP.TimeInd;
 FitPulse=zeros(StpN,1);
-Nfit=round(1/min(diff(TimeInd)));
+Nfit=1/STP.TimeStep;
 
 if Shift>=0
     iS=find(1+Shift==TimeInd);

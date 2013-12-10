@@ -13,7 +13,7 @@ i=2;
 while i<=4
 FileName=[TrekSet(1).name,num2str(i),'.dat'];
     TrekSet(end+1)=TrekSDDRecognize(FileName,'StartOffset',TrekSet(1).StartOffset,'Date',TrekSet(1).Date,...
-                           'Amp',TrekSet(1).Amp,'HV',TrekSet(1).HV,'P',TrekSet(1).P,'Plot',TrekSet(1).Plot);
+                           'Amp',TrekSet(1).Amp,'Plot',TrekSet(1).Plot);
    TrekSet(end).Plot=false; 
    if TrekSet(end).type>0 
         TrekSet(end)=TrekLoad(TrekSet(end));
