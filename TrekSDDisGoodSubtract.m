@@ -10,9 +10,9 @@ else
     T.trek=trek;
     T.size=numel(T.trek);
     [isNoise,NoiseSet]=TrekSDDisNoise(T);
-    if isNoise
+    if isNoise&&FIT.A>TrekSet.Threshold&&FIT1.MaxInd>FIT.MaxInd
         isGood = true;
-    elseif NoiseSet.HoleStart(1)+FIT.FitInd(1)-1>=FIT.FitInd(end)
+    elseif NoiseSet.HoleStart(1)+FIT.FitInd(1)-1>=FIT.FitInd(end)&&FIT.A>TrekSet.Threshold&&FIT1.MaxInd>FIT.MaxInd
         isGood = true;
 %     elseif numel(NoiseSet.HoleStart)==2&&FIT.B>=B-TrekSet.OverSt*TrekSet.StdVal&&FIT.B<=TrekSet.ThresholdLD+TrekSet.OverSt*TrekSet.StdVal&&...
 %            all(T.trek(NoiseSet.HoleStart(1)+1:NoiseSet.HoleEnd(2)-1)>=0)&&...
