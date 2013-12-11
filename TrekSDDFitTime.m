@@ -272,30 +272,30 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
      KhiMinInd=MinInds(i);
      li=max([KhiMinInd-1;1]);
      ri=min([KhiMinInd+1;size(ShKhi,1)]);
-    if ri-li>1&&range(ShKhi(li:ri,end))>1/Nfit
-        [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,end),2);
-         mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
-            if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeL
-                ShKhi(end+1,1)= mid;  
-                ShKhi(end,end)=inf;
-            end;
-     end;
-   
-     if EndGoodInd-StGoodInd>1&&range(ShKhi(good(StGoodInd:EndGoodInd),end))>1/Nfit %to avoid bad conditioned fit
-        [KhiFit,s,m]=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),end),2);
-        mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
-        if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeLKhiFit(1)>0                
-                ShKhi(end+1,1)= mid;  
-                ShKhi(end,end)=inf;
-        end;
-     end;
+%     if ri-li>1&&range(ShKhi(li:ri,end))>1/Nfit
+%         [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,end),2);
+%          mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
+%             if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeL
+%                 ShKhi(end+1,1)= mid;  
+%                 ShKhi(end,end)=inf;
+%             end;
+%      end;
+%    
+%      if EndGoodInd-StGoodInd>1&&range(ShKhi(good(StGoodInd:EndGoodInd),end))>1/Nfit %to avoid bad conditioned fit
+%         [KhiFit,s,m]=polyfit(ShKhi(good(StGoodInd:EndGoodInd),1),ShKhi(good(StGoodInd:EndGoodInd),end),2);
+%         mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
+%         if mid>-ShiftRangeR&&~any(mid==ShKhi(:,1))%&&mid<ShiftRangeLKhiFit(1)>0                
+%                 ShKhi(end+1,1)= mid;  
+%                 ShKhi(end,end)=inf;
+%         end;
+%      end;
 
      dS=ShKhi(ri,1)-ShKhi(li,1);
 
      Rgs=ShKhi(ri,1)-dS/gs;
      Rgs=round(Rgs*Nfit)/Nfit;
      if ~any(ShKhi(:,1)==Rgs)
-        ShKhi(end+1,1)=ShKhi(ri,1)-dS/gs;
+        ShKhi(end+1,1)=Rgs;
         ShKhi(end,end)=inf;
      end;
      
