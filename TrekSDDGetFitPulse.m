@@ -6,18 +6,18 @@ FitPulse=zeros(StpN,1);
 Nfit=1/STP.TimeStep;
 
 if Shift>=0
-    iS=find(1+Shift==TimeInd);
+    iS=1+Shift*Nfit;
     N=StpN-ceil(Shift);
-    if ~isempty(iS)
+    if abs(round(iS)-iS)<Nfit/100
         FitPulse(1:N)=Stp(iS:Nfit:iS+(N-1)*Nfit);
     else
         FitPulse=interp1(TimeInd,Stp,[1:StpN]'+Shift,'linear',0);
     end;
 end;
 if Shift<0
-    iE=find(StpN+Shift==TimeInd);
+    iE=1+(StpN-1)*Nfit+Shift*Nfit;
     N=1-floor(Shift);
-    if ~isempty(iE)
+    if abs(round(iE)-iE)<Nfit/100
         FitPulse(N:StpN)=Stp(iE-Nfit*(StpN-N):Nfit:iE);
     else        
         FitPulse=interp1(TimeInd,Stp,[1:StpN]'+Shift,'linear',0);
