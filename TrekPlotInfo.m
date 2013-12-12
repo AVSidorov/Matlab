@@ -27,13 +27,19 @@ h=findobj(hAxes,'Tag','topThrLine');
 if ~isempty(h)
     delete(h);
 end;
-plot([TrekSet.StartTime,EndTime],[TrekSet.Threshold,TrekSet.Threshold],'r','Tag','topThrLine');
+
+if ~isempty(TrekSet.Threshold)
+    plot([TrekSet.StartTime,EndTime],[TrekSet.Threshold,TrekSet.Threshold],'r','Tag','topThrLine');
+end;
 
 h=findobj(hAxes,'Tag','bottomThrLine');
 if ~isempty(h)
     delete(h);
 end;
-plot([TrekSet.StartTime,EndTime],[-TrekSet.Threshold,-TrekSet.Threshold],'r','Tag','bottomThrLine');
+
+if ~isempty(TrekSet.Threshold)
+    plot([TrekSet.StartTime,EndTime],[-TrekSet.Threshold,-TrekSet.Threshold],'r','Tag','bottomThrLine');
+end;
 
 h=findobj(hAxes,'Tag','StartLine');
 if ~isempty(h)
