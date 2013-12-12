@@ -4,7 +4,11 @@ isGood=false;
 if FIT.Good&&FIT.FitIndPulse(1)<=TrekSet.STP.BckgFitN-5
     isGood=true;
 else
-    B=mean(TrekSet.peaks(TrekSet.peaks(:,7)>=0,4));
+    if ~isempty(TrekSet.peaks)
+        B=mean(TrekSet.peaks(TrekSet.peaks(:,7)>=0,4));
+    else
+        B=mean(TrekSet.trek);
+    end;
     trek=TrekSet1.trek(FIT.FitInd)-FIT.B;
     T=TrekSet1;
     T.trek=trek;

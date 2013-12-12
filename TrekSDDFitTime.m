@@ -332,8 +332,11 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
 %       end;
 
     end;
-    ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
-    ShKhi(diff(ShKhi(:,1))==0,:)=[];
+     
+     good(abs(ShKhi(:,1))>MaxShift&~isinf(ShKhi(:,end)))=[];
+     ShKhi(abs(ShKhi(:,1))>MaxShift,:)=[];    %don't move to far right
+     good(diff(ShKhi(:,1))==0&~isinf(ShKhi(1:end-1,end)))=[];
+     ShKhi(diff(ShKhi(:,1))==0,:)=[];
     T=toc(timeId);
 %% check for exit
     if ~notEx&&(size(ShKhi(~isinf(ShKhi(:,end)),:),1)>Nfit||d<=1/Nfit)%&&abs(ShKhi(end,1)<=1)size(ShKhi,1)&&>=2*Nfit

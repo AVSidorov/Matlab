@@ -33,7 +33,7 @@ Ind=0;
 i=1;
 FIT=[];
 Istart=[];
-while isempty(Istart)||Istart<TrekSet.size %
+while (PeakN>0)&&(isempty(Istart)||Istart<TrekSet.size-TrekSet.STP.size) %
   ExcelentFit=false;    
   while ~ExcelentFit
     while isempty(FIT)&&isempty(Istart)
@@ -46,10 +46,18 @@ while isempty(Istart)||Istart<TrekSet.size %
         else
             i=1;
         end;
-        Istart=TrekSet.SelectedPeakInd(i)-TrekSet.STP.MaxInd;
-        FIT=TrekSDDFitByMove(TrekSet,Istart);
-        Istart=[];
-        if FIT.A>TrekSet.MaxSignal %to avoid fit OverLoaded Pulses
+        if ~isempty(i)
+            Istart=TrekSet.SelectedPeakInd(i)-TrekSet.STP.MaxInd;           
+            FIT=TrekSDDFitByMove(TrekSet,Istart);
+            if ~isempty(FIT)
+                Istart=[];
+            else
+                Istart=TrekSet.size;
+            end;
+        else
+            Istart=TrekSet.size;
+        end;
+        if isempty(Istart)&&~isempty(FIT)&&FIT.A>TrekSet.MaxSignal %to avoid fit OverLoaded Pulses
             i=find(TrekSet.SelectedPeakInd>FIT.MaxInd&...
                   TrekSet.trek(TrekSet.SelectedPeakInd)<TrekSet.MaxSignal,1,'first');   
             Istart=TrekSet.SelectedPeakInd(i)-TrekSet.STP.MaxInd;              
@@ -69,9 +77,14 @@ while isempty(Istart)||Istart<TrekSet.size %
     [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);         
     TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);
     i=find(TrekSet1.SelectedPeakInd>(TrekSet1.peaks(end,2)-TrekSet1.StartTime)/TrekSet1.tau-TrekSet1.STP.FrontN,1,'first');
-    Istart=TrekSet1.SelectedPeakInd(i)-TrekSet1.STP.MaxInd;
-    FIT1=TrekSDDFitByMove(TrekSet1,Istart);
-    [ExcelentFit,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1);
+    if ~isempty(i)
+        Istart=TrekSet1.SelectedPeakInd(i)-TrekSet1.STP.MaxInd;
+        FIT1=TrekSDDFitByMove(TrekSet1,Istart);
+        [ExcelentFit,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1);
+    else
+        [ExcelentFit,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT);
+        Istart=TrekSet.size;
+    end;
     break; 
     if ~ExcelentFit
             TrekSet.Plot=true;                

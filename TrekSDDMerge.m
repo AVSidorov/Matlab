@@ -1,7 +1,16 @@
 function [TrekMerged,fit]=TrekSDDMerge(TrekSetIn,varargin)
 %This function merges two treks written in differen ADC channels with
 %different ranges. In must be base channel (whithout number after sxr);
-TrekSet=TrekSDDRecognize(TrekSetIn,varargin{:});
+if isstruct(TrekSetIn)&&isfield(TrekSetIn,'Merged')&&TrekSetIn.Merged
+    TrekMerged=TrekSetIn;
+    fit=[];
+    return;
+elseif isstruct(TrekSetIn)&&isfield(TrekSetIn,'FileName')&&~isempty(TrekSetIn.FileName)
+    TrekSet=TrekSDDRecognize(TrekSetIn.FileName,varargin{:});
+elseif ischar(TrekSetIn)    
+    TrekSet=TrekSDDRecognize(TrekSetIn,varargin{:});
+end;
+
 TrekSet.Plot=false;
 if TrekSet(end).type>0 
     TrekSet=TrekLoad(TrekSet);
@@ -12,8 +21,7 @@ fix=false;
 i=2;
 while i<=4
 FileName=[TrekSet(1).name,num2str(i),'.dat'];
-    TrekSet(end+1)=TrekSDDRecognize(FileName,'StartOffset',TrekSet(1).StartOffset,'Date',TrekSet(1).Date,...
-                           'Amp',TrekSet(1).Amp,'Plot',TrekSet(1).Plot);
+    TrekSet(end+1)=TrekSDDRecognize(FileName,varargin{:});
    TrekSet(end).Plot=false; 
    if TrekSet(end).type>0 
         TrekSet(end)=TrekLoad(TrekSet(end));
@@ -29,6 +37,9 @@ fileN=numel(TrekSet);
 fit(1,:)=[1,0];
 
 if fileN<2 
+    TrekMerged=TrekSet;
+    TrekMerged.Merged=true;
+    fit=[];
     return;     
 end;
 WorkSize=pow2(23);
