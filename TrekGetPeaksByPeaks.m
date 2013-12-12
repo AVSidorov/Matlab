@@ -8,15 +8,16 @@ I=find(TrekSetBase.peaks(:,2)<=TrekSet.StartTime+TrekSet.size*tau,1,'last');
 TrekSet.SelectedPeakInd=round((TrekSetBase.peaks(i:I,2)-TrekSet.StartTime)/tau);
 TrekSet.SelectedPeakFrontN=zeros(I-i+1,1);
 TrekSet.SelectedPeakFrontN(:)=TrekSet.STP.FrontN;
+TrekSet.strictStInd=TrekSet.SelectedPeakInd-TrekSet.STP.FrontN;
+TrekSet.strictEndInd=TrekSet.strictStInd+TrekSet.STP.FrontN/2;
 
-FIT=[];
+
+
 while i<=size(TrekSetBase.peaks,1)&&TrekSetBase.peaks(i,2)<=TrekSet.StartTime+TrekSet.size*tau;
     Ind=round((TrekSetBase.peaks(i,2)-TrekSet.StartTime)/tau);
 %     ExcelentFit=false;
 %      while ~ExcelentFit
-        FIT=TrekFitTime(TrekSet,Ind,FIT);
-        FIT.ShiftRangeL=3;
-        FIT.ShiftRangeR=3;
+        FIT=TrekFitTime(TrekSet,Ind);
         [TrekSet,ExcelentFit,TrekSet1]=TrekSubtract(TrekSet,FIT);
 %         if ~ExcelentFit
 %                sound(B,5000);
@@ -31,6 +32,7 @@ while i<=size(TrekSetBase.peaks,1)&&TrekSetBase.peaks(i,2)<=TrekSet.StartTime+Tr
 %            end;
 %      end
 %      TrekSet.Plot=false;
+    assignin('base','TrekSet',TrekSet);
      i=i+1;
 end
 end

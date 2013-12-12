@@ -4,16 +4,21 @@ T=0;
 Tmax=60;
 A=zeros(4096,2);
 A(:,1)=[0:4095]';
-i=0;
-tic;
-timeId=tic;
-while T<Tmax&&i<TrekSet.size
-    i=i+1;
-    A(TrekSet.trek(i)+1,2)=A(TrekSet.trek(i)+1,2)+1; %+1 because indexes can't be equal zero
-    T=toc(timeId);    
-end;    
-toc;
-fprintf('\n %8.0f points proccessed %3.0f % of full trek\n',i,100*i/TrekSet.size);
+
+if all(TrekSet.trek>=0)
+    i=0;
+    tic;
+    timeId=tic;
+    while T<Tmax&&i<TrekSet.size
+        i=i+1;
+        A(TrekSet.trek(i)+1,2)=A(TrekSet.trek(i)+1,2)+1; %+1 because indexes can't be equal zero
+        T=toc(timeId);    
+    end;    
+    toc;
+    fprintf('\n %8.0f points proccessed %3.0f % of full trek\n',i,100*i/TrekSet.size);
+else
+    A=tabulateSid(TrekSet.trek);
+end;
 
 figure;
 plot(A(:,1),A(:,2));
@@ -82,7 +87,7 @@ while isempty(ch)
     title('If empty input repeat fitting');
     plot([x(1),x(1)],[1,max(A(:,2))],'g','tag','LeftBorder');
     plot([x(2),x(2)],[1,max(A(:,2))],'g','tag','RightBorder');
-    plot([r(1):r(2)],exp(polyval(fit,[r(1):r(2)],[],m)),'k','tag','FitCurve');
+    plot([min(r):max(r)],exp(polyval(fit,[min(r):max(r)],[],m)),'k','tag','FitCurve');
     plot([mid,mid],[1,exp(polyval(fit,mid,[],m))],'r','LineWidth',2,'tag','Mid');
     plot([r(1),r(1)],[1,exp(polyval(fit,mid,[],m))],'k','LineWidth',2,'tag','LeftThreshold');
     plot([r(2),r(2)],[1,exp(polyval(fit,mid,[],m))],'k','LineWidth',2,'tag','RightThreshold');

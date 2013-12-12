@@ -34,6 +34,8 @@ TrekSet.Amp=[];
 TrekSet.HV=[];
 TrekSet.P=[];
 TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
+TrekSet.trek=[];
+
 
 nargsin=size(varargin,2);
 if ~isempty(varargin)&&mod(nargsin,2)~=0
@@ -83,8 +85,8 @@ end;
         end;
         [pathstr, name, ext]=fileparts(TrekSetIn);
         TrekSet.name=name;
-        if not(isempty(regexp(name,'^(\d{2,3})(sxr|sxr2)$')))
-            TrekSet.Shot=str2num(regexprep(name,'^(\d{2,3})(sxr|sxr2)$','$1'));
+        if not(isempty(regexp(name,'^(\d{2,3})(sxr)([2,3,4])?$')))
+            TrekSet.Shot=str2num(regexprep(name,'^(\d{2,3})(sxr)([2,3,4])?$','$1'));
         end;            
      otherwise
         disp('Not supported type');

@@ -32,11 +32,13 @@ Plot=false;
 %MaxInd=find(StandardPulse==max(StandardPulse));
 if size(StandardPulse,2)==2
     TimeInd=StandardPulse(:,1);
+    TimeStep=mean(diff(TimeInd));
     FinePulse=StandardPulse(:,2);
     StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'cubic',0)';
 %     StandardPulse=StandardPulse/max(StandardPulse);
 else
     TimeInd=[1:numel(StandardPulse)]';
+    TimeStep=1;
     FinePulse=StandardPulse;
 end;
 [M,MaxInd]=max(StandardPulse); 
@@ -83,6 +85,18 @@ STP.IndPositiveTail=IndPositiveTail;
 STP.IndPulse=IndPulse;
 STP.TimeInd=TimeInd;
 STP.FinePulse=FinePulse;
+STP.TimeStep=TimeStep;
+
+
+SPSetStpD=SpecialTreks(diff(FinePulse));
+TimeIndD=STP.TimeInd(1:end-1);
+[m,MaxIndD]=max(diff(FinePulse));
+MaxIndD=round(TimeIndD(MaxIndD));
+MinFitPoint=round(TimeIndD(SPSetStpD.MinInd(find(TimeIndD(SPSetStpD.MinInd)>MaxIndD,1,'first'))));
+if isempty(MinFitPoint)||MinFitPoint>=STP.MaxInd
+    MinFitPoint=round((MaxIndD+STP.MaxInd)/2);
+end;
+STP.MinFitPoint=MinFitPoint;
 %%
 toc;
 %%

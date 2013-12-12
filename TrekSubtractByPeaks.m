@@ -22,7 +22,8 @@ while i<=size(TrekSet.peaks,1)&&TrekSet.peaks(i,2)<=TrekSet.StartTime+TrekSet.si
     SubtractInd=SubtractInd(SubtractInd<=TrekSet.size&SubtractInd>=1);
     SubtractIndPulse=SubtractInd-Ind+MaxInd;
 
-    PulseSubtract=FitPulse*TrekSet.peaks(i,5)+TrekSet.peaks(i,4);
+%     PulseSubtract=FitPulse*TrekSet.peaks(i,5)+TrekSet.peaks(i,4);
+    PulseSubtract=FitPulse*TrekSet.peaks(i,5);
 
                         
     OverloadInd=SubtractInd((TrekSet.trek(SubtractInd)>TrekSet.MaxSignal-TrekSet.StdVal)|(TrekSet.trek(SubtractInd)-PulseSubtract(SubtractIndPulse)<TrekSet.MinSignal+TrekSet.StdVal));

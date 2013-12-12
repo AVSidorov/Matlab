@@ -1,4 +1,4 @@
-function Specs=Trek2Specs(TrekSet);
+function Specs=Trek2Specs(TrekSet)
 Npoint=20;
 HI=0.05;
 

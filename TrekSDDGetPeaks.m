@@ -1,6 +1,7 @@
 function TrekSet=TrekSDDGetPeaks(TrekSetIn,Pass)
 
 tic;
+warning off all;
 disp('>>>>>>>>Get Peaks started');
 
 TrekSet=TrekSetIn;
@@ -17,111 +18,87 @@ if nargin<2
     Pass=1;
 end;
 
+if ~isfield(TrekSet,'SelectedPeakInd')||isempty(TrekSet.SelectedPeakInd)   
+    TrekSet=TrekSDDPeakSearch(TrekSet);
+end;
 PeakN=numel(TrekSet.SelectedPeakInd);  
-
 tau=TrekSet.tau;
-%peaks=zeros(PeakN,7); %if works bad because may be hidden peaks
-
-
 
 %%
 
 
-i=1; %always one so as search peak markers after every subtracting
+
 Ind=0;
 %%
-while i<=PeakN %
-
-%      TrekSet.Plot=true;
-     if Ind>=TrekSet.SelectedPeakInd(i)
-         i=i+1;
-         continue;
-     end;
-     Ind=TrekSet.SelectedPeakInd(i);   
-     FIT=TrekFitTime(TrekSet,TrekSet.SelectedPeakInd(i));
-     
-     
-     [TrekSet,ExcelentFit,TrekSet1]=TrekSubtract(TrekSet,FIT);
-     TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);
-     TrekSet1=TrekBreakPoints(TrekSet1);
-     PeakN=numel(TrekSet.SelectedPeakInd);
-
-%      ExFit=not(any(TrekSet1.SelectedPeakInd>FIT.MaxInd-STP.FrontN&TrekSet1.SelectedPeakInd<=FIT.MaxInd));
-%      if xor(ExcelentFit,ExFit)&&FIT.Khi<1&&FIT.A>TrekSet.Threshold %&Pass>1
-%          [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT,STP);
-%      end;
-       if ~ExcelentFit
-           sound(B,5000);
-           [TrekSet,ExcelentFit]=TrekSubtractManual(TrekSet,TrekSet1,FIT);
-       end;
-     TrekSet=TrekSDDPeakReSearch(TrekSet,FIT);
-     TrekSet=TrekBreakPoints(TrekSet);
-     PeakN=numel(TrekSet.SelectedPeakInd);
-     assignin('base','TrekSet',TrekSet);
-
-     %i don't changes because in TrekPeakResearche current marker in case of good
-     %subtraction would be deleted and next marker becomes first.
-%%     
-    if not(ExcelentFit)  
-      
-        if Pass==1
-            BreakPointInd=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
-            if not(isempty(BreakPointInd))
-                i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(BreakPointInd),1,'first');
-                if isempty(i)
-                    i=PeakN+1;
-                end;
+i=1;
+FIT=[];
+Istart=[];
+while (PeakN>0)&&(isempty(Istart)||Istart<TrekSet.size-TrekSet.STP.size) %
+  ExcelentFit=false;    
+  while ~ExcelentFit
+    while isempty(FIT)&&isempty(Istart)
+        if ~isfield(TrekSet,'SelectedPeakInd')||isempty(TrekSet.SelectedPeakInd)   
+            TrekSet=TrekSDDPeakSearch(TrekSet);
+        end;
+        if isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks);
+            i=find(TrekSet.SelectedPeakInd>(TrekSet.peaks(end,2)-TrekSet.StartTime)/TrekSet.tau-TrekSet.STP.FrontN&...
+                  TrekSet.trek(TrekSet.SelectedPeakInd)<TrekSet.MaxSignal,1,'first');   %to avoid fit OverLoaded Pulses
+        else
+            i=1;
+        end;
+        if ~isempty(i)
+            Istart=TrekSet.SelectedPeakInd(i)-TrekSet.STP.MaxInd;           
+            FIT=TrekSDDFitByMove(TrekSet,Istart);
+            if ~isempty(FIT)
+                Istart=[];
             else
-                i=PeakN+1;
-            end;              
-         end;
-        if Pass>=3
-             if not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd)))|...
-                not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd)))
-                    i=i+1;
-             else
-                    [TrekSet,ExcelentFit,TrekSet1,FIT,STPC]=TrekFitDouble(TrekSet,TrekSet.SelectedPeakInd(i),STP);
-%                    if FIT.Khi<1
-                        TrekSet=TrekSet1;
-%                    end;
-
-                   TrekSet=TrekSDDPeakReSearch(TrekSet,STPC,FIT);
-                   TrekSet=TrekBreakPoints(TrekSet,STP);
-                   PeakN=numel(TrekSet.SelectedPeakInd);
-                   if not(ExcelentFit)
-                    BreakPointInd=find(TrekSet.BreakPointsInd>TrekSet.SelectedPeakInd(i),1,'first');
-                    if not(isempty(BreakPointInd))
-                        i=find(TrekSet.SelectedPeakInd>TrekSet.BreakPointsInd(BreakPointInd),1,'first');
-                        if isempty(i)
-                            i=PeakN+1;
-                        end;
-                    else
-                      i=PeakN+1;  
-                    end;
-                   end;                  
-             end;
+                Istart=TrekSet.size;
+            end;
+        else
+            Istart=TrekSet.size;
+        end;
+        if isempty(Istart)&&~isempty(FIT)&&FIT.A>TrekSet.MaxSignal %to avoid fit OverLoaded Pulses
+            i=find(TrekSet.SelectedPeakInd>FIT.MaxInd&...
+                  TrekSet.trek(TrekSet.SelectedPeakInd)<TrekSet.MaxSignal,1,'first');   
+            Istart=TrekSet.SelectedPeakInd(i)-TrekSet.STP.MaxInd;              
+            if isempty(Istart)
+                Istart=TrekSet.size;
+            else
+                FIT=[];
+            end;
         end;
     end;
-%%
-%       R=[];
-%       S=[]; 
-  
-%        while not(ExcelentFit)
-% %             [FIT,R,S]=TrekGetDoublePeaksSid(TrekSet,i,FIT);
-% %             if FIT.Good
-% %                 STPC=StpCombined(STP,R,S);
-% %                 [TrekSet,ExcelentFit]=TrekSubtract(TrekSet,i,STPC,FIT);                
-% %             else
-%                 if not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.PeakOnFrontInd)))|...
-%                    not(isempty(find(TrekSet.SelectedPeakInd(i)==TrekSet.LongFrontInd)))
-%                    i=i+1; 
-%                 end;
-% %             end;
-%        end;    
-            
-
-
-%%
+    if isempty(FIT)&&~isempty(Istart)&&Istart<TrekSet.size
+        FIT=TrekSDDFitByMove(TrekSet,Istart);
+    elseif Istart>=TrekSet.size
+        break;
+    end;
+    FIT=TrekSDDFitTime(TrekSet,FIT);
+    [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);         
+    TrekSet1=TrekSDDPeakReSearch(TrekSet1,FIT);
+    i=find(TrekSet1.SelectedPeakInd>(TrekSet1.peaks(end,2)-TrekSet1.StartTime)/TrekSet1.tau-TrekSet1.STP.FrontN,1,'first');
+    if ~isempty(i)
+        Istart=TrekSet1.SelectedPeakInd(i)-TrekSet1.STP.MaxInd;
+        FIT1=TrekSDDFitByMove(TrekSet1,Istart);
+        [ExcelentFit,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1);
+    else
+        [ExcelentFit,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT);
+        Istart=TrekSet.size;
+    end;
+    break; 
+    if ~ExcelentFit
+            TrekSet.Plot=true;                
+            [TrekSet,Ind,FIT,Ch]=TrekSDDManualPeakSearch(TrekSet,FIT);
+            if Ch==1
+                break;
+            end;                   
+     end;  
+  end;
+     TrekSet.Plot=TrekSetIn.Plot;
+%      TrekSet=TrekSDDPeakSearch(TrekSet,FIT);
+%      TrekSet=TrekBreakPoints(TrekSet);
+     PeakN=numel(TrekSet.SelectedPeakInd);
+     assignin('base','TrekSet',TrekSet);
 end; %while i<=PeakN 
 
 
@@ -199,5 +176,5 @@ if EndPlotBool
 end;
 %%
 
-
+warning on all;
 disp('>>>>>>>>Get Peaks finished');

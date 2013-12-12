@@ -1,11 +1,13 @@
-function FIT=TrekGetFitInd(TrekSet,Ind,FIT)
+function FIT=TrekSDDGetFitInd(TrekSet,FIT)
 
-Ipulse=find(TrekSet.SelectedPeakInd==Ind);
 StpN=TrekSet.STP.size;
 maxI=TrekSet.STP.MaxInd;
 
 TailInd=TrekSet.STP.TailInd;
 FrontN=TrekSet.STP.FrontN;
+%TODO introduce point into STP (where is min of diff on Pulse front)
+%for coorect min length determination
+MinPartLength=20; %This is better
 
 
 
@@ -13,6 +15,7 @@ FrontN=TrekSet.STP.FrontN;
 MinSpace=1;
 BckgFitN=5;
 
+Ind=FIT.MaxInd;
 
 FitInd=[1:StpN]'+Ind-maxI;
 FitInd=FitInd(FitInd<=TrekSet.size&FitInd>=1);
@@ -26,58 +29,37 @@ FitIndPulse=FitInd-Ind+maxI;
 
 
 FitPulse=FIT.FitPulse*FIT.A+FIT.B;
+% BGLine=polyval(FIT.BGLineFit,FitInd);
+BGLine=zeros(numel(FitInd),1);
 
 %% StrictInd determination
- % This indexes are neccessary for not empty output for FitInd and
- % FitIndPulse
- 
-% This indexes (in case of determination) haven't to start from 1 for
-% proper working in case high B (peaks of tail of lost previouse pulse).
 
-% For FitIndStrict We choose start of front on trek
-% For FitIndPulseStrict We choose start of front of shifted pulse
-
-% FIT.B may be calculated wrong (if Pulse is shifted far from correct
-% position)
-% So zero level B is determined in another way. B is used for FitIndStrict
-% automatic determination
-
-bckgInd=Ind-TrekSet.STP.FrontN-BckgFitN:Ind-TrekSet.STP.FrontN;
-bckgInd(bckgInd<1|bckgInd>TrekSet.size)=[];
-B=mean(bckgInd);
-if isempty(B) B=0; end;
-StI=min([FitInd(1)+find(TrekSet.trek(FitInd)-B>TrekSet.OverSt*TrekSet.StdVal,1,'first')-2-BckgFitN,TrekSet.strictStInd(find(TrekSet.strictStInd<Ind,1,'last'))]);
-EndI=TrekSet.strictEndInd(find(TrekSet.strictEndInd>StI,1,'first'));
 if isfield(FIT,'FitIndStrict')&&~isempty(FIT.FitIndStrict)
     FitIndStrict=FIT.FitIndStrict;
 else
     %!!!That's may be bad for PeakOnFront
     %FitIndStrict=FitInd(1):Ind;
-    FitIndStrict=StI:EndI;
-    FitIndStrict=FitIndStrict(FitIndStrict<=TrekSet.size&FitIndStrict>=1);
+    FitIndStrict=[];
 end;
 
-
-dPulse=diff(TrekSet.STP.FinePulse);
-[md,mdInd]=max(dPulse);
-maxId=find(dPulse(mdInd:end)*FIT.A<TrekSet.StdVal*TrekSet.OverSt,1,'first');
-stId=find(dPulse*FIT.A>TrekSet.Threshold,1,'first');
-if isempty(stId) stId=find(dPulse,1,'first'); end;
-%!!!That's may be bad for PeakOnFront
-%maxId=TrekSet.STP.TimeInd(mdInd+maxId);
-maxId=TrekSet.STP.TimeInd(mdInd);
-stId=TrekSet.STP.TimeInd(stId);
 if isfield(FIT,'FitIndPulseStrict')&&~isempty(FIT.FitIndPulseStrict)
     FitIndPulseStrict=FIT.FitIndPulseStrict;
 else
-    FitIndPulseStrict=round(TrekSet.STP.BckgFitN-FIT.Shift):round(maxId-FIT.Shift);
+    FitIndPulseStrict=[];
 end;
 FitIndPulseStrict(FitIndPulseStrict+Ind-maxI<1&FitIndPulseStrict+Ind-maxI>TrekSet.size)=[];
 
 
 %% Main FitInd determination by StdVal
 
-bool=abs(TrekSet.trek(FitInd)-FitPulse(FitIndPulse))<TrekSet.OverSt*TrekSet.StdVal;
+bool=abs(TrekSet.trek(FitInd)-BGLine-FitPulse(FitIndPulse))<TrekSet.OverSt*TrekSet.StdVal;
+%adding points over limits
+if any(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)
+    if find(TrekSet.trek(FitInd)>=TrekSet.MaxSignal,1,'first')>1&&... %to avoid adding points on interval ends
+        find(TrekSet.trek(FitInd)>=TrekSet.MaxSignal,1,'last')<FitIndPulse(end) 
+        bool(TrekSet.trek(FitInd)>=TrekSet.MaxSignal)=true;
+    end;
+end;
 % map FitIndPulseStrict on to bool(=FitInd) adding
 FitIndPulseStrict=FitIndPulseStrict(FitIndPulseStrict>=1&FitIndPulseStrict<=numel(FitInd)); % to avoid indexing error
 bool(FitIndPulseStrict)=true; %map
@@ -88,6 +70,7 @@ bool(FitIndPulseStrict)=true; %map
 
 FitInd=FitInd(bool);
 FitIndPulse=FitIndPulse(bool);
+
 
 %% Searching spaces in Fit indexes
 
@@ -125,7 +108,13 @@ PartLength(HoleEnd>TailInd)=[]; %remove parts after TailInd
 
 % This is till TailFit is not introduced
 
-PartInd=find(PartLength>=FrontN,1,'first'); %take first longenough part
+if ~isempty(FitIndPulseStrict)
+    PartInd=find(FitIndPulse(HoleStart)>=FitIndPulseStrict(end),1,'first');
+elseif ~isempty(FitIndPulse)
+    PartInd=find(FitInd(HoleStart)>=FitIndStrict(end),1,'first');
+else
+    PartInd=find(PartLength>=MinPartLength,1,'first'); %take first longenough part
+end;
 if ~isempty(PartInd)
     FitIndPulse=FitIndPulse(HoleStart(PartInd)-PartLength(PartInd)+1:HoleStart(PartInd));
 end;
@@ -140,10 +129,15 @@ if FitInd(end)<TrekSet.size&&FitIndPulse(end)<FIT.FitPulseN&&(TrekSet.trek(FitIn
     trR(1)=0;
     MinIndBool=tr<=trL&tr<=trR;
     MinInd=find(MinIndBool);
-    FitInd=FitInd(1:MinInd(end));
-    FitIndPulse=FitIndPulse(1:MinInd(end));
+    if ~isempty(MinInd)
+        FitInd=FitInd(1:MinInd(end));
+        FitIndPulse=FitIndPulse(1:MinInd(end));
+    end;
 end;
 %% Final
 FIT.FitInd=FitInd;
 FIT.FitIndPulse=FitIndPulse;
 FIT.N=numel(FitInd);
+% FIT.BGLineFit=polyfit(FIT.FitInd,TrekSet.trek(FIT.FitInd)-FIT.FitPulse(FitIndPulse)*FIT.A,1);
+FIT.BGLineFit=[0,0];
+

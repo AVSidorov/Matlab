@@ -36,7 +36,7 @@ Gr=0;
 if (log10(Te*11604.5)>=6.0)&(log10(Te*11604.5)<=8.5)&(log10(u)>=-4.0)&(log10(u)<=1.0)
     for i=0:10
         for j=0:10
-            Gr=Gr+Aij(i+1,j+1)*t^i*U^j;
+            Gr=Gr+Aij(i+1,j+1)*t^i*U.^j;
         end;
     end;
 end;
@@ -56,7 +56,7 @@ Gnr=0;
 if (log10(Gamma2)>=-3.0)&(log10(Gamma2)<=2)&(log10(u)>=-4.0)&(log10(u)<=1.0)
     for i=0:10
         for j=0:10
-            Gnr=Gnr+Bij(i+1,j+1)*R^i*U^j;
+            Gnr=Gnr+Bij(i+1,j+1)*R^i*U.^j;
         end;
     end;
 end;

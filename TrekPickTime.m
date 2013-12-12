@@ -66,6 +66,7 @@ end;
 %% Control and trek reducing
 StI=round((StartTime-TrekSet.StartTime)/TrekSet.tau)+1;
 EndI=StI+round(ProcTime/TrekSet.tau);
+StI=max([1,StI]);
 EndI=min([EndI,TrekSet.size]);
 ProcInt=[StI,EndI];
 ProcIntTime=[StartTime,StartTime+ProcTime];
@@ -117,11 +118,21 @@ TrekSet.StartTime=StartTime;
 TrekSet.trek=TrekSet.trek(StI:EndI);
 TrekSet.size=numel(TrekSet.trek);
 % So as all indexes a changed
-TrekSet.SelectedPeakInd=[];
-TrekSet.BreakPointsInd=[];
-TrekSet.PeakOnFrontInd=[];
-TrekSet.LongFrontInd=[];
-TrekSet.SelectedPeakFrontN=[];
+if isfield(TrekSet,'SelectedPeakInd')
+    TrekSet.SelectedPeakInd=[];
+end;
+if isfield(TrekSet,'BreakPointsInd')   
+    TrekSet.BreakPointsInd=[];
+end;
+if isfield(TrekSet,'PeakOnFrontInd')
+    TrekSet.PeakOnFrontInd=[];
+end;
+if isfield(TrekSet,'LongFrontInd')
+    TrekSet.LongFrontInd=[];
+end;
+if isfield(TrekSet,'SelectedPeakFrontN')
+    TrekSet.SelectedPeakFrontN=[];
+end;
 %% Correction of Interval 
 %!!!!!! Dodelat'
 % if isfield(TrekSet,'BreakPointsInd')
