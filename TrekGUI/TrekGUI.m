@@ -22,7 +22,7 @@ function varargout = TrekGUI(varargin)
 
 % Edit the above text to modify the response to help TrekGUI
 
-% Last Modified by GUIDE v2.5 07-Apr-2012 16:04:16
+% Last Modified by GUIDE v2.5 11-May-2012 13:13:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,11 +80,9 @@ function ThrButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 TrekSet=handles.TrekSet;
-STP=StpStruct(TrekSet.StandardPulse);
 TrekSet.Plot=true;
 TrekSet=TrekPickThr(TrekSet);
-TrekSet.Plot=false;
-TrekSet=TrekStdVal(TrekSet);  
+TrekSet.Plot=false;  
 TrekPlotTime(TrekSet,handles.MainGraph);
 TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
@@ -110,17 +108,22 @@ file = uigetfile({'*.mat;*.dat','All supported formats';...
      'Pick a file with Trek data');
 if ~isequal(file, 0)
     [pathstr, name, ext]=fileparts(file);
-    if isequal(ext,'.mat');
-        Treks=uiimport(file);
-        TrekNames=fieldnames(Treks);
-        eval(['file=Treks.',char(TrekNames(1)),';']);
-        set(handles.AvaibleTreksMenu,'String',TrekNames);
+    Treks=[];
+    switch ext
+        case '.mat'
+            Treks=uiimport(file);
+            TrekNames=fieldnames(Treks);
+            eval(['file=Treks.',char(TrekNames(1)),';']);
+        otherwise
+            TrekNames=file;            
     end;
     
-        
+   
     TrekSet=TrekRecognize(file);
+    if isempty(Treks) Treks=TrekSet; end;
     TrekSet=TrekLoad(TrekSet);
     TrekSet.Plot=false; %in  GUI Plot=true is danger
+    set(handles.AvaibleTreksMenu,'String',TrekNames); 
     axes(handles.MainGraph);
     cla;
     TrekPlotTime(TrekSet,handles.MainGraph);
@@ -361,7 +364,6 @@ TrekSet.Threshold=str2double(get(handles.ThrEd,'String'));
 StartTime=str2double(get(handles.StartEd,'String'));
 ProcTime=str2double(get(handles.EndEd,'String'))-str2double(get(handles.StartEd,'String'));
 TrekSet=TrekPickTime(TrekSet,StartTime,ProcTime);
-TrekSet=TrekStdVal(TrekSet);
 TrekPlotTime(TrekSet,handles.MainGraph);
 TrekPlotInfo(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
@@ -374,10 +376,8 @@ function PeakIndButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 TrekSet=handles.TrekSet;
-STP=StpStruct(TrekSet.StandardPulse);
-TrekSet=TrekStdVal(TrekSet);  
-TrekSet=TrekPeakSearch(TrekSet,STP);
-TrekSet=TrekBreakPoints(TrekSet,STP);
+TrekSet=TrekPeakSearch(TrekSet,false);
+TrekSet=TrekBreakPoints(TrekSet);
 TrekPlotTime(TrekSet,handles.MainGraph);
 handles.TrekSet=TrekSet;
 guidata(hObject,handles);
@@ -409,3 +409,17 @@ h=findobj(handles.MainGraph,'Tag','PeaksLine');
 if ~isempty(h)
     delete(h);
 end;
+
+
+% --- Executes on button press in StdValButtton.
+function StdValButtton_Callback(hObject, eventdata, handles)
+% hObject    handle to StdValButtton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+TrekSet=handles.TrekSet;
+TrekSet=TrekStdVal(TrekSet);
+TrekPlotTime(TrekSet,handles.MainGraph);
+TrekPlotInfo(TrekSet,handles.MainGraph);
+handles.TrekSet=TrekSet;
+guidata(hObject,handles);
+getTrekParam(hObject,eventdata,handles);
