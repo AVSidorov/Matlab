@@ -117,7 +117,7 @@ if exist(directory,'dir')>0
         fclose(f);
     end;
 end;
-
+set(handles.Timer,'Period',str2double(get(handles.PeriodEd,'String')));
 if strcmp(handles.Timer.Running,'on')
     stop(handles.Timer);
     set(handles.StartBtn,'String','Start');
