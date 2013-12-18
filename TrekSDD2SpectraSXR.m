@@ -564,14 +564,14 @@ HistPeakSignal=HistOnNetMK(PeakSignal,HistRange);
 HistPeakSignal(:,3)=HistPeakSignal(:,3)*sum(HistPeakNoise(:,2))/sum(HistPeakSignal(:,2));
 HistPeakSignal(:,2)=HistPeakSignal(:,2)*sum(HistPeakNoise(:,2))/sum(HistPeakSignal(:,2));
 
-figure;
-plot(HistPeakNoise(:,1),HistPeakNoise(:,2),'Linewidth',2); hold on;
-plot(HistPeakSignal(:,1),HistPeakSignal(:,2),'r','Linewidth',2); grid on;
-ThrehsholdFrontInd=find(HistPeakSignal(:,1)>MeanPeakNoise&HistPeakSignal(:,2)>1.5*HistPeakNoise(:,2),3,'first');
-ThrehsholdFront=HistPeakSignal(ThrehsholdFrontInd(end),1);
-plot(ThrehsholdFront*[1,1],[1,max(HistPeakNoise(:,2))],'r','Linewidth',2);
-set(gca,'YScale','log');
-xlabel('Maxima,counts'); ylabel('numbers');
+% figure;
+% plot(HistPeakNoise(:,1),HistPeakNoise(:,2),'Linewidth',2); hold on;
+% plot(HistPeakSignal(:,1),HistPeakSignal(:,2),'r','Linewidth',2); grid on;
+ ThrehsholdFrontInd=find(HistPeakSignal(:,1)>MeanPeakNoise&HistPeakSignal(:,2)>1.5*HistPeakNoise(:,2),3,'first');
+ ThrehsholdFront=HistPeakSignal(ThrehsholdFrontInd(end),1);
+% plot(ThrehsholdFront*[1,1],[1,max(HistPeakNoise(:,2))],'r','Linewidth',2);
+% set(gca,'YScale','log');
+% xlabel('Maxima,counts'); ylabel('numbers');
 
 FrontBool=PeakSignalBool&f(:,3)>ThrehsholdFront&f(:,1)>NoiseSet.StdVal&f(:,2)>0;
 FrontInd=find(FrontBool);
