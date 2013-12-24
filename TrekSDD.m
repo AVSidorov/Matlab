@@ -21,6 +21,14 @@ switch TrekSet.Amp
         TrekSet.Threshold=160;
         TrekSet.ThresholdLD=205;
         TrekSet.StdVal=37;
+    case 6 
+        TrekSet.Threshold=115;
+        TrekSet.ThresholdLD=140;
+        TrekSet.StdVal=28;
+    case 4
+        TrekSet.Threshold=90;
+        TrekSet.ThresholdLD=113;
+        TrekSet.StdVal=21.3;        
 end;
 
 WorkSize=pow2(21); 
