@@ -15,10 +15,6 @@ TlowE=[900:1500];
 ThighE=[1500:2000];
 StartT=fix((min(peaks(:,2))/SpecWindow))*SpecWindow;
 EndT=round((max(peaks(:,2))/SpecWindow))*SpecWindow;
-SpecF=figure;
-grid on; hold on;
-set(gca,'YScale','log');
-cm=colormap('Lines');
 flow=zeros((EndT-StartT)/FlowWindow,2);
 for i=1:(EndT-StartT)/FlowWindow
     bool=peaks(:,2)>StartT+(i-1)*FlowWindow&peaks(:,2)<StartT+i*FlowWindow;
@@ -26,6 +22,12 @@ for i=1:(EndT-StartT)/FlowWindow
 end;
 Tlow=zeros((EndT-StartT)/SpecWindow,2);
 Thigh=zeros((EndT-StartT)/SpecWindow,2);
+
+SpecF=figure;
+grid on; hold on;
+set(gca,'YScale','log');
+cm=colormap('Lines');
+
 for i=1:(EndT-StartT)/SpecWindow
     bool=peaks(:,2)>StartT+(i-1)*SpecWindow&peaks(:,2)<StartT+i*SpecWindow;
     Hist=HistOnNet(peaks(bool,5),E);
