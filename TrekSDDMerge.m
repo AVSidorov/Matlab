@@ -21,15 +21,19 @@ fix=false;
 i=2;
 while i<=4
 FileName=[TrekSet(1).name,num2str(i),'.dat'];
-    TrekSet(end+1)=TrekSDDRecognize(FileName,varargin{:});
-   TrekSet(end).Plot=false; 
-   if TrekSet(end).type>0 
-        TrekSet(end)=TrekLoad(TrekSet(end));
-        TrekSet(end)=TrekPickTime(TrekSet(end),TrekSet(1).StartTime,TrekSet(1).size*TrekSet(1).tau);
-    else
-        TrekSet(end)=[];
-    end;
- i=i+1;
+   if exist(FileName,'file')==2
+    TrekSet(end+1)=TrekSet(1);  
+    TrekSet(end).trek=[];
+    TrekSet(end).FileName=FileName;
+       TrekSet(end).Plot=false; 
+       if TrekSet(end).type>0 
+            TrekSet(end)=TrekLoad(TrekSet(end));
+            TrekSet(end)=TrekPickTime(TrekSet(end),TrekSet(1).StartTime,TrekSet(1).size*TrekSet(1).tau);
+        else
+            TrekSet(end)=[];
+        end;
+    i=i+1;
+   end;
 end;                   
 
 fileN=numel(TrekSet);
