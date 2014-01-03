@@ -4,8 +4,10 @@ if ~isempty(varargin)&&mod(nargsin,2)~=1
     error('incorrect number of input arguments');
 end;
 TrekSet=varargin{1};
-if isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks)
+if isstruct(TrekSet)&&isfield(TrekSet,'peaks')&&~isempty(TrekSet.peaks)
     peaks=TrekSet.peaks;
+elseif ~isstruct(TrekSet)&&size(TrekSet,1)>=1000&&size(TrekSet,2)>=7
+    peaks=TrekSet;
 else
     error('TrekSet.peaks must be not empty');
 end;
@@ -73,18 +75,25 @@ end;
 
 handles.E=[500-handles.Estep/2:handles.Estep:handles.Eend];
 
-peaks=handles.TrekSet.peaks;
-
-switch handles.TrekSet.Amp
+if isstruct(handles.TrekSet)
+    peaks=handles.TrekSet.peaks;
+    switch handles.TrekSet.Amp
     case 9
         peaks(:,5)=5900*peaks(:,5)/2175;
     case 6
         peaks(:,5)=5900*peaks(:,5)/1432.28;
     case 4
         peaks(:,5)=5900*peaks(:,5)/958.9;
+    end;
+    tau=handles.TrekSet.tau;
+else 
+    peaks=handles.TrekSet;
+    tau=0.02;
 end;
 
+
 handles.peaks=peaks;
+handles.tau=tau;
 
 guidata(hObject,handles);
 
@@ -124,7 +133,7 @@ if prod(C(1,1)-get(handles.FlowAxes,'XLim'))<0&&prod(C(1,2)-get(handles.FlowAxes
         tau=range(x)/Npeaks;
         A=Npeaks/tau;
         tEnd=tau*log(A);
-        t=[handles.TrekSet.tau:(tEnd-handles.TrekSet.tau)/100:tEnd];
+        t=[handles.tau:(tEnd-handles.tau)/100:tEnd];
         Hist=HistOnNet(handles.peaks(bool,3),t);
         plot(handles.SpecTdAxes,Hist(:,1),Hist(:,2),'.-','Color',cm(handles.CurColor,:),'LineWidth',2);
     end;
