@@ -45,7 +45,9 @@ if isempty(TrekSet.trek)
         end;
 
         i=find(TrekSet.trek,1,'last'); %remove zero points from end of trek
-        TrekSet.trek(i+1:end)=[];
+        if i==TrekSet.size-8
+            TrekSet.trek(i+1:end)=[];
+        end;
     else
         return;
     end;
