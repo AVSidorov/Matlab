@@ -1,6 +1,16 @@
-function NoiseSet=NoiseFit(trek)
+function NoiseSet=NoiseFit(trek,varargin)
 % this function make gaussian fitting for noise level determination on
 % treks with signal
+HistStep=1;
+nargsin=size(varargin,2);
+if ~isempty(varargin)&&mod(nargsin,2)~=0
+    error('incorrect number of input arguments');
+end;
+
+for i=1:fix(nargsin/2) 
+    eval([varargin{1+2*(i-1)},'=varargin{2*i};']);
+end;
+
 trSize=numel(trek);
 TrekFig=figure;
 plot(trek);
@@ -35,7 +45,7 @@ if isempty(Ind)
 end;
 bool=false(trSize,1);
 bool(Ind)=true;
-A=HistOnNet(trek(bool),[LowBorder:HighBorder]);
+A=HistOnNet(trek(bool),[LowBorder:HistStep:HighBorder]);
 StdTrek=std(trek(bool));
 
 HistFig=figure;
@@ -105,7 +115,7 @@ while isempty(ch)
    
     plot([x(1),x(1)],[1,max(A(:,2))],'g','tag','LeftBorder');
     plot([x(2),x(2)],[1,max(A(:,2))],'g','tag','RightBorder');
-    plot([min(r):max(r)],exp(polyval(fit,[min(r):max(r)],[],m)),'k','tag','FitCurve');
+    plot([min(r):HistStep:max(r)],exp(polyval(fit,[min(r):HistStep:max(r)],[],m)),'k','tag','FitCurve');
     plot([mid,mid],[1,exp(polyval(fit,mid,[],m))],'r','LineWidth',2,'tag','Mid');
     plot([r(1),r(1)],[1,exp(polyval(fit,mid,[],m))],'k','LineWidth',2,'tag','LeftThreshold');
     plot([r(2),r(2)],[1,exp(polyval(fit,mid,[],m))],'k','LineWidth',2,'tag','RightThreshold');
