@@ -17,19 +17,20 @@ if nargin<4
 end;
 
 
-N=fix(numel(trek)/nStp);
+N=fix((numel(trek)-nWin)/nStp);
 f = Fs/2*linspace(0,1,NFFT/2+1);
 Ph=zeros(N,1);
 Freq=zeros(N,1);
 Ycombine=zeros(NFFT,1);
-Y=zeros(NFFT,N);
+Y=zeros(NFFT,1);
+hWin=hamming(nWin);
 for i=1:N
-Y(:,i)=fft(trek((i-1)*nStp+1:(i-1)*nStp+nWin).*hamming(nWin),NFFT)/nWin;
-Ycombine=Ycombine+abs(Y(:,i));
-[m,mi]=max(abs(Y(2:fix(NFFT/2),i)));
+Y=fft(trek((i-1)*nStp+1:(i-1)*nStp+nWin).*hWin,NFFT)/nWin;
+Ycombine=Ycombine+abs(Y);
+[m,mi]=max(abs(Y(2:fix(NFFT/2))));
 mi=mi+1;
 Freq(i)=Fs/NFFT*(mi-1);
-Ph(i)=angle(Y(mi,i));
+Ph(i)=angle(Y(mi));
 % Ph(i)=interp1(f,angle(Y(1:fix(NFFT/2)+1)),Fbase);
 end;
 Ycombine=Ycombine/N;
