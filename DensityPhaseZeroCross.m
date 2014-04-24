@@ -14,14 +14,12 @@ i=find(trek(IndPreCross)<0&trek(IndPreCross+1)>0,1,'first');
 IndPreCross=IndPreCross(i:end);
 IndCross=IndPreCross-trek(IndPreCross)./(trek(IndPreCross+1)-trek(IndPreCross));
 
-i=1;
-while i<numel(IndCross)
-    ind=find(IndCross>=IndCross(i)&IndCross<IndCross(i)+Tbase*WinWidth/(2*pi)/tau);
-    if numel(ind)>1
-        IndCross(i)=mean(IndCross(ind));
-        IndCross(ind(2:end))=[];
-    end;
-    i=i+1;
+Ind=find(diff(IndCross)<Tbase*WinWidth/(2*pi)/tau);
+while numel(Ind)>0
+    ind=find(IndCross>=IndCross(Ind(1))&IndCross<IndCross(Ind(1))+Tbase*WinWidth/(2*pi)/tau);
+    IndCross(ind(1))=mean(IndCross(ind));
+    IndCross(ind(2:end))=[];
+    Ind=find(diff(IndCross)<Tbase*WinWidth/(2*pi)/tau);
 end;
 
 TimeCross=(IndCross-1)*tau;
