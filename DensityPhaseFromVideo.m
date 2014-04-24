@@ -1,29 +1,35 @@
-function Phase=DensityPhaseFromVideo(trek,n,NFFT)
-if nargin<2
-    n=237;
-end;
-if nargin<3
-    NFFT=n;
-end;
-    
+function Phase=DensityPhaseFromVideo(trek,nStp,nWin,NFFT)
+  
 tau=20e-9;
 Fs=1/tau;
 StartPlasmaTime=14e-3;
 Plot=true;
 Fbase=421748;
 
-N=fix(numel(trek)/n);
+if nargin<2
+    nStp=round(1/Fbase/tau);
+end;
+if nargin<3
+    nWin=pow2(nextpow2(nStp));
+end
+if nargin<4
+    NFFT=nWin;
+end;
+
+
+N=fix(numel(trek)/nStp);
 f = Fs/2*linspace(0,1,NFFT/2+1);
 Ph=zeros(N,1);
 Freq=zeros(N,1);
 Ycombine=zeros(NFFT,1);
+Y=zeros(NFFT,N);
 for i=1:N
-Y=fft(trek((i-1)*n+1:i*n).*hamming(n),NFFT)/n;
-Ycombine=Ycombine+abs(Y);
-[m,mi]=max(abs(Y(2:fix(NFFT/2))));
+Y(:,i)=fft(trek((i-1)*nStp+1:(i-1)*nStp+nWin).*hamming(nWin),NFFT)/nWin;
+Ycombine=Ycombine+abs(Y(:,i));
+[m,mi]=max(abs(Y(2:fix(NFFT/2),i)));
 mi=mi+1;
 Freq(i)=Fs/NFFT*(mi-1);
-Ph(i)=angle(Y(mi));
+Ph(i)=angle(Y(mi,i));
 % Ph(i)=interp1(f,angle(Y(1:fix(NFFT/2)+1)),Fbase);
 end;
 Ycombine=Ycombine/N;
@@ -37,7 +43,7 @@ if Plot
     grid on; hold on;
     plot(f,abs(Ycombine(1:fix(NFFT/2)+1)),'k');
 end;
-dPhase=(n*tau*Fbase-round(n*tau*Fbase))*2*pi;
+dPhase=(nStp*tau*Fbase-round(nStp*tau*Fbase))*2*pi;
 Ph=unwrap(Ph);
 Ph=Ph-Ph(1);
 Ph=Ph-[0:N-1]'*dPhase;
@@ -47,7 +53,7 @@ Ph=Ph-[0:N-1]'*dPhase;
 % Ph=Ph-polyval(fit,[1:N]');
 % % Ph=Ph-min(Ph);
 Ph=Ph/2/pi;
-Phase(1:N,1)=[1:N]*n*tau-tau*n/2;
+Phase(1:N,1)=[1:N]*nStp*tau-tau*nStp/2;
 Phase(:,2)=Ph;
 if Plot
     subplot(2,2,3:4);
