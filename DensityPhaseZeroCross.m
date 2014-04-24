@@ -8,6 +8,7 @@ Tbase=1/Fbase;
 
 
 IndPreCross=find(trek.*circshift(trek,-1)<=0);
+if IndPreCross(end)==numel(trek) IndPreCross(end)=[]; end;
 i=find(trek(IndPreCross)<0&trek(IndPreCross+1)>0,1,'first');
 IndPreCross=IndPreCross(i:end);
 IndCross=IndPreCross-trek(IndPreCross)./(trek(IndPreCross+1)-trek(IndPreCross));
