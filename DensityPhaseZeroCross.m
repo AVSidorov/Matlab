@@ -4,15 +4,26 @@ Plot=true;
 
 Fbase=421748;
 Tbase=1/Fbase;
+WinWidth=pi/2; % window for reducing point in noise case
 
 
 
-IndPreCross=find(trek.*circshift(trek,-1)<=0);
+IndPreCross=find(trek.*circshift(trek,-1)<0|trek==0); %<= gives double indexing
+if IndPreCross(end)==numel(trek) IndPreCross(end)=[]; end;
 i=find(trek(IndPreCross)<0&trek(IndPreCross+1)>0,1,'first');
 IndPreCross=IndPreCross(i:end);
 IndCross=IndPreCross-trek(IndPreCross)./(trek(IndPreCross+1)-trek(IndPreCross));
 
+Ind=find(diff(IndCross)<Tbase*WinWidth/(2*pi)/tau);
+while numel(Ind)>0
+    ind=find(IndCross>=IndCross(Ind(1))&IndCross<IndCross(Ind(1))+Tbase*WinWidth/(2*pi)/tau);
+    IndCross(ind(1))=mean(IndCross(ind));
+    IndCross(ind(2:end))=[];
+    Ind=find(diff(IndCross)<Tbase*WinWidth/(2*pi)/tau);
+end;
+
 TimeCross=(IndCross-1)*tau;
+
 TimeCrossBase=[0:Tbase/2:(numel(trek)-1)*tau]';
 
 N=min([numel(TimeCross),numel(TimeCrossBase)]);
