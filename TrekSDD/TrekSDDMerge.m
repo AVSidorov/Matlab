@@ -1,12 +1,21 @@
 function [TrekMerged,fit]=TrekSDDMerge(TrekSetIn,varargin)
-%This function merges two treks written in differen ADC channels with
-%different ranges. In must be base channel (whithout number after sxr);
+
+%This function merges treks written in differen ADC channels with
+%different ranges. 
+
+%% initial check and loading input file
 if isstruct(TrekSetIn)&&isfield(TrekSetIn,'Merged')&&TrekSetIn.Merged
     TrekMerged=TrekSetIn;
     fit=[];
     return;
 elseif isstruct(TrekSetIn)&&isfield(TrekSetIn,'FileName')&&~isempty(TrekSetIn.FileName)
-    TrekSet=TrekSDDRecognize(TrekSetIn.FileName,varargin{:});
+    if ~isempty(regexp(TrekSetIn.FileName,'^(\d{2,3}sxr)([2,3,4])?(.dat)$'))
+        FileBase=regexprep(TrekSetIn.FileName,'^(\d{2,3}sxr)([2,3,4])?(.dat)$','$1');
+        FileSufix=regexprep(TrekSetIn.FileName,'^(\d{2,3}sxr)([2,3,4])?(.dat)$','$2');
+    end;
+    i=str2num(FileSufix);
+    if isempty(i) i=1; end;    
+    TrekSet=TrekSDDRecognize(TrekSetIn,varargin{:});
 elseif ischar(TrekSetIn)    
     TrekSet=TrekSDDRecognize(TrekSetIn,varargin{:});
 end;
@@ -15,6 +24,7 @@ TrekSet.Plot=false;
 if TrekSet(end).type>0 
     TrekSet=TrekLoad(TrekSet);
 end;
+%%
 
 fix=false;
 
@@ -42,7 +52,7 @@ fit(1,:)=[1,0];
 
 if fileN<2 
     TrekMerged=TrekSet;
-    TrekMerged.Merged=true;
+    TrekMerged.Merged=false;
     fit=[];
     return;     
 end;
