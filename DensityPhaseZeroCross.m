@@ -3,7 +3,7 @@ tau=20e-9;
 Plot=false;
 
 if nargin<2
-    Fbase=421751;
+    Fbase=421752;
 end;
 Tbase=1/Fbase;
 WinWidth=pi/2; % window for reducing point in noise case
