@@ -4,7 +4,7 @@ tau=20e-9;
 Fs=1/tau;
 StartPlasmaTime=14e-3;
 Plot=true;
-Fbase=421748;
+Fbase=421752;
 
 if nargin<2
     nStp=round(1/Fbase/tau);

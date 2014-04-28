@@ -1,8 +1,10 @@
-function Phase=DensityPhaseZeroCross(trek)
+function Phase=DensityPhaseZeroCross(trek,Fbase)
 tau=20e-9;
-Plot=true;
+Plot=false;
 
-Fbase=421748;
+if nargin<2
+    Fbase=421752;
+end;
 Tbase=1/Fbase;
 WinWidth=pi/2; % window for reducing point in noise case
 
