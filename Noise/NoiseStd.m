@@ -9,20 +9,28 @@ trek=trek(:,1);
 trSize=numel(trek);
 
 BoolNoise=true(trSize,1);
-NoiseTrek=trek(BoolNoise);
-Mean0=mean(NoiseTrek);
-Std0=std(NoiseTrek);
-Median0=median(NoiseTrek);
+Mean0=mean(trek);
+Mean1=Mean0;
+Std0=std(trek);
+Std1=Std0;
+Median0=median(trek);
+Median1=Median0;
 
 dStd=1;
 dMean=1;
 dMedian=1;
- while (dStd+dMean+dMedian)>0.01 
+ while numel(Mean0)<11%(dStd+dMean+dMedian)>0.01 
     BoolNoise=abs(trek-Mean0(end))<4*Std0(end);
-    NoiseTrek=trek(BoolNoise);
-    Std0(end+1)=std(NoiseTrek);  
-    Mean0(end+1)=mean(NoiseTrek);
-    Median0(end+1)=median(NoiseTrek);
+        Std0(end+1)=std(trek(BoolNoise)-Mean0(end));  
+        Mean0(end+1)=mean(trek(BoolNoise));  
+        Median0(end+1)=median(trek(BoolNoise));
+
+    BoolNoise=abs(trek-Median1(end))<4*Std1(end);
+        Std1(end+1)=std(trek(BoolNoise)-Median1(end));  
+        Mean1(end+1)=mean(trek(BoolNoise));  
+        Median1(end+1)=median(trek(BoolNoise));
+ 
+    
     if numel(Mean0)>2
         dMean=diff(Mean0);
         dMean=abs(dMean(end)/dMean(end-1));
