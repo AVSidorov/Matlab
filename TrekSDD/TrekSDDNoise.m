@@ -25,7 +25,7 @@ TrekSet.MinSignal=TrekSet.MinSignal-NoiseSet.MeanVal;
 TrekSet.Threshold=NoiseSet.Thr;
 TrekSet.StdVal=NoiseSet.StdVal;
 
-if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)&&isstruct(STP)
+if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)&&isstruct(TrekSet.STP)
     longD=trek-circshift(trek,TrekSet.STP.FrontN);
     NoiseSet=NoiseHist(longD);
     TrekSet.ThresholdLD=NoiseSet.Thr;
