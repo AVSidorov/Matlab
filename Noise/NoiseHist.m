@@ -96,6 +96,7 @@ while isempty(ch)
 end;
 
 NoiseSet.MeanVal=Median(end);
+NoiseSet.MedianVal=Median(end);
 NoiseSet.StdVal=Std(end);
 NoiseSet.Thr=Thr(end);
 NoiseSet.NoiseInd=find(BoolNoise);
