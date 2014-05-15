@@ -10,7 +10,11 @@ ex=[];
 while isempty(ex)
     fit=polyfit(TrekSet2.trek(bool),TrekSet1.trek(bool),1);
     dif=TrekSet1.trek-TrekSet2.trek*fit(1)-fit(2);
-    NoiseDif=NoiseHist(dif);
+    if ~isempty(Ind1)
+        NoiseDif=NoiseHist(dif,NoiseDif);
+    else
+        NoiseDif=NoiseHist(dif);
+    end;
     bool=bool&abs(dif)<NoiseDif.StdVal;
     Ind1=find(bool);
     if numel(Ind)==numel(Ind1)&&numel(intersect(Ind,Ind1))==numel(Ind)
