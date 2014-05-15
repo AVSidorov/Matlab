@@ -90,7 +90,7 @@ while isempty(ch)
     
     BoolNoise=abs(trek-Median(end))<Thr(end);
     
-    if numel(find(bool))>5 
+    if numel(find(bool))>5||numel(find(bool))>=fix(Std(end)/minStep) 
         ch='1'; 
     end;   
 end;
