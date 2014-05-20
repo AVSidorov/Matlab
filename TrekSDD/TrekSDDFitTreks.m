@@ -7,15 +7,14 @@ bool=TrekSet1.trek>TrekSet1.MinSignal&TrekSet1.trek<TrekSet1.MaxSignal&...
 Ind=find(bool);
 Ind1=[];
 ex=[];
+NoiseDif=TrekSet1.NoiseSet;
+NoiseDif.MeanVal=0;
+NoiseDif.MedianVal=0;
 while isempty(ex)
     fit=polyfit(TrekSet2.trek(bool),TrekSet1.trek(bool),1);
     dif=TrekSet1.trek-TrekSet2.trek*fit(1)-fit(2);
-    if ~isempty(Ind1)
-        NoiseDif=NoiseHist(dif,NoiseDif);
-    else
-        NoiseDif=NoiseHist(dif);
-    end;
-    bool=bool&abs(dif)<NoiseDif.StdVal;
+    NoiseDif=NoiseHist(dif,NoiseDif);
+    bool=bool&abs(dif)<2*NoiseDif.StdVal;
     Ind1=find(bool);
     if numel(Ind)==numel(Ind1)&&numel(intersect(Ind,Ind1))==numel(Ind)
         ex=1;
