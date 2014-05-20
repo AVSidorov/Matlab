@@ -63,6 +63,7 @@ while isempty(ch)
         r=roots(fit)*m(2)+m(1);
         stdev=sqrt(-1/fit(1)/2)*m(2);
         dif=abs(HistNoise(:,2)-exp(polyval(fit,HistNoise(:,1),s,m)))./HistNoise(:,2);
+        dif(HistNoise(:,2)==0)=1; %avoiding inf
         
         if all(dif<=1)
             boolNew=dif<=max(dif(bool))|dif<=4*std(dif(bool));
