@@ -25,6 +25,9 @@ if nargin>1
     Std=NoiseSet.StdVal;
     Thr=4*Std;
     BoolNoise=NoiseSet.NoiseBool;
+    if isfield(NoiseSet,'MinStep')&&~isempty(NoiseSet.MinStep)&&NoiseSet.MinStep>minStep
+        minStep=NoiseSet.MinStep;
+    end;
 end;
 
 ch='';
@@ -102,3 +105,4 @@ NoiseSet.StdVal=Std(end);
 NoiseSet.Thr=Thr(end);
 NoiseSet.NoiseInd=find(BoolNoise);
 NoiseSet.NoiseBool=BoolNoise;
+NoiseSet.MinStep=minStep;
