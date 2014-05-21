@@ -42,7 +42,8 @@ while isempty(ch)
     A=NNoise/(sqrt(2*pi)*Std(end)*erf(4/sqrt(2))); %N between mu-4*std mu+4*std
     NinCentralChan=max([100,NNoise/Nfit]); 
     dX=erfinv(NinCentralChan/A/sqrt(2*pi)/Std(end))*sqrt(2)*Std(end); %halfwidth of histogram chanel for 100 points in central channel
-    dX=max([RangeNoise/Nfit,dX,minStep]); % to Avoid a lot of channels (=very small step)
+    dX=max([RangeNoise/Nfit,dX,minStep]);   % to avoid a lot of channels (=very small step)
+    dX=min([Std/2,dX]);                     % to avoid a few channels (= to narrow channel width)
 
     HistLowBorder=(Median(end)-Std(end));
     HistHighBorder=(Median(end)+Std(end));
