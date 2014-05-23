@@ -26,9 +26,16 @@ while isempty(ex)
     end;
     Ind=Ind1;
 end;
+boolSignal=boolNotOverload&abs(dif)<NoiseDif.Thr;
+
 FitSet.fit=fit;
 FitSet.boolSignal=boolSignal;
+FitSet.boolNotOverload=boolNotOverload;
+
+FitSet.dif=dif;
 FitSet.DifNoise=NoiseDif;
+
+
 
 
    
