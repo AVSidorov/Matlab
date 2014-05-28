@@ -7,19 +7,21 @@ end;
 
 Ind=find(bool);
 
-%if noise is continious this arrays contains only 1
+%if bool array is continious this arrays contains only 1
 dAfter=circshift(Ind,-1)-Ind; %dist to next
 dAfter(end)=0;
 dBefore=Ind-circshift(Ind,1); %dist to previous
 dBefore(1)=0;
 
-%filling small holes
-SmallHole=find(dAfter>1&dAfter<=MinSpace);
-for i=1:numel(SmallHole)
-    Ind=[Ind;[Ind(SmallHole(i))+1:Ind(SmallHole(i))+dAfter(SmallHole(i))-1]'];
+%filling small Spaces
+SmallSpace=find(dAfter>1&dAfter<=MinSpace);
+for i=1:numel(SmallSpace)
+    Ind=[Ind;[Ind(SmallSpace(i))+1:Ind(SmallSpace(i))+dAfter(SmallSpace(i))-1]'];
 end;    
 
 Ind=sortrows(Ind);
+bool=false(size(bool));
+bool(Ind)=true;
 
 
 %to make same size
@@ -29,16 +31,17 @@ dBefore=Ind-circshift(Ind,1); %dist to previous
 dBefore(1)=0;
 
 
-HoleStart=find(dAfter>MinSpace);    % search for breaks 
-HoleEnd=find(dBefore>MinSpace);     % very small breaks is not important and take breaks more than 
+SpaceStart=find(dAfter>MinSpace);    % search for breaks 
+SpaceEnd=find(dBefore>MinSpace);     % very small breaks is not important and take breaks more than 
    
-HoleStart=[HoleStart;numel(Ind)]; %to make equal quantity PartLength and HoleStart
-HoleEnd=[1;HoleEnd];
-PartLength=Ind(HoleStart)-Ind(HoleEnd)+1;
-HoleStart=Ind(HoleStart);
-HoleEnd=Ind(HoleEnd);
+SpaceStart=[SpaceStart;numel(Ind)]; %to make equal quantity PartLength and SpaceStart
+SpaceEnd=[1;SpaceEnd];
+PartLength=Ind(SpaceStart)-Ind(SpaceEnd)+1;
+SpaceStart=Ind(SpaceStart);
+SpaceEnd=Ind(SpaceEnd);
 
-PartsSet.HoleStart=HoleStart;
-PartsSet.HoleEnd=HoleEnd;
+PartsSet.SpaceStart=SpaceStart;
+PartsSet.SpaceEnd=SpaceEnd;
 PartsSet.PartLength=PartLength;
+PartsSet.bool=bool;
 
