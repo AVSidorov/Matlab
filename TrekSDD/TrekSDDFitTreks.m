@@ -1,5 +1,6 @@
 function FitSet=TrekSDDFitTreks(TrekSet1,TrekSet2)
 
+OverSt=2;
 boolNotOverload=TrekSet1.trek>TrekSet1.MinSignal&TrekSet1.trek<TrekSet1.MaxSignal&...
                 TrekSet2.trek>TrekSet2.MinSignal&TrekSet2.trek<TrekSet2.MaxSignal;
 boolSignal=boolNotOverload&...
@@ -19,7 +20,7 @@ while isempty(ex)
     fit=polyfit(TrekSet2.trek(boolSignal),TrekSet1.trek(boolSignal),1);
     dif=TrekSet1.trek-TrekSet2.trek*fit(1)-fit(2);
     NoiseDif=NoiseHist(dif,NoiseDif);
-    boolSignal=boolSignal&abs(dif)<2*NoiseDif.StdVal;
+    boolSignal=boolSignal&abs(dif)<OverSt*NoiseDif.StdVal;
     Ind1=find(boolSignal);
     if numel(Ind)==numel(Ind1)&&numel(intersect(Ind,Ind1))==numel(Ind)
         ex=1;
