@@ -5,35 +5,49 @@ function TrekSet=TrekSDDRecognize(TrekSetIn,varargin)
 
 
 %TrekSet.FileType='int16';      %choose file type for precision in fread function 
+%% Trek Structure Definition
 TrekSet.FileType='single';      %choose file type for precision in fread function 
 TrekSet.tau=0.02;               %ADC period
+
 TrekSet.StartOffset=[];       %in us old system was Tokamak delay + 1.6ms
 TrekSet.StartTime=TrekSet.StartOffset;
+TrekSet.StartPlasma=15000;      %Common value may change in calibration treks
+
 TrekSet.MeanVal=[];
 TrekSet.OverSt=3.5;               %uses in StdVal
 TrekSet.StdVal=0;
 TrekSet.Threshold=[];
 TrekSet.ThresholdLD=[];
-TrekSet.STP=[];
+TrekSet.PeakPolarity=1;
+TrekSet.NoiseSet=[];
+
+TrekSet.STP=StpStruct('D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_2.dat');
 % TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
-TrekSet.MaxSignal=4095;
-TrekSet.MinSignal=0;
+
 % TrekSet.StartTime=3e4;
+
 TrekSet.type=[];              
+
 TrekSet.FileName=[];
 TrekSet.name=[];
-TrekSet.PeakPolarity=1;
+TrekSet.Channel=[]; 
 TrekSet.Date=[];
 TrekSet.Shot=[];
 TrekSet.Amp=[];
+
+TrekSet.trek=[];
+TrekSet.size=[];
+TrekSet.MaxSignal=4095;
+TrekSet.MinSignal=0;
+
 TrekSet.Merged=false; %This field is neccessary to avoid repeat merging and Max/MinSignal level changing 
 TrekSet.Plot=true;
 TrekSet.Nfit=10;
-TrekSet.trek=[];
-TrekSet.size=[];
+
 TrekSet.peaks=[];
 
+%%
 
 nargsin=size(varargin,2);
 if ~isempty(varargin)&&mod(nargsin,2)~=0
@@ -82,9 +96,13 @@ end;
                 TrekSet.size=TrekSet.size/2;
         end;
         [pathstr, name, ext]=fileparts(TrekSetIn);
-        TrekSet.name=name;
         if not(isempty(regexp(name,'^(\d{2,3})(sxr)([2,3,4])?$')))
             TrekSet.Shot=str2num(regexprep(name,'^(\d{2,3})(sxr)([2,3,4])?$','$1'));
+            TrekSet.name=regexprep(name,'^(\d{2,3})(sxr)([2,3,4])?$','$2');
+            TrekSet.Channel=str2num(regexprep(name,'^(\d{2,3})(sxr)([2,3,4])?$','$3'));
+            if isempty(TrekSet.Channel)
+                TrekSet.Channel=1;
+            end;
         end;            
      otherwise
         disp('Not supported type');

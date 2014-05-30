@@ -23,26 +23,32 @@ end;
 TrekSet.Plot=false;
 if TrekSet(end).type>0 
     TrekSet=TrekLoad(TrekSet);
+    TrekSet=TrekSDDNoise(TrekSet,'StartTime',0,'EndTime',13000);
+    StdVals=TrekSet.StdVal;
 end;
 %%
 
 fix=false;
 
-i=2;
-while i<=4
-FileName=[TrekSet(1).name,num2str(i),'.dat'];
+
+
+for i=find(TrekSet.Channel~=[1:4])
+ if i==1 Ch=''; else Ch=num2str(i); end;
+   FileName=[num2str(TrekSet(1).Shot,'%02.0f'),TrekSet(1).name,Ch,'.dat'];
    if exist(FileName,'file')==2
-    TrekSet(end+1)=TrekSet(1);  
+    TrekSet(end+1)=TrekSet(1);
+    TrekSet(end).Channel=i;
     TrekSet(end).trek=[];
     TrekSet(end).FileName=FileName;
        TrekSet(end).Plot=false; 
        if TrekSet(end).type>0 
             TrekSet(end)=TrekLoad(TrekSet(end));
+            TrekSet(end)=TrekSDDNoise(TrekSet(end),'StartTime',0,'EndTime',13000);
+            StdVals(end+1,1)=TrekSet(end).StdVal;
             TrekSet(end)=TrekPickTime(TrekSet(end),TrekSet(1).StartTime,TrekSet(1).size*TrekSet(1).tau);
         else
             TrekSet(end)=[];
         end;
-    i=i+1;
    end;
 end;                   
 
@@ -56,40 +62,15 @@ if fileN<2
     fit=[];
     return;     
 end;
-WorkSize=pow2(23);
-for i=2:fileN
-    bool=(TrekSet(1).trek<TrekSet(1).MaxSignal&TrekSet(1).trek>TrekSet(1).MinSignal&...
-            TrekSet(i).trek<TrekSet(i).MaxSignal&TrekSet(i).trek>TrekSet(i).MinSignal);
-    bool(WorkSize+1:end)=false;
-    fit(i,:)=polyfit(TrekSet(i).trek(bool),TrekSet(1).trek(bool),1);
-end;
 
-[fit,index]=sortrows(fit,1);
-TrekSet=TrekSet(index);
+
+[StdVals,index]=sortrows(StdVals,1);
+TrekSet=TrekSet(index(end:-1:1));
 
 TrekMerged=TrekSet(1);
 for i=2:fileN
-    bool=(TrekSet(1).trek<TrekSet(1).MaxSignal&TrekSet(1).trek>TrekSet(1).MinSignal&...
-            TrekSet(i).trek<TrekSet(i).MaxSignal&TrekSet(i).trek>TrekSet(i).MinSignal);
-    bool(WorkSize+1:end)=false;
-    fit(i,:)=polyfit(TrekSet(i).trek(bool),TrekSet(1).trek(bool),1);
-    if fix
-        fit(i,1)=round(fit(i,1));
-        fit(i,2)=mean(TrekSet(1).trek(bool)-fit(i,1)*TrekSet(i).trek(bool));
-    end;
-    dif=TrekSet(i).trek*fit(i,1)+fit(i,2)-TrekSet(1).trek;
-    s=std(dif);
-    ds=1;
-    while ds>1e-4
-        ds=s-std(dif(abs(dif)<s*3.5));
-        s=s-ds;
-    end;
-    bool=abs(dif)>=s*4;
-    TrekMerged.trek(bool)=TrekSet(i).trek(bool)*fit(i,1)+fit(i,2);
-    TrekMerged.MaxSignal=TrekSet(i).MaxSignal*fit(i,1)+fit(i,2);
-    TrekMerged.MinSignal=TrekSet(i).MinSignal*fit(i,1)+fit(i,2);
+    [TrekMerged,fit]=TrekSDDFitTreksCombine(TrekMerged,TrekSet(i));
 end;
-TrekMerged.Merged=true;
 return;
 
 % if TrekSet(1).Plot
