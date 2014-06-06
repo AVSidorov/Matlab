@@ -2,6 +2,7 @@ function NoiseSet=NoiseHist(trek,NoiseSet)
 % In this function assumes that noise levels disributed by normal law
 
 Nfit=100;
+OverSt=4;
 
 if size(trek,2)>size(trek,1) trek=trek'; end;
 trek=trek(:,1);
