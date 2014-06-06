@@ -24,7 +24,7 @@ if nargin>1
     Mean=NoiseSet.MeanVal;
     Median=NoiseSet.MedianVal;
     Std=NoiseSet.StdVal;
-    Thr=4*Std;
+    Thr=NoiseSet.Thr;
     BoolNoise=NoiseSet.NoiseBool;
     if isfield(NoiseSet,'MinStep')&&~isempty(NoiseSet.MinStep)&&NoiseSet.MinStep>minStep
         minStep=NoiseSet.MinStep;
@@ -52,7 +52,7 @@ while isempty(ch)
     HistLowBorder=(Median(end)-Std(end));
     HistHighBorder=(Median(end)+Std(end));
 
-    HistNoise=HistOnNet(trek(BoolNoise),[min(trek(BoolNoise)):2*dX:max(trek(BoolNoise))]);
+    HistNoise=HistOnNet(trek(BoolNoise),[min(trek(BoolNoise)):dX:max(trek(BoolNoise))]);
     bool=HistNoise(:,1)>=HistLowBorder&HistNoise(:,1)<=HistHighBorder;
     i=numel(find(HistNoise(bool,2)<10));
     
@@ -106,8 +106,12 @@ while isempty(ch)
             i=i-1;
             ch1='e';
         else
-            if i==1&&NfitHist(end)>3
-                bool=HistNoise(:,1)>=HistNoise(mi-1,1)&HistNoise(:,1)<=HistNoise(mi+1,1);
+            if all(dif<=1)&&NfitHist(end)>3
+                bool=false(size(HistNoise,1),1);
+                bool(find(dif<0.5,1,'first'):find(dif<0.5,1,'last'))=true;
+                if numel(find(bool))<=3
+                    bool=HistNoise(:,1)>=HistNoise(mi-2,1)&HistNoise(:,1)<=HistNoise(mi+2,1);
+                end;
             else
                 if  all(dif<=1)&&NfitHist(end)==3
                     bool=HistNoise(:,1)>=HistNoise(max([1,mi-2]),1)&HistNoise(:,1)<=HistNoise(min([mi+2,size(HistNoise,1)]),1);
@@ -115,13 +119,6 @@ while isempty(ch)
                 if ~all(dif<=1)
                     bool=false(size(HistNoise,1),1);
                     bool(min([find(dif>1,1,'first'),mi-1]):max([find(dif>1,1,'last'),mi+1]))=true;
-                    if numel(find(bool))<=3
-                        bool=HistNoise(:,1)>=HistNoise(mi-2,1)&HistNoise(:,1)<=HistNoise(mi+2,1);
-                    end;                    
-                end;
-                if all(dif<=1)&&NfitHist(end)>3
-                    bool=false(size(HistNoise,1),1);
-                    bool(find(dif<0.5,1,'first'):find(dif<0.5,1,'last'))=true;
                     if numel(find(bool))<=3
                         bool=HistNoise(:,1)>=HistNoise(mi-2,1)&HistNoise(:,1)<=HistNoise(mi+2,1);
                     end;                    
@@ -147,7 +144,7 @@ while isempty(ch)
     
     BoolNoise=abs(trek-Median(end))<Thr(end);
     
-    if numel(find(bool))>5||((numel(find(bool))>=fix(Std(end)/minStep))&&(dX<Std(end)/2))
+    if (numel(find(bool))>5||((numel(find(bool))>=fix(Std(end)/minStep))&&(dX<Std(end)/2)))&&range(HistNoise(:,1))>=0.9*2*Thr(end)
         ch='1'; 
     end;   
 end;
