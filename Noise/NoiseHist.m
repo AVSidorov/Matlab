@@ -12,7 +12,7 @@ BoolNoise=true(trSize,1);
 Mean=mean(trek);
 Std=std(trek);
 Median=median(trek);
-Thr=4*Std;
+Thr=OverSt*Std;
 tr=abs(diff(trek));
 minStep=min(tr(tr>0));
 clear tr;
@@ -28,6 +28,9 @@ if nargin>1
     if isfield(NoiseSet,'MinStep')&&~isempty(NoiseSet.MinStep)&&NoiseSet.MinStep>minStep
         minStep=NoiseSet.MinStep;
     end;
+    if isfield(NoiseSet,'OverSt')&&~isempty(NoiseSet.OverSt)&&NoiseSet.OverSt>0
+        OverSt=NoiseSet.OverSt;
+    end;   
 end;
 
 ch='';
@@ -91,7 +94,7 @@ while isempty(ch)
         
         %Check condition for exit and if false pick new fitting histogram
         %points
-        if i>2&&any(MaxDif<=1)&&any(stdev==Std(end-i+1:end-1))
+        if i>2&&any(MaxDif<=1)&&any(stdev==Std(end-i+1:end-1)) %exit in case of fitting repeated
             Std(end)=[];
             Thr(end)=[];
             Mean(end)=[];
@@ -129,10 +132,10 @@ while isempty(ch)
     
     Ind=find(NfitHist>3&MaxDif<1);
     if ~isempty(Ind)
-        [m,mi]=min(MeanDif(Ind));
+        [minMean,mi]=min(MeanDif(Ind));
         Ind=Ind(mi);
     else
-        [m,Ind]=min(MeanDif);        
+        [minMean,Ind]=min(MeanDif);        
     end;
        Std(end+1)=Std(end-i+Ind);
        Thr(end+1)=Thr(end-i+Ind);
@@ -154,5 +157,6 @@ NoiseSet.StdVal=Std(end);
 NoiseSet.Thr=Thr(end);
 NoiseSet.NoiseInd=find(BoolNoise);
 NoiseSet.NoiseBool=BoolNoise;
+NoiseSet.OverSt=OverSt;
 NoiseSet.MinStep=minStep;
 NoiseSet.HistStep=dX;
