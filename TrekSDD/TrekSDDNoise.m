@@ -15,7 +15,8 @@ StartInd=round(StartTime/TrekSet.tau)+1;
 EndInd=round(EndTime/TrekSet.tau)+1;
 
 trek=TrekSet.trek(StartInd:EndInd);
-NoiseSet=NoiseHist(trek);
+NoiseSet=NoiseStd(trek);
+%NoiseSet=NoiseHist(trek,NoiseSet);
 
 TrekSet.NoiseSet=NoiseSet;
 TrekSet.trek=TrekSet.trek-NoiseSet.MeanVal;
@@ -26,7 +27,8 @@ TrekSet.Threshold=NoiseSet.Thr;
 TrekSet.StdVal=NoiseSet.StdVal;
 
 if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)&&isstruct(TrekSet.STP)
-    longD=trek-circshift(trek,TrekSet.STP.FrontN);
-    NoiseSet=NoiseHist(longD);
+    longD=trek-circshift(trek,TrekSet.STP.FrontN);    
+    NoiseSet=NoiseStd(longD);
+    %NoiseSet=NoiseHist(LongD,NoiseSet);
     TrekSet.ThresholdLD=NoiseSet.Thr;
 end;

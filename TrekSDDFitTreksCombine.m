@@ -40,7 +40,7 @@ while ~isempty(NextPartEnd)
         bool=false(size(trek));
         bool(Ind)=true;       
         dif=difAll(bool);
-        Polarity=sign(mean(dif));
+        Polarity=sign(mean(sign(dif)));
         bool=bool&Polarity*difAll>0&Fit.boolNotOverload;    
         Ind=find(bool);
         if ~isempty(Ind)
@@ -56,9 +56,26 @@ while ~isempty(NextPartEnd)
         bool=bool&boolBaseNotOverload;
         Ind=find(bool);
         if ~isempty(Ind)
+            if TrekSetBase.Plot
+                pInd=[Ind(1)-numel(Ind):Ind(end)+numel(Ind)];
+                subplot(2,1,1);
+                grid on; hold on;
+                plot(pInd,trek(pInd),'b');
+            end;
             trek(Ind)=trek(Ind)-Polarity*exp(polyval(FitExp,Ind-Ind(1)+1));
             NextPartStart=Ind(1);
             NextPartEnd=PSetInitial.SpaceStart(find(PSetInitial.SpaceStart>Ind(end),1,'first'));   
+            if TrekSetBase.Plot
+                subplot(2,1,1);
+                grid on; hold on;
+                plot(pInd,trek(pInd),'k');
+                subplot(2,1,2);
+                plot(pInd,difAll(pInd));
+                grid on; hold on;
+                plot(Ind,Polarity*exp(polyval(FitExp,Ind-Ind(1)+1)),'r');
+                pause;
+                close(gcf);
+            end;
         else
             NextPartStart=NextPartStart+PSet.SpaceStart(i);
             NextPartEnd=PSetInitial.SpaceStart(find(PSetInitial.SpaceStart>NextPartEnd,1,'first'));
