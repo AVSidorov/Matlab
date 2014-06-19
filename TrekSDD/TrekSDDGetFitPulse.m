@@ -9,7 +9,7 @@ if Shift>=0
     iS=1+Shift*Nfit;
     N=StpN-ceil(Shift);
     if abs(round(iS)-iS)<Nfit/100
-        FitPulse(1:N)=Stp(iS:Nfit:iS+(N-1)*Nfit);
+        FitPulse(1:N)=Stp(round(iS):Nfit:round(iS+(N-1)*Nfit));
     else
         FitPulse=interp1(TimeInd,Stp,[1:StpN]'+Shift,'linear',0);
     end;
@@ -17,8 +17,8 @@ end;
 if Shift<0
     iE=1+(StpN-1)*Nfit+Shift*Nfit;
     N=1-floor(Shift);
-    if abs(round(iE)-iE)<Nfit/100
-        FitPulse(N:StpN)=Stp(iE-Nfit*(StpN-N):Nfit:iE);
+    if abs(round(iE)-iE)<Nfit/100        
+        FitPulse(N:StpN)=Stp(round(iE-Nfit*(StpN-N)):Nfit:round(iE));
     else        
         FitPulse=interp1(TimeInd,Stp,[1:StpN]'+Shift,'linear',0);
     end;
