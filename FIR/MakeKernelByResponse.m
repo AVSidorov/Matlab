@@ -1,6 +1,9 @@
-function Kernel=MakeKernelByResponse(Response,Pulse)
+function Kernel=MakeKernelByResponse(Response,Pulse,Plot)
 %function makes FIR filter kernel for given initial and filtered Pulse forms.
 %first column in arrays is time in us
+if nargin<3
+    Plot=true;
+end;
 
 if size(Response,1)<size(Response,2)
     Response=Response';
@@ -28,17 +31,33 @@ if timeStep==0
 end;
 
 time=[0:timeStep:max([Response(end,1);Pulse(end,1)])]';
-Response=interp1(Response(:,1),Response(:,2),time,'spline',0);
-Pulse=interp1(Pulse(:,1),Pulse(:,2),time,'spline',0);
+response=interp1(Response(:,1),Response(:,2),time,'spline',0);
+pulse=interp1(Pulse(:,1),Pulse(:,2),time,'spline',0);
 
 Fs=1/(timeStep*1e-6);
-NFFT=pow2(nextpow2(numel(Response)));
+NFFT=pow2(nextpow2(numel(response)));
 f = Fs/2*linspace(0,1,NFFT/2+1);
-Ypulse=fft(Pulse,NFFT);
-Yresp =fft(Response,NFFT);
+Ypulse=fft(pulse,NFFT);
+Yresp =fft(response,NFFT);
 Yfilter=Yresp./Ypulse;
 
 Kernel(:,1)=[1:NFFT]*timeStep;
 Kernel(:,2)=ifft(Yfilter);
 
-
+if Plot
+    pulseFilt=filter(Kernel(:,2),1,pulse);
+    figure;    
+    subplot(2,2,1:2);
+        grid on; hold on;
+        plot(Pulse(:,1),Pulse(:,2),'b');
+        plot(Response(:,1),Response(:,2),'k');
+        plot(time,pulseFilt,'.r');
+    subplot(2,2,3);
+        grid on; hold on;
+        plot(Kernel(:,1),Kernel(:,2));
+    subplot(2,2,4);
+        grid on; hold on;
+        plot(f,abs(Ypulse(1:NFFT/2+1)),'b');
+        plot(f,abs(Yresp(1:NFFT/2+1)),'k');
+        plot(f,abs(Yfilter(1:NFFT/2+1)),'r');
+end;
