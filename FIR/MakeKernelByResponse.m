@@ -28,6 +28,7 @@ timeStep=min([diff(Response(:,1));diff(Pulse(:,1))]);
 
 if timeStep==0
     disp('There are points with same time. Function exit');
+    return;
 end;
 
 time=[0:timeStep:max([Response(end,1);Pulse(end,1)])]';
