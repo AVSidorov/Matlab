@@ -160,7 +160,9 @@ plot([1,trSize],MeanVal+[Threshold,Threshold],'r');
 plot([1,trSize],MeanVal+[-Threshold,-Threshold],'r');
 pause;
 
-close(HistFig);
+if ~isempty(HistFig)&&ishandle(HistFig)
+    close(HistFig);
+end;
 if ~isempty(TrekFig)&&ishandle(TrekFig)
     close(TrekFig);
 end;
