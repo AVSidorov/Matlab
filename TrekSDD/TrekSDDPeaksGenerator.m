@@ -20,5 +20,12 @@ for i=1:fix(nargsin/2)
 end;
 TrekSet.peaks=zeros(N,7);
 
-TrekSet.peaks(:,2)=[1:N]'*TimeStep+random(TimeStepType,0.0,TimeStepNoise,N,1);
-TrekSet.peaks(:,5)=Amp+random(AmpNoiseType,0.0,AmpNoise,N,1);
+if TimeStepType=='trek'
+    t=random('unif',0,TimeStep*N,N,1);
+    t=sortrows(t);
+    TrekSet.peaks(:,2)=TrekSet.STP.size*TrekSet.tau+t;
+    TrekSet.peaks(:,5)=random('norm',Amp,AmpNoise,N,1);
+else   
+    TrekSet.peaks(:,2)=TrekSet.STP.size*TrekSet.tau+[1:N]'*TimeStep+random(TimeStepType,0.0,TimeStepNoise,N,1);
+    TrekSet.peaks(:,5)=Amp+random(AmpNoiseType,0.0,AmpNoise,N,1);
+end;
