@@ -2,6 +2,7 @@ function NoiseSet=NoiseFit(trek,varargin)
 % this function make gaussian fitting for noise level determination on
 % treks with signal
 HistStep=1;
+BorderProbability=1/2e6; % from no more 1 point for 2 million points corresponds to 40ms
 nargsin=size(varargin,2);
 if ~isempty(varargin)&&mod(nargsin,2)~=0
     error('incorrect number of input arguments');
@@ -11,7 +12,9 @@ for i=1:fix(nargsin/2)
     eval([varargin{1+2*(i-1)},'=varargin{2*i};']);
 end;
 
+
 trSize=numel(trek);
+NBorder=trSize*BorderProbability; % Esimated Number of points above Threshold
 TrekFig=figure;
 plot(trek);
 grid on; hold on;
@@ -65,6 +68,8 @@ while isempty(ch)
     bool=A(:,1)>=min(x)&A(:,1)<=max(x);
     [fit,s,m]=polyfit(A(bool,1),log(A(bool,2)),2);
     mid=-fit(2)/(2*fit(1))*m(2)+m(1);
+    fit1=fit;
+    fit1(end)=fit1(end)-(log(NBorder)*m(2)+m(1));
     r=roots(fit)*m(2)+m(1);
     stdev=sqrt(-1/fit(1)/2)*m(2);
 
