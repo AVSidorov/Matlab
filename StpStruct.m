@@ -34,6 +34,12 @@ if size(StandardPulse,2)==2
     TimeInd=StandardPulse(:,1);
     TimeStep=mean(diff(TimeInd));
     FinePulse=StandardPulse(:,2);
+    [M,MaxInd]=max(FinePulse);
+    %shift pulse to make maximum in integer point    
+    sh=round(TimeInd(MaxInd))-TimeInd(MaxInd);
+    sh=round(sh/TimeStep);
+    FinePulse=circshift(FinePulse,sh); % it must work good soo zeros are in start/end
+    
     StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'cubic',0)';
 %     StandardPulse=StandardPulse/max(StandardPulse);
 else

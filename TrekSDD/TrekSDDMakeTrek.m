@@ -5,7 +5,7 @@ function TrekSet=TrekSDDMakeTrek(TrekSet)
 % and TrekSet.MeanVal
 
 if isempty(TrekSet.trek)
-    if TrekSet.size==0
+    if isempty(TrekSet.size)||TrekSet.size==0
         TrekSet.size=round((max(TrekSet.peaks(:,2))-TrekSet.StartTime)/TrekSet.tau)+TrekSet.STP.size;
     end;
     TrekSet.trek=TrekSet.MeanVal+TrekSet.StdVal*randn(TrekSet.size,1);
