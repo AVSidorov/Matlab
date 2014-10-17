@@ -32,7 +32,11 @@ for i=1:4
    if isempty(TrekSet)
        TrekSet=TrekSDDRecognize(FileName,varargin{:});
    else
-      TrekSet(end+1)=TrekSDDRecognize(FileName,varargin{:});
+      TrekSet(end+1)=TrekSDDRecognize(FileName,'Date',TrekSet(1).Date,... %was varagin{:} 
+                                               'Shot',TrekSet(1).Shot,... %if argin is empty, then repeated input follows
+                                               'Amp',TrekSet(1).Amp,...
+                                               'StartOffset',TrekSet(1).StartOffset,...
+                                               'StartPlasma',TrekSet(1).StartPlasma);
    end;
    TrekSet(end).Plot=false; 
    if TrekSet(end).type>0 
