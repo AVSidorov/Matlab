@@ -4,8 +4,16 @@ OverSt=3.5;
 %% determination Overload, Signal, and Noise
 boolNotOverload=TrekSet1.trek>TrekSet1.MinSignal&TrekSet1.trek<TrekSet1.MaxSignal&...
                 TrekSet2.trek>TrekSet2.MinSignal&TrekSet2.trek<TrekSet2.MaxSignal;
-boolSignal=boolNotOverload&...
-     abs(TrekSet1.trek)>TrekSet1.Threshold&abs(TrekSet2.trek)>TrekSet2.Threshold;
+boolOverload=~boolNotOverload;            
+PSet=PartsSearch(boolOverload);
+ % don't take parts after overloading (may be disturbed)
+    for i=1:numel(PSet.PartLength) 
+        boolOverload(PSet.SpaceStart(i)+1:PSet.SpaceStart(i)+TrekSet1.STP.size-TrekSet1.STP.MaxInd)=true;
+    end;
+% boolSignal=boolNotOverload&...
+
+  boolSignal=~boolOverload&...            
+      abs(TrekSet1.trek)>TrekSet1.Threshold&abs(TrekSet2.trek)>TrekSet2.Threshold;
 
 Pset=PartsSearch(boolSignal,100,10); %to avoid adding to noise zero crossing points in signal
                                      %TODO parts length automation
@@ -36,7 +44,7 @@ while isempty(ex)
     dif=TrekSet1.trek-TrekSet2.trek*fit(1)-fit(2);
     
     NoiseDif=NoiseStd(dif(boolSignal));
-    boolSignal=boolSignal&abs(dif-NoiseDif.MeanVal)<NoiseDif.Thr;
+    boolSignal=boolSignal&~boolNoise&abs(dif-NoiseDif.MeanVal)<NoiseDif.Thr;
     Ind1=find(boolSignal);
     if numel(Ind)==numel(Ind1)&&numel(intersect(Ind,Ind1))==numel(Ind)
         ex=1;
