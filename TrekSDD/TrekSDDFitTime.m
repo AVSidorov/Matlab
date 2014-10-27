@@ -271,7 +271,7 @@ while T<Tmax&&any(isinf(ShKhi(:,end)))
   for i=1:numel(MinInds)
      KhiMinInd=MinInds(i);
      li=max([KhiMinInd-1;1]);
-     ri=min([KhiMinInd+1;size(ShKhi,1)]);
+     ri=min([KhiMinInd+1;size(ShKhi,1)]); % ???TODO May be not size, but endInd
 %     if ri-li>1&&range(ShKhi(li:ri,end))>1/Nfit
 %         [KhiFit,s,m]=polyfit(ShKhi(li:ri,1),ShKhi(li:ri,end),2);
 %          mid=-KhiFit(2)/(2*KhiFit(1))*m(2)+m(1);
