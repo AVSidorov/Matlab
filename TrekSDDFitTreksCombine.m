@@ -22,10 +22,10 @@ Fit=TrekSDDFitTreks(TrekSetBase,TrekSet2);
 OverSt=mean([OverSt,Fit.DifNoise.Thr/Fit.DifNoise.StdVal]);
 
 boolBaseNotOverload=TrekSetBase.trek<TrekSetBase.MaxSignal&TrekSetBase.trek>TrekSetBase.MinSignal;
-POverload=PartsSearch(~boolBaseNotOverload,1,1);
-
-%P=PartsSearch(boolBaseNotOverload,TrekSet.STP.FrontN,TrekSet.STP.FrontN);
-%boolBaseNotOverload=P.bool;
+% all overloaded points must in boolOveload, but small spaces must be filled
+% to avoid jumping on overload border
+POverload=PartsSearch(~boolBaseNotOverload,TrekSetBase.STP.FrontN,1);
+boolBaseNotOverload=~POverload.bool;
 
 TrekSet.trek(~boolBaseNotOverload)=TrekSet2.trek(~boolBaseNotOverload)*Fit.fit(1)+Fit.fit(2);
 TrekSet.MaxSignal=TrekSet2.MaxSignal*Fit.fit(1)+Fit.fit(2);
@@ -36,11 +36,17 @@ TrekSet.MinSignal=TrekSet2.MinSignal*Fit.fit(1)+Fit.fit(2);
 trek=TrekSet.trek;
 difAll=trek-(TrekSet2.trek*Fit.fit(1)+Fit.fit(2));
 
-bool=false(TrekSet.size,1);
-for i=1:numel(POverload.PartLength) 
-    bool(POverload.SpaceStart(i)+1:POverload.SpaceStart(i)+TrekSet.STP.size-TrekSet.STP.MaxInd)=true;
-end;
-boolDisturbed=bool;
+ bool=false(TrekSet.size,1);
+ for i=1:numel(POverload.PartLength) 
+    IndStart=max([1,POverload.SpaceStart(i)+1]);
+    IndStart=min([TrekSet.size,IndStart]);
+    IndEnd=min([TrekSet.size,IndStart-1+TrekSet.STP.size-TrekSet.STP.MaxInd]);
+    if ~isempty([IndStart:IndEnd])
+        bool(IndStart:IndEnd)=true;
+    end;
+ end;
+
+boolDisturbed=bool; %take from fitting. We don't take boolDisturbed from Fit because boolOverloaded slightly differs according to different part searching
 bool=boolDisturbed&abs(difAll)>OverSt*Fit.DifNoise.StdVal&Fit.boolNotOverload;
 
 PSetInitial=PartsSearch(bool,100);
