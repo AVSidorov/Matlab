@@ -10,5 +10,5 @@ MinMaxSet=SpecialTreks(trek);
 [Ind,iMinMax,iReset]=intersect(MinMaxSet.MinInd,ResetInd);
 ResetStartInd=MinMaxSet.MaxInd(iMinMax-1);
 TrekSet.ResetInd=ResetInd;
-TrekSet.ResetStartInd=ResetStartInd;
- 
+TrekSet.ResetStartInd=ResetStartInd-5; % 5 points from analyzing Reset Pulse Form
+

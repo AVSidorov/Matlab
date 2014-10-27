@@ -19,7 +19,12 @@ PSet=PartsSearch(boolOverload,1,1);
 % search parts after overloading (may be disturbed)
 boolDisturbed = false(TrekSet1.size,1);
 for i=1:numel(PSet.PartLength) 
-    boolDisturbed(PSet.SpaceStart(i)+1:PSet.SpaceStart(i)+TrekSet1.STP.size-TrekSet1.STP.MaxInd)=true;
+    IndStart=max([1,PSet.SpaceStart(i)+1]);
+    IndStart=min([TrekSet1.size,IndStart]);
+    IndEnd=min([TrekSet1.size,IndStart-1+TrekSet1.STP.size-TrekSet1.STP.MaxInd]);
+    if ~isempty([IndStart:IndEnd])
+        boolDisturbed(IndStart:IndEnd)=true;
+    end;
 end;
 
 boolOverload=~boolNotOverload|boolDisturbed;            
