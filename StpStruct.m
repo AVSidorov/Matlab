@@ -40,7 +40,7 @@ if size(StandardPulse,2)==2
     sh=round(sh/TimeStep);
     FinePulse=circshift(FinePulse,sh); % it must work good soo zeros are in start/end
     
-    StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'cubic',0)';
+    StandardPulse=interp1(TimeInd,FinePulse,[1:fix(max(TimeInd))],'PCHIP',0)';
 %     StandardPulse=StandardPulse/max(StandardPulse);
 else
     TimeInd=[1:numel(StandardPulse)]';
