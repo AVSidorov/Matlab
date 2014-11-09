@@ -34,13 +34,18 @@ end;
 
 Sh=fix(shift);
 sh=shift-fix(shift);
+
+% Fitting window is binded with F original form
+% so we shift only not integer part and determine
+% new intersection (shift indexes);
+
+FIndShNorm=FInd-(FBaseInd-Sh);
+IndSh=intersect(YIndNorm,FIndShNorm);
+
 %%% TODO Pulse generation function as parameter;
-Pulse=circshift(F,Sh);
-Pulse=interp1(1:numel(F),Pulse,[1:numel(F)]-sh,'linear',0)';
 
-FIndSh=FInd+Sh; % Fitting window is binded with F original form
-FIndShNorm=FIndSh-FBaseInd;
-Ind=intersect(YIndNorm,FIndShNorm);
+Pulse=interp1([1:numel(F)],F,IndSh+(FBaseInd-Sh)-sh,'linear','extrap')';
+
+
 %% fitting
-
-[khi,FIT]=FitAB(Y(Ind+YBaseInd),Pulse(Ind+FBaseInd));
+[khi,FIT]=FitAB(Y(IndSh+YBaseInd),Pulse);
