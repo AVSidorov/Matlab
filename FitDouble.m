@@ -11,8 +11,8 @@ for sh1=-ShiftRange:2*ShiftRange/Nfit:ShiftRange
     for sh2=-ShiftRange:2*ShiftRange/Nfit:ShiftRange
         ii=ii+1;
         if sh1~=sh2
-            Pulse1=interp1([1:NF]',F,[1:NF]'+sh1,'linear',0);
-            Pulse2=interp1([1:NF]',F,[1:NF]'+sh2,'linear',0);
+            Pulse1=interp1([1:NF]',F,[1:NF]'-sh1,'linear',0);
+            Pulse2=interp1([1:NF]',F,[1:NF]'-sh2,'linear',0);
             FInd1=round(FInd-sh1);
             FInd1(FInd1<1|FInd1>numel(F))=[];
             FInd2=round(FInd-sh2);
@@ -43,7 +43,7 @@ for sh1=-ShiftRange:2*ShiftRange/Nfit:ShiftRange
                 z(i,ii)=inf;
             end;
         else
-            Pulse1=interp1([1:NF]',F,[1:NF]'+sh1,'linear',0);
+            Pulse1=interp1([1:NF]',F,[1:NF]'-sh1,'linear',0);
             FInd1=round(FInd-sh1);
             FInd1(FInd1<1|FInd1>numel(F))=[];
             FIndNorm1=FInd1-FBaseInd;
@@ -63,3 +63,6 @@ for sh1=-ShiftRange:2*ShiftRange/Nfit:ShiftRange
 end;
 ShAKhi=sortrows(ShAKhi,5);
 ShAKhi=ShAKhi(ShAKhi(:,3)>0&ShAKhi(:,4)>0,:);
+figure;
+grid on; hold on;
+contour(x,y,z,ShAKhi(1:20:2000,5));
