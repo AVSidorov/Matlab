@@ -110,7 +110,7 @@ PartLength(HoleEnd>TailInd)=[]; %remove parts after TailInd
 
 if ~isempty(FitIndPulseStrict)
     PartInd=find(FitIndPulse(HoleStart)>=FitIndPulseStrict(end),1,'first');
-elseif ~isempty(FitIndPulse)
+elseif ~isempty(FitIndPulse)&&~isempty(FitIndStrict)
     PartInd=find(FitInd(HoleStart)>=FitIndStrict(end),1,'first');
 else
     PartInd=find(PartLength>=MinPartLength,1,'first'); %take first longenough part

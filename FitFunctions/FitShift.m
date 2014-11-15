@@ -1,4 +1,4 @@
-function [Y,F]=FitShift(Y,F,YInd,FInd,YBaseInd,FBaseInd,shift)
+function [Y,F,FIT]=FitShift(Y,F,YInd,FInd,YBaseInd,FBaseInd,shift)
 %function for shifting f relative Y and choosing FitIndexes
 cut='Y';
 
@@ -41,8 +41,14 @@ sh=shift-fix(shift);
 FIndShNorm=FInd-(FBaseInd-Sh);
 IndSh=intersect(YIndNorm,FIndShNorm);
 
-Pulse=interp1([1:numel(F)],F,IndSh+(FBaseInd-Sh)-sh,'linear','extrap')';
+Pulse=interp1([1:numel(F)],F,IndSh+(FBaseInd-Sh)-sh,'linear','extrap');
 
 %% output
 Y=Y(IndSh+YBaseInd);
 F=Pulse;
+FIT.MaxShiftL=MaxShiftL;
+FIT.MaxShiftR=MaxShiftR;
+FIT.ShiftInt=Sh;
+FIT.ShiftFloat=sh;
+FIT.FitInd=IndSh+YBaseInd;
+FIT.FitIndPulse=IndSh+(FBaseInd-Sh);
