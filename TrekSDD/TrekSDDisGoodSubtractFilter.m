@@ -1,4 +1,4 @@
-function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT)
+function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,manual)
 
 isGood=false;
 
@@ -10,6 +10,9 @@ BckgFitN=5;
 FitIndPulseStrict=[TrekSet.STP.BckgFitN-BckgFitN:TrekSet.STP.MinFitPoint];
 [Ind,ia,ib]=intersect(FIT.FitIndPulse,FitIndPulseStrict);   
 FitPointBool=numel(ib)==numel(FitIndPulseStrict);
+if ~FitPointBool
+    FitPointBool=Bbool&FIT.FitIndPulse(1)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end)>=TrekSet.STP.MinFitPoint;
+end;
 
 trek=TrekSet1.trek(FIT.FitInd);
 PointBool=all(abs(trek)<TrekSet.StdVal*TrekSet.OverSt);
@@ -24,6 +27,8 @@ elseif Abool&&FitPointBool&&(~PointBool||~Bbool)
        if all(PartSet.bool)&&all(abs(BckgLine)<TrekSet.StdVal*TrekSet.OverSt)
            isGood=true;
        elseif all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)
+           isGood=true;
+       elseif numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
            isGood=true;
        else
            BadInd=FIT.FitInd(~PartSet.bool);
@@ -40,7 +45,7 @@ end;
 
 
 s='d';
-if (~isGood&&FIT.A>TrekSet.Threshold)||TrekSet.Plot
+if (~isGood&&manual)||TrekSet.Plot
      if exist('STP','var')==0&&isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)
         STP=TrekSet.STP;
      elseif exist('STP','var')==0
