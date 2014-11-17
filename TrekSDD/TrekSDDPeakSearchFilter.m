@@ -175,6 +175,7 @@ TrekSet=TrekSetIn;
 peaksBad(:,7)=1;
 peaks=[peaks;peaksBad];
 peaks(:,2)=peaks(:,1)*TrekSet.tau+TrekSet.StartTime;
+TrekSet.peaks=sortrows(peaks,2);
 peaks(2:end,3)=diff(TrekSet.peaks(:,2));
 peaks(:,4)=0;
-TrekSet.peaks=sortrows(peaks,2);
+
