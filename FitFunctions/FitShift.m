@@ -24,7 +24,7 @@ L2=YIndNorm(end)-FIndNorm(end);
 MaxShiftL=min([-L1,L2]);
 MaxShiftR=-min([L1,-L2]);
 
-if shift>MaxShiftR||shift<MaxShiftL
+if any(shift>MaxShiftR)||any(shift<MaxShiftL)
     warning('Bad Shift');
     return;
 end;
@@ -38,17 +38,19 @@ sh=shift-fix(shift);
 % so we shift only not integer part and determine
 % new intersection (shift indexes);
 
-FIndShNorm=FInd-(FBaseInd-Sh);
-IndSh=intersect(YIndNorm,FIndShNorm);
 
-Pulse=interp1([1:numel(F)],F,IndSh+(FBaseInd-Sh)-sh,'linear','extrap');
+for i=1:numel(shift)
+    FIndShNorm(:,i)=FInd-(FBaseInd-Sh(i));
+    IndSh(:,i)=intersect(YIndNorm,FIndShNorm(:,i));
+
+    Pulse(:,i)=interp1([1:numel(F)],F,IndSh(:,i)+(FBaseInd-Sh(i))-sh(i),'linear','extrap');
+end;
 
 %% output
-Y=Y(IndSh+YBaseInd);
+Y=Y(IndSh(:,1)+YBaseInd);
 F=Pulse;
 FIT.MaxShiftL=MaxShiftL;
 FIT.MaxShiftR=MaxShiftR;
 FIT.ShiftInt=Sh;
 FIT.ShiftFloat=sh;
 FIT.FitInd=IndSh+YBaseInd;
-FIT.FitIndPulse=IndSh+(FBaseInd-Sh);

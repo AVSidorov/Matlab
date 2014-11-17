@@ -1,5 +1,6 @@
 function [khi,FIT]=FitABN(Y,F)
-n=size(F,2);
+n=size(F,2)+1;
+F(:,end+1)=1;
 N=numel(Y);
 S=zeros(n);
 for i=1:n
