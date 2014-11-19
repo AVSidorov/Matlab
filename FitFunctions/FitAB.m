@@ -1,4 +1,4 @@
-function [khi,FIT]= FitAB(Y,F)
+function [khi,FIT]= FitAB(Y,F,FIT)
 % Fit function calculates linear coupling Y=AF+B and khi
 % Y,F must be same size
 N=numel(Y);
@@ -8,5 +8,5 @@ khi=sum((Y-A*F-B).^2)/N;
 FIT.Khi=khi;
 FIT.A=A;
 FIT.B=B;
-end
+
 

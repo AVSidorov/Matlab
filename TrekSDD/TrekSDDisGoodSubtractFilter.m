@@ -2,17 +2,27 @@ function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,m
 
 isGood=false;
 
-Abool=FIT.A>TrekSet.Threshold;
+if numel(FIT.A)>1
+    FIT.B=FIT.A(end);
+    FIT.A=FIT.A(1:end-1);
+    Abool=all(FIT.A>-TrekSet.Threshold);
+else
+    Abool=FIT.A>TrekSet.Threshold;
+end;
 
-Bbool=abs(FIT.B)<TrekSet.StdVal;
+    Bbool=abs(FIT.B)<TrekSet.StdVal;
+
 
 BckgFitN=5;
 FitIndPulseStrict=[TrekSet.STP.BckgFitN-BckgFitN:TrekSet.STP.MinFitPoint];
-[Ind,ia,ib]=intersect(FIT.FitIndPulse,FitIndPulseStrict);   
-FitPointBool=numel(ib)==numel(FitIndPulseStrict);
-if ~FitPointBool
-    FitPointBool=Bbool&FIT.FitIndPulse(1)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end)>=TrekSet.STP.MinFitPoint;
+for i=1:numel(FIT.A)
+    [Ind,ia,ib]=intersect(FIT.FitIndPulse(:,i),FitIndPulseStrict);   
+    FitPointBool(i)=numel(ib)==numel(FitIndPulseStrict);
+    if ~FitPointBool(i)
+        FitPointBool(i)=Bbool&FIT.FitIndPulse(1,i)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end,i)>=TrekSet.STP.MinFitPoint;
+    end;
 end;
+FitPointBool=all(FitPointBool);
 
 trek=TrekSet1.trek(FIT.FitInd);
 PointBool=all(abs(trek)<TrekSet.StdVal*TrekSet.OverSt);

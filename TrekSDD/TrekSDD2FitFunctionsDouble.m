@@ -7,18 +7,17 @@ FitIndPulse=[1:TrekSet.STP.size]';
 trek=TrekSet.trek;
 
 MaxIndStp=TrekSet.STP.MaxInd;
-MaxShiftR=FIT.ShiftRangeR;
-MaxShiftL=-FIT.ShiftRangeL;
 MaxInd=FIT.MaxInd;
 FitInd=FIT.FitInd;
+sh=FIT.Shift;
 
 ex=false;
 while ~ex
 
     FitIndStart=FitInd;
     
-
-    sh=fminsearch(@(sh)FitMovedDouble(trek,TrekSet.STP,FitInd,FitIndPulse,MaxInd,MaxIndStp,sh,@TrekSDD2FitShift,@FitDoubleAB),[-1,0]);
+    opt=optimset('TolX',1/20,'TolFun',1/100);
+    sh=fminsearch(@(sh)FitMovedDouble(trek,TrekSet.STP,FitInd,FitIndPulse,MaxInd,MaxIndStp,sh,@TrekSDD2FitShift,@FitDoubleAB),sh,opt);
     sh=sort(sh);
     [khi,FIT]=FitMovedDouble(trek,TrekSet.STP,FitInd,FitIndPulse,MaxInd,MaxIndStp,sh,@TrekSDD2FitShift,@FitDoubleAB);
     [Y,F1,FIT1]=TrekSDD2FitShift(trek,TrekSet.STP,FitInd,FitIndPulse,MaxInd,MaxIndStp,sh(1));
@@ -30,8 +29,6 @@ while ~ex
     FIT1.Khi=sqrt(sum(((Y-FIT.A1*F1-FIT.A2*F2-FIT.B)/TrekSet.StdVal).^2)/FIT1.N);
     FIT1.FitIndStrict=FIT1.FitInd;
     FIT1.FitIndPulseStrict=[];
-    FIT1.ShiftRangeL=MaxShiftL;
-    FIT1.ShiftRangeR=MaxShiftR;
     FIT1.FitFast=0;
     FIT1.BGLineFit=[0,0];
 
@@ -42,8 +39,6 @@ while ~ex
     FIT2.Khi=sqrt(sum(((Y-FIT.A1*F1-FIT.A2*F2-FIT.B)/TrekSet.StdVal).^2)/FIT1.N);
     FIT2.FitIndStrict=FIT1.FitInd;
     FIT2.FitIndPulseStrict=[];
-    FIT2.ShiftRangeL=MaxShiftL;
-    FIT2.ShiftRangeR=MaxShiftR;
     FIT2.FitFast=0;
     FIT2.BGLineFit=[0,0];
     

@@ -39,11 +39,29 @@ for i=1:size(TrekSetIn.peaks,1)
         [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
         if not(ExcelentFit)&&FIT.A>TrekSet.Threshold&&FIT.A<TrekSet.MaxSignal&&FIT.MaxInd>1.1e6
            FIT.FitInd=[StartInd:FIT.MaxInd]';
+           MaxIndByStartInd=StartInd+STP.FrontN;
+           shMin=MaxIndByStartInd-FIT.MaxInd;
+           if shMin~=0
+            FIT.Shift=[shMin;0];
+           else
+            FIT.Shift=[-2;0];
+           end;               
            [FIT1,FIT2]=TrekSDD2FitFunctionsDouble(TrekSet,FIT);
            [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT1);
            [TrekSet1,TrekSet2]=TrekSDDSubtract(TrekSet1,FIT2);
            if FIT1.A>0&&FIT2.A>0
-            [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet2,FIT1,true);
+            [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet2,FIT1,false);            
+           end;
+           FIT.Shift=[FIT1.Shift;FIT2.Shift];
+           while ~ExcelentFit
+            FIT.FitInd=[StartInd:round(FIT.MaxInd+max(FIT.Shift))]';         
+            FIT.Shift=[FIT.Shift;mean(FIT.Shift)];
+%             FIT.Shift=linspace(min([FIT.Shift;shMin]),max(FIT.Shift),numel(FIT.Shift)+1)';
+            FIT=TrekSDD2FitFunctionsN(TrekSet,FIT);
+            [TrekSet,TrekSet1]=TrekSDDSubtractN(TrekSet,FIT);
+            [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
+            ExcelentFit=true;
+            TrekSet=TrekSet1;
            end;
         end;
         assignin('base','TrekSet',TrekSet);

@@ -1,4 +1,4 @@
-function [khi,FIT]=FitABN(Y,F)
+function [khi,FIT]=FitABN(Y,F,FIT)
 n=size(F,2)+1;
 F(:,end+1)=1;
 N=numel(Y);
