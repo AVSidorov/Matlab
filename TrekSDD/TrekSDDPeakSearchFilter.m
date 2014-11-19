@@ -30,7 +30,11 @@ Stp(:,2)=STP.FinePulse;
 MaxTime=time(MI);
 Resp(:,1)=Stp(:,1);
 
-while FilterResponseWidth>=4
+stepN=4;
+WidthMax=FilterResponseWidth;
+FilterResponseWidth=4;
+f=(WidthMax/FilterResponseWidth)^(1/4);
+while FilterResponseWidth<=WidthMax
     %% filter calculating
     Resp(:,2)=exp(-(time-MaxTime).^2/(2*(sqrt(FilterResponseWidth)*TrekSet.tau)^2))';
 
@@ -166,7 +170,7 @@ while FilterResponseWidth>=4
      p(:,5)=trek(SelectedPeakInd);
 
      peaksBad=[peaksBad;p];
-    FilterResponseWidth=FilterResponseWidth/2;
+    FilterResponseWidth=FilterResponseWidth*f;
 end;
 
 %% final output
