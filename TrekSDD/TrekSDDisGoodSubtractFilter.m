@@ -2,6 +2,10 @@ function [isGood,TrekSet,FIT]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,m
 
 isGood=false;
 
+trek=TrekSet1.trek(FIT.FitInd);
+[fit,s,m]=polyfit(FIT.FitInd,trek,1);
+BckgLine=polyval(fit,FIT.FitInd,s,m);
+
 if numel(FIT.A)>1
     FIT.B=FIT.A(end);
     FIT.A=FIT.A(1:end-1);
@@ -10,7 +14,12 @@ else
     Abool=FIT.A>TrekSet.Threshold;
 end;
 
-    Bbool=abs(FIT.B)<TrekSet.StdVal;
+
+Bbool=abs(FIT.B)<TrekSet.StdVal;
+if ~Bbool   
+    Bbool=all(abs(BckgLine)<TrekSet.StdVal*TrekSet.OverSt);
+end;
+           
 
 
 BckgFitN=5;
@@ -24,31 +33,28 @@ for i=1:numel(FIT.A)
 end;
 FitPointBool=all(FitPointBool);
 
-trek=TrekSet1.trek(FIT.FitInd);
+
 PointBool=all(abs(trek)<TrekSet.StdVal*TrekSet.OverSt);
+if ~PointBool   
+   bool=abs(trek-BckgLine)<=TrekSet.StdVal*TrekSet.OverSt;
+   PartSet=PartsSearch(bool,2,10);
+   if all(PartSet.bool)
+       PointBool=true;
+   elseif all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)
+       PointBool=true;
+   elseif numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
+       PointBool=true;
+   else
+       BadInd=FIT.FitInd(~PartSet.bool);
+   end;
+end;
 
 if Abool&&Bbool&&FitPointBool&&PointBool
     isGood=true;
-elseif Abool&&FitPointBool&&(~PointBool||~Bbool)
-       [fit,s,m]=polyfit(FIT.FitInd,trek,1);
-       BckgLine=polyval(fit,FIT.FitInd,s,m);
-       bool=abs(trek-BckgLine)<=TrekSet.StdVal*TrekSet.OverSt;
-       PartSet=PartsSearch(bool,2,10);
-       if all(PartSet.bool)&&all(abs(BckgLine)<TrekSet.StdVal*TrekSet.OverSt)
-           isGood=true;
-       elseif all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)
-           isGood=true;
-       elseif numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
-           isGood=true;
-       else
-           BadInd=FIT.FitInd(~PartSet.bool);
-       end;
-elseif ~Abool&&FitPointBool
-   isGood=true;
-   return;
-elseif ~FitPointBool
-   isGood=false;
-   return;
+elseif Bbool&&FitPointBool&&PointBool
+    TrekSet=TrekSet1;
+    isGood=true;
+    return;
 end;    
 
 
@@ -131,6 +137,7 @@ end;
 if isGood
     TrekSet=TrekSet1;
     if lower(s)=='d'
-      TrekSet.peaks(end,7)=0;
+      Ind=[size(TrekSet.peaks,1)-(numel(FIT.A)-1):size(TrekSet.peaks,1)];
+      TrekSet.peaks(Ind,7)=0;
     end;
 end;
