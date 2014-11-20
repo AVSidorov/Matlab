@@ -12,6 +12,7 @@ MaxShiftL=-FIT.ShiftRangeL;
 
 
 ex=false;
+FitIndDir=0;
 while ~ex
     FitIndStart=FIT.FitInd;
 
@@ -40,4 +41,8 @@ while ~ex
     if FIT.MaxInd==MaxInd&&numel(FitIndStart)==numel(FIT.FitInd)&&numel(intersect(FitIndStart,FIT.FitInd))==numel(FitIndStart)
         ex=true;
     end;
+    if FitIndDir*sign(numel(FIT.FitInd)-numel(FitIndStart))<0
+        ex=true;
+    end;
+    FitIndDir=sign(numel(FIT.FitInd)-numel(FitIndStart));
 end;

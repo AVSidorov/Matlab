@@ -28,8 +28,12 @@ for i=1:size(TrekSetIn.peaks,1)
             continue;
         end;
         StartInd=find(TrekSet.trek(1:FIT.MaxInd)<TrekSet.StdVal*TrekSet.OverSt,1,'last')-BckgFitN;
-        FIT.A=TrekSetIn.peaks(i,5);        
-        FIT.FitIndStrict=[StartInd:FIT.MaxInd]'; 
+        MaxIndByStartInd=StartInd+STP.FrontN;
+        shMin=MaxIndByStartInd-FIT.MaxInd;
+        
+        FIT.FitIndStrict=[StartInd:FIT.MaxInd]';
+        FIT.A=TrekSetIn.peaks(i,5);
+        
         FIT=TrekSDDGetFitInd(TrekSet,FIT);      
         
         FIT.Good=all((TrekSet.trek(FIT.FitInd)-FIT.A*FIT.FitPulse(FIT.FitIndPulse)-FIT.B)<TrekSet.OverSt*TrekSet.StdVal);
@@ -39,8 +43,6 @@ for i=1:size(TrekSetIn.peaks,1)
         [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
         if not(ExcelentFit)&&FIT.A>TrekSet.Threshold&&FIT.A<TrekSet.MaxSignal&&FIT.MaxInd>1.1e6
            FIT.FitInd=[StartInd:FIT.MaxInd]';
-           MaxIndByStartInd=StartInd+STP.FrontN;
-           shMin=MaxIndByStartInd-FIT.MaxInd;
            if shMin~=0
             FIT.Shift=[shMin;0];
            else
@@ -61,7 +63,9 @@ for i=1:size(TrekSetIn.peaks,1)
             [TrekSet,TrekSet1]=TrekSDDSubtractN(TrekSet,FIT);
             [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
             ExcelentFit=true;
-            TrekSet=TrekSet1;
+             if all(FIT.A(1:end-1)>-TrekSet.Threshold)
+                TrekSet=TrekSet1;
+             end;
            end;
         end;
         assignin('base','TrekSet',TrekSet);

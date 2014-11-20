@@ -19,7 +19,7 @@ for i=1:numel(FIT.A)
     [Ind,ia,ib]=intersect(FIT.FitIndPulse(:,i),FitIndPulseStrict);   
     FitPointBool(i)=numel(ib)==numel(FitIndPulseStrict);
     if ~FitPointBool(i)
-        FitPointBool(i)=Bbool&FIT.FitIndPulse(1,i)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end,i)>=TrekSet.STP.MinFitPoint;
+        FitPointBool(i)=Bbool&FIT.FitIndPulse(1,i)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end,i)>=TrekSet.STP.MinFitPoint-1;
     end;
 end;
 FitPointBool=all(FitPointBool);
