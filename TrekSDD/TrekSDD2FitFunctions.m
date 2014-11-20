@@ -41,7 +41,7 @@ while ~ex
     if FIT.MaxInd==MaxInd&&numel(FitIndStart)==numel(FIT.FitInd)&&numel(intersect(FitIndStart,FIT.FitInd))==numel(FitIndStart)
         ex=true;
     end;
-    if FitIndDir*sign(numel(FIT.FitInd)-numel(FitIndStart))<0
+    if FIT.MaxInd==MaxInd&&FitIndDir*sign(numel(FIT.FitInd)-numel(FitIndStart))<0
         ex=true;
     end;
     FitIndDir=sign(numel(FIT.FitInd)-numel(FitIndStart));
