@@ -79,12 +79,12 @@ while FilterResponseWidth<=WidthMax
             fprintf('Now  Threshold is %4.0f\n',Threshold);
             ch=input('For change Threshold input (g)raphic choise, or any other symbol for comand line\n','s');
             figure(h1);
-            if ~isempty(ch)&&~isempty(str2num(ch))
+            if ~isempty(ch)&&~isempty(str2num(ch))&&str2num(ch)>=TrekSetF.StdVal
                  Threshold=str2num(ch);
             elseif strcmpi(ch,'g')
                 [x,y]=ginput(1);
                 Threshold=ceil(x);                
-            else ~isempty(ch) 
+            elseif ~isempty(ch)
                 ThresholdIn=input('New Threshold is ');
                 if ~isempty(ThresholdIn)
                     Threshold=ThresholdIn;
@@ -96,6 +96,7 @@ while FilterResponseWidth<=WidthMax
 
        %% indexes finding
         SelectedPeakInd=find(S.MaxBool&trek>Threshold&TrekSet.trek<TrekSet.MaxSignal);
+        SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];
        %% Determinition Pulse interval above noise and not intersected with neighbour pulses
         % intial amlitude is trek value in selected point 
 
@@ -122,25 +123,23 @@ while FilterResponseWidth<=WidthMax
             Dafter(i,1)=min([DeltaI(i),round(Iafter(i)-Delta(i+1))]);
         end;
         Dafter(end,1)=DeltaI(end);
-
-        bool=Dafter<1|Dbefore<1;
+        
+        bool=(Dafter+Dbefore)<1;
         Dafter(bool)=[];
         Dbefore(bool)=[];
-
-
         
         SelectedPeakInd(bool)=[];
 
-        % determine amplitude by integral
+       %% determine amplitude by integral
         Amp=zeros(size(SelectedPeakInd));
         for i=1:numel(SelectedPeakInd)
            Amp(i,1)=sum(trek(SelectedPeakInd(i)-Dbefore(i):SelectedPeakInd(i)+Dafter(i)))/(sum(Resp(MI-round(Dbefore(i)/STP.TimeStep):MI+round(Dafter(i)/STP.TimeStep),2))*STP.TimeStep); 
         end;
-
-        bool=Amp<Threshold|SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma|Amp-trek(SelectedPeakInd)>TrekSet.Threshold;
-        SelectedPeakInd(bool)=[];
-        Amp(bool)=[];
         
+        bool=Amp<Threshold;
+        Amp(bool)=[];
+        SelectedPeakInd(bool)=[];
+        %% saving founded peaks and cleaning TrekSet.trek for research
         if ~isempty(SelectedPeakInd)&&numel(SelectedPeakInd)<NAdded(end);        
             NAdded(end+1)=numel(SelectedPeakInd);
             TrekSet.peaks=[];
@@ -149,6 +148,8 @@ while FilterResponseWidth<=WidthMax
             TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
             TrekSet.peaks(:,4)=0;
             TrekSet.peaks(:,5)=Amp;
+            bool=Amp-trek(SelectedPeakInd)>TrekSet.Threshold;
+            TrekSet.peaks(bool,5)=trek(SelectedPeakInd(bool));
             TrekSet.peaks(:,7)=0;
             peaks=[peaks;TrekSet.peaks];        
             fprintf('Added %5.0f peaks in %5.2f sec\n', NAdded(end),toc);
@@ -157,29 +158,18 @@ while FilterResponseWidth<=WidthMax
             ex=false;
         end;
 
-    end;
+    end;   
     
-    SelectedPeakInd=find(S.MaxBool&trek>Threshold&TrekSet.trek<TrekSet.MaxSignal);
-    SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];        
-     if ~isempty(peaksBad)
-         peaksBad(peaksBad(:,5)>Threshold,:)=[];
-     end;
-
-     p=zeros(size(SelectedPeakInd));
-     p(:,1)=SelectedPeakInd;
-     p(:,5)=trek(SelectedPeakInd);
-
-     peaksBad=[peaksBad;p];
     FilterResponseWidth=FilterResponseWidth*f;
 end;
 
 %% final output
 trekMinus=TrekSet.trek;
 TrekSet=TrekSetIn;
-peaksBad(:,7)=1;
-peaks=[peaks;peaksBad];
 peaks(:,2)=peaks(:,1)*TrekSet.tau+TrekSet.StartTime;
-TrekSet.peaks=sortrows(peaks,2);
-peaks(2:end,3)=diff(TrekSet.peaks(:,2));
+peaks(2:end,3)=diff(peaks(:,2));
 peaks(:,4)=0;
+peaks=sortrows(peaks,2);
+TrekSet.peaks=peaks;
+
 
