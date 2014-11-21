@@ -26,14 +26,14 @@ while ~ex
     FIT.B=FIT1.B;
     FIT.Shift=sh;
     FIT.N=numel(Y);
-    FIT.Khi=sqrt(sum(((Y-FIT.A*F-FIT.B)/TrekSet.StdVal).^2)/FIT.N);
-    FIT.FitIndStrict=FIT.FitInd;
+    FIT.Khi=sqrt(sum(((Y-FIT.A*F-FIT.B)/TrekSet.StdVal).^2)/FIT.N);    
     FIT.FitIndPulseStrict=FitIndPulseStrict;
     FIT.ShiftRangeL=MaxShiftL;
     FIT.ShiftRangeR=MaxShiftR;
     FIT.FitFast=0;
     FIT.BGLineFit=[0,0];
     if abs(sh-MaxShiftL)<0.5||abs(sh-MaxShiftR)<0.5
+        FIT.FitIndStrict=FIT.FitInd;
         FIT.MaxInd=FIT.MaxInd+round(sh);
     end;
     FIT=TrekSDDGetFitInd(TrekSet,FIT);
