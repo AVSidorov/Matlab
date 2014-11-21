@@ -37,10 +37,10 @@ FitPointBool=all(FitPointBool);
 PointBool=all(abs(trek)<TrekSet.StdVal*TrekSet.OverSt);
 if ~PointBool   
    bool=abs(trek-BckgLine)<=TrekSet.StdVal*TrekSet.OverSt;
-   PartSet=PartsSearch(bool,2,10);
+   PartSet=PartsSearch(bool,3,10);
    if all(PartSet.bool)
        PointBool=true;
-   elseif all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)
+   elseif all(abs(trek(~PartSet.bool))<TrekSet.Threshold)||all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)
        PointBool=true;
    elseif numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
        PointBool=true;
