@@ -25,9 +25,18 @@ if Shift<0
 end;
 FitPulse(FitPulse(1:STP.MaxInd)<0)=0;
 bool=FitPulse<0;
-bool(1:STP.IndPositiveTail(3))=false;
+Ind=STP.IndNegativeTail(end);
+if numel(STP.IndPositiveTail)>=3
+    Ind=STP.IndPositiveTail(3);
+end;
+bool(1:Ind)=false;
 FitPulse(bool)=0;
-FitPulse(1:STP.BckgFitN-round(Shift))=0;
-FitPulse(end-(STP.ZeroTailN-1+round(Shift)):end)=0; 
+
+if STP.BckgFitN-round(Shift)>=1&&STP.BckgFitN-round(Shift)<=StpN
+    FitPulse(1:STP.BckgFitN-round(Shift))=0;
+end;
+if STP.ZeroTailN-1+round(Shift)>0&&STP.ZeroTailN-1+round(Shift)<StpN
+    FitPulse(end-(STP.ZeroTailN-1+round(Shift)):end)=0; 
+end;
 
 % FitPulse=FitPulse/max(FitPulse);
