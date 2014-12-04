@@ -1,6 +1,6 @@
 function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,FilterResponseWidth)
 
-TrekSetIn=TrekSet;
+
 
 if nargin<2
     FilterResponseWidth=10;
@@ -10,7 +10,12 @@ peaks=[];
 peaksBad=[];
 
 %% searching Reset Pulses intervals
-TrekSet=TrekSDDResetFind(TrekSet);
+if ~isfield(TrekSet,'ResetInd')
+    TrekSet=TrekSDDResetFind(TrekSet);
+end;
+if ~isfield(TrekSet,'OverloadStart')
+    TrekSet=TrekOverloadFind(TrekSet);
+end;
 
 % for i=1:numel(TrekSet.ResetStartInd)
 %      Ind=[TrekSet.ResetStartInd(i):TrekSet.ResetInd(i)]';
@@ -18,7 +23,7 @@ TrekSet=TrekSDDResetFind(TrekSet);
 %      TrekSet.trek(Ind)=polyval(fit,Ind,s,m);
 %  end;
 
-
+TrekSetIn=TrekSet;
 
 %% filter initialization
 
@@ -56,6 +61,11 @@ while FilterResponseWidth<=WidthMax
              Ind=[TrekSet.ResetStartInd(i):min([TrekSet.size,TrekSet.ResetInd(i)+100])]';
              trek(Ind)=0;
          end;
+         for i=1:numel(TrekSet.OverloadStart)
+             Ind=[TrekSet.OverloadStart(i):TrekSet.OverloadEnd(i)]';
+             trek(Ind)=0;
+         end;
+
 
         S=SpecialTreks(trek);
      %% determintion of Threshold for filtered trek
