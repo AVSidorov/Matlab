@@ -1,5 +1,6 @@
 function FIT=TrekSDD2FitFunctions(TrekSet,FIT)
-fprintf('Time fiting started. Ind is %6d\n',FIT.MaxInd);
+fprintf('Time fitting started. Ind is %6d\n',FIT.MaxInd);
+t=tic;
 % This function is gate between TrekSDD proccesing functions and Fit..
 % functions
 
@@ -38,7 +39,8 @@ while ~ex
     end;
     FIT=TrekSDDGetFitInd(TrekSet,FIT);
     
-    if FIT.MaxInd==MaxInd&&numel(FitIndStart)==numel(FIT.FitInd)&&numel(intersect(FitIndStart,FIT.FitInd))==numel(FitIndStart)
+    
+    if FIT.MaxInd==MaxInd&&numel(FitIndStart)==numel(FIT.FitInd)&&numel(intersect(FitIndStart,FIT.FitInd))==numel(FitIndStart)||toc(t)>5
         ex=true;
     end;
     if FIT.MaxInd==MaxInd&&FitIndDir*sign(numel(FIT.FitInd)-numel(FitIndStart))<0
