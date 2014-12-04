@@ -8,5 +8,9 @@ khi=sum((Y-A*F-B).^2)/N;
 FIT.Khi=khi;
 FIT.A=A;
 FIT.B=B;
+FIT.Y=Y;
+FIT.Ffit=F*A;
+FIT.Yfit=FIT.Ffit;
+FIT.N=N;
 
 

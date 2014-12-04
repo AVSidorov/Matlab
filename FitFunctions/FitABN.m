@@ -19,5 +19,7 @@ end;
 khi=sum((Y-sum(Ffit,2)).^2)/N;
 FIT.A=A;
 FIT.khi=khi;
+FIT.Y=Y;
 FIT.Ffit=Ffit;
 FIT.Yfit=sum(Ffit,2);
+FIT.N=N;
