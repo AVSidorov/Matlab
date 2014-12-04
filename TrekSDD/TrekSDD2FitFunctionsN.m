@@ -1,5 +1,5 @@
 function FIT=TrekSDD2FitFunctionsN(TrekSet,FIT)
-fprintf('Time fiting started. Ind is %6d\n',FIT.MaxInd);
+fprintf('Double Time fitting started. Ind is %6d\n',FIT.MaxInd);
 % This function is gate between TrekSDD proccesing functions and Fit..
 % functions
 
