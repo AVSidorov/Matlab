@@ -40,14 +40,14 @@ if ~PointBool
    PartSet=PartsSearch(bool,3,10);
    if all(PartSet.bool)||all(abs(trek(~PartSet.bool))<TrekSet.Threshold)||...
       all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)||...    
-      numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
+      (numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1&&all(trek(PartSet.SpaceStart:end)>TrekSet.StdVal));
        PointBool=true;
    else
        bool=abs(trek-BckgLine)<=TrekSet.StdVal*TrekSet.OverSt;
        PartSet=PartsSearch(bool,3,10);
        if all(PartSet.bool)||all(abs(trek(~PartSet.bool))<TrekSet.Threshold)||...
           all(abs(trek(~PartSet.bool)-BckgLine(~PartSet.bool))<TrekSet.Threshold)||...
-          numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1;
+          (numel(PartSet.SpaceStart)==1&&PartSet.SpaceEnd(1)==1&&all(trek(PartSet.SpaceStart:end)-BckgLine(PartSet.SpaceStart:end)>TrekSet.StdVal));
            PointBool=true;       
        else
            BadInd=FIT.FitInd(~PartSet.bool);
