@@ -27,7 +27,11 @@ for i=1:size(TrekSetIn.peaks,1)
         if TrekSet.trek(FIT.MaxInd)<TrekSet.Threshold
             continue;
         end;
-        MaxIndNext=TrekSetIn.peaks(i+1,1);
+        if i<size(TrekSetIn.peaks,1)
+            MaxIndNext=TrekSetIn.peaks(i+1,1);
+        else
+            MaxIndNext=FIT.MaxInd;
+        end;
         MaxIndNextGood=TrekSetIn.peaks(find(TrekSetIn.peaks(:,1)>FIT.MaxInd&TrekSetIn.peaks(:,7)==0,1,'first'),1);
         StartInd=find(TrekSet.trek(1:FIT.MaxInd)<TrekSet.StdVal*TrekSet.OverSt,1,'last')-BckgFitN;
         MaxIndByStartInd=StartInd+STP.FrontN;
