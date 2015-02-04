@@ -21,17 +21,20 @@ if ~Bbool
 end;
            
 
-
-BckgFitN=5;
-FitIndPulseStrict=[TrekSet.STP.BckgFitN-BckgFitN:TrekSet.STP.MinFitPoint];
-for i=1:numel(FIT.A)
-    [Ind,ia,ib]=intersect(FIT.FitIndPulse(:,i),FitIndPulseStrict);   
-    FitPointBool(i)=numel(ib)==numel(FitIndPulseStrict);
-    if ~FitPointBool(i)
-        FitPointBool(i)=Bbool&FIT.FitIndPulse(1,i)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end,i)>=TrekSet.STP.MinFitPoint-1;
+if ~isempty(FIT.FitIndPulse)
+    BckgFitN=5;
+    FitIndPulseStrict=[TrekSet.STP.BckgFitN-BckgFitN:TrekSet.STP.MinFitPoint];
+    for i=1:numel(FIT.A)
+        [Ind,ia,ib]=intersect(FIT.FitIndPulse(:,i),FitIndPulseStrict);   
+        FitPointBool(i)=numel(ib)==numel(FitIndPulseStrict);
+        if ~FitPointBool(i)
+            FitPointBool(i)=Bbool&FIT.FitIndPulse(1,i)<TrekSet.STP.BckgFitN&FIT.FitIndPulse(end,i)>=TrekSet.STP.MinFitPoint-1;
+        end;
     end;
+    FitPointBool=all(FitPointBool);
+else
+    FitPointBool=false;
 end;
-FitPointBool=all(FitPointBool);
 
 
 PointBool=all(abs(trek)<TrekSet.StdVal*TrekSet.OverSt);
