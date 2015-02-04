@@ -35,10 +35,10 @@ Stp(:,2)=STP.FinePulse;
 MaxTime=time(MI);
 Resp(:,1)=Stp(:,1);
 
-stepN=4;
+stepN=5;
 WidthMax=FilterResponseWidth;
-FilterResponseWidth=4;
-f=(WidthMax/FilterResponseWidth)^(1/4);
+FilterResponseWidth=2;
+f=(WidthMax/FilterResponseWidth)^(1/stepN);
 while FilterResponseWidth<=WidthMax
     %% filter calculating
     Resp(:,2)=exp(-(time-MaxTime).^2/(2*(sqrt(FilterResponseWidth)*TrekSet.tau)^2))';
@@ -107,48 +107,50 @@ while FilterResponseWidth<=WidthMax
        %% indexes finding
         SelectedPeakInd=find(S.MaxBool&trek>Threshold&TrekSet.trek<TrekSet.MaxSignal);
         SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];
-       %% Determinition Pulse interval above noise and not intersected with neighbour pulses
-        % intial amlitude is trek value in selected point 
+        if ~isempty(SelectedPeakInd)
+            %% Determinition Pulse interval above noise and not intersected with neighbour pulses
+            % intial amlitude is trek value in selected point 
 
-        %determine for each pulse interval above noise (half width)
-        Delta=sqrt(-log(TrekSetF.StdVal./trek(SelectedPeakInd))*2*(sqrt(FilterResponseWidth)*0.02)^2)/TrekSet.tau;
-        DeltaI=round(Delta);
+            %determine for each pulse interval above noise (half width)
+            Delta=sqrt(-log(TrekSetF.StdVal./trek(SelectedPeakInd))*2*(sqrt(FilterResponseWidth)*0.02)^2)/TrekSet.tau;
+            DeltaI=round(Delta);
 
-        %deterimine iterval to previouse and next
-        Ibefore=zeros(size(SelectedPeakInd));
-        Ibefore(2:end)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
-        Dbefore=zeros(size(SelectedPeakInd));
-        Dbefore(1,1)=DeltaI(1);
-        for i=2:numel(SelectedPeakInd)
-            Dbefore(i,1)=min([DeltaI(i),round(Ibefore(i)-Delta(i-1))]);
+            %deterimine iterval to previouse and next
+            Ibefore=zeros(size(SelectedPeakInd));
+            Ibefore(2:end)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
+            Dbefore=zeros(size(SelectedPeakInd));
+            Dbefore(1,1)=DeltaI(1);
+            for i=2:numel(SelectedPeakInd)
+                Dbefore(i,1)=min([DeltaI(i),round(Ibefore(i)-Delta(i-1))]);
+            end;
+
+
+            Iafter=zeros(size(SelectedPeakInd));
+            Iafter(end)=TrekSet.size-SelectedPeakInd(end);
+            Iafter(1:end-1)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
+
+            Dafter=zeros(size(SelectedPeakInd));
+            for i=1:numel(SelectedPeakInd)-1
+                Dafter(i,1)=min([DeltaI(i),round(Iafter(i)-Delta(i+1))]);
+            end;
+            Dafter(end,1)=DeltaI(end);
+
+            bool=(Dafter+Dbefore)<1;
+            Dafter(bool)=[];
+            Dbefore(bool)=[];
+
+            SelectedPeakInd(bool)=[];
+
+           %% determine amplitude by integral
+            Amp=zeros(size(SelectedPeakInd));
+            for i=1:numel(SelectedPeakInd)
+               Amp(i,1)=sum(trek(SelectedPeakInd(i)-Dbefore(i):SelectedPeakInd(i)+Dafter(i)))/(sum(Resp(MI-round(Dbefore(i)/STP.TimeStep):MI+round(Dafter(i)/STP.TimeStep),2))*STP.TimeStep); 
+            end;
+
+            bool=Amp<Threshold;
+            Amp(bool)=[];
+            SelectedPeakInd(bool)=[];
         end;
-
-
-        Iafter=zeros(size(SelectedPeakInd));
-        Iafter(end)=TrekSet.size-SelectedPeakInd(end);
-        Iafter(1:end-1)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
-
-        Dafter=zeros(size(SelectedPeakInd));
-        for i=1:numel(SelectedPeakInd)-1
-            Dafter(i,1)=min([DeltaI(i),round(Iafter(i)-Delta(i+1))]);
-        end;
-        Dafter(end,1)=DeltaI(end);
-        
-        bool=(Dafter+Dbefore)<1;
-        Dafter(bool)=[];
-        Dbefore(bool)=[];
-        
-        SelectedPeakInd(bool)=[];
-
-       %% determine amplitude by integral
-        Amp=zeros(size(SelectedPeakInd));
-        for i=1:numel(SelectedPeakInd)
-           Amp(i,1)=sum(trek(SelectedPeakInd(i)-Dbefore(i):SelectedPeakInd(i)+Dafter(i)))/(sum(Resp(MI-round(Dbefore(i)/STP.TimeStep):MI+round(Dafter(i)/STP.TimeStep),2))*STP.TimeStep); 
-        end;
-        
-        bool=Amp<Threshold;
-        Amp(bool)=[];
-        SelectedPeakInd(bool)=[];
         %% saving founded peaks and cleaning TrekSet.trek for research
         if ~isempty(SelectedPeakInd)&&numel(SelectedPeakInd)<NAdded(end);        
             NAdded(end+1)=numel(SelectedPeakInd);
