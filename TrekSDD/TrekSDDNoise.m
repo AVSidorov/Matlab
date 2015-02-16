@@ -30,10 +30,17 @@ else
     EndInd=round(EndTime/TrekSet.tau)+1;
 end;
 
-%% Noise determination
+%% Initial Noise determination
 trek=TrekSet.trek(StartInd:EndInd);
 NoiseSet=NoiseStd(trek);
-%NoiseSet=NoiseHist(trek,NoiseSet);
+%% Search Long enough parts
+bool=TrekSet.trek<NoiseSet.Thr;
+PSet=PartsSearch(bool,3,1000);
+trek=TrekSet.trek(PSet.bool);
+%% Search noise using assumpition that noise is normal distibuted
+% NoiseSet=NoiseHist(trek,NoiseSet);
+%% Correction Threshold due to full size of trek
+% TODO
 
 %% Output
 TrekSet.NoiseSet=NoiseSet;

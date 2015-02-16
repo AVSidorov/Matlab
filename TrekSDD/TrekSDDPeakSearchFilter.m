@@ -1,13 +1,11 @@
 function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,FilterResponseWidth)
 
-
-
 if nargin<2
-    FilterResponseWidth=10;
+    FilterResponseWidth=0.8;
 end;
 
 peaks=[];
-peaksBad=[];
+
 
 %% searching Reset Pulses intervals
 if ~isfield(TrekSet,'ResetInd')
@@ -36,38 +34,37 @@ MaxTime=time(MI);
 Resp(:,1)=Stp(:,1);
 
 stepN=5;
-WidthMax=FilterResponseWidth;
-FilterResponseWidth=2;
+WidthMax=FilterResponseWidth/(2*sqrt(2*log(2)));
+FilterResponseWidth=TrekSet.tau*3/(2*sqrt(2*log(2)));
 f=(WidthMax/FilterResponseWidth)^(1/stepN);
+n=1;
 while FilterResponseWidth<=WidthMax
     %% filter calculating
-    Resp(:,2)=exp(-(time-MaxTime).^2/(2*(sqrt(FilterResponseWidth)*TrekSet.tau)^2))';
-
+    Resp=GaussResponse(Stp,FilterResponseWidth);
+    
     Kernel=MakeKernelByResponse(Resp,Stp,false);
     kernel=KernelByTimeStep(Kernel,0.02);
-
+    StpFilt=filter(kernel,1,STP.Stp);
+    [M,MaxIndFilt]=max(StpFilt);
 
     %% Peaks Searching
-    ex=true;
-    NAdded=inf;
-    % peaks=[];
-    kernel=kernel(1:137);
     Threshold=[];
-    while ex
-        tic;
-        trek=filter(kernel,1,TrekSet.trek);
+    
+    tic;
+    trek=filter(kernel,1,TrekSet.trek);
+    trek=circshift(trek,STP.MaxInd-MaxIndFilt);
 
-         for i=1:numel(TrekSet.ResetStartInd)
-             Ind=[TrekSet.ResetStartInd(i):min([TrekSet.size,TrekSet.ResetInd(i)+100])]';
-             trek(Ind)=0;
-         end;
-         for i=1:numel(TrekSet.OverloadStart)
-             Ind=[TrekSet.OverloadStart(i):TrekSet.OverloadEnd(i)]';
-             trek(Ind)=0;
-         end;
+     for i=1:numel(TrekSet.ResetStartInd)
+         Ind=[TrekSet.ResetStartInd(i):min([TrekSet.size,TrekSet.ResetInd(i)+100])]';
+         trek(Ind)=0;
+     end;
+     for i=1:numel(TrekSet.OverloadStart)
+         Ind=[TrekSet.OverloadStart(i):TrekSet.OverloadEnd(i)]';
+         trek(Ind)=0;
+     end;
 
 
-        S=SpecialTreks(trek);
+     S=SpecialTreks(trek);
      %% determintion of Threshold for filtered trek
         if isempty(Threshold);
             TrekSetF=TrekSet;
@@ -107,72 +104,46 @@ while FilterResponseWidth<=WidthMax
        %% indexes finding
         SelectedPeakInd=find(S.MaxBool&trek>Threshold&TrekSet.trek<TrekSet.MaxSignal);
         SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];
-        if ~isempty(SelectedPeakInd)
-            %% Determinition Pulse interval above noise and not intersected with neighbour pulses
-            % intial amlitude is trek value in selected point 
 
-            %determine for each pulse interval above noise (half width)
-            Delta=sqrt(-log(TrekSetF.StdVal./trek(SelectedPeakInd))*2*(sqrt(FilterResponseWidth)*0.02)^2)/TrekSet.tau;
-            DeltaI=round(Delta);
-
-            %deterimine iterval to previouse and next
-            Ibefore=zeros(size(SelectedPeakInd));
-            Ibefore(2:end)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
-            Dbefore=zeros(size(SelectedPeakInd));
-            Dbefore(1,1)=DeltaI(1);
-            for i=2:numel(SelectedPeakInd)
-                Dbefore(i,1)=min([DeltaI(i),round(Ibefore(i)-Delta(i-1))]);
+        %% combining peaks with previous filter
+        if ~isempty(SelectedPeakInd)        
+            if isempty(peaks)
+               PeakSet=struct;
             end;
-
-
-            Iafter=zeros(size(SelectedPeakInd));
-            Iafter(end)=TrekSet.size-SelectedPeakInd(end);
-            Iafter(1:end-1)=SelectedPeakInd(2:end)-SelectedPeakInd(1:end-1);
-
-            Dafter=zeros(size(SelectedPeakInd));
-            for i=1:numel(SelectedPeakInd)-1
-                Dafter(i,1)=min([DeltaI(i),round(Iafter(i)-Delta(i+1))]);
+                PeakSet(end).Ind=SelectedPeakInd;           
+                PeakSet(end).size=TrekSet.size;
+                PeakSet(end).Amp=trek(SelectedPeakInd);
+                PeakSet(end).trek=trek;
+                PeakSet(end).Threshold=Threshold;
+                PeakSet(end).sigma=FilterResponseWidth;
+                PeakSet(end).step=n;
+                PeakSet(end).StepMarker=zeros(size(trek));
+                PeakSet(end).StepMarker(SelectedPeakInd)=n;
+            if isempty(peaks)
+                peaks=PeakSet;
+            else      
+                peaks=PeaksMerge(peaks,PeakSet(end));
             end;
-            Dafter(end,1)=DeltaI(end);
-
-            bool=(Dafter+Dbefore)<1;
-            Dafter(bool)=[];
-            Dbefore(bool)=[];
-
-            SelectedPeakInd(bool)=[];
-
-           %% determine amplitude by integral
-            Amp=zeros(size(SelectedPeakInd));
-            for i=1:numel(SelectedPeakInd)
-               Amp(i,1)=sum(trek(SelectedPeakInd(i)-Dbefore(i):SelectedPeakInd(i)+Dafter(i)))/(sum(Resp(MI-round(Dbefore(i)/STP.TimeStep):MI+round(Dafter(i)/STP.TimeStep),2))*STP.TimeStep); 
-            end;
-
-            bool=Amp<Threshold;
-            Amp(bool)=[];
-            SelectedPeakInd(bool)=[];
+            fprintf('Now %5.0f peaks founded. Last iteration %5.2f sec\n', numel(peaks.Ind),toc);
         end;
-        %% saving founded peaks and cleaning TrekSet.trek for research
-        if ~isempty(SelectedPeakInd)&&numel(SelectedPeakInd)<NAdded(end);        
-            NAdded(end+1)=numel(SelectedPeakInd);
-            TrekSet.peaks=[];
-            TrekSet.peaks(:,1)=SelectedPeakInd;
-            TrekSet.peaks(:,2)=SelectedPeakInd*TrekSet.tau+TrekSet.StartTime;
-            TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
-            TrekSet.peaks(:,4)=0;
-            TrekSet.peaks(:,5)=Amp;
-            bool=Amp-trek(SelectedPeakInd)>TrekSet.Threshold;
-            TrekSet.peaks(bool,5)=trek(SelectedPeakInd(bool));
-            TrekSet.peaks(:,7)=0;
-            peaks=[peaks;TrekSet.peaks];        
-            fprintf('Added %5.0f peaks in %5.2f sec\n', NAdded(end),toc);
-            TrekSet=TrekSubtractByPeaks(TrekSet);
-        else
-            ex=false;
-        end;
-
-    end;   
-    
-    FilterResponseWidth=FilterResponseWidth*f;
+     %% Calculating apmlitude
+%      % determination integration winwow width
+%       n1=round(MaxIndFilt-find(StpFilt*mean(peaks.Amp)>1,1,'first'));
+%       n2=round(find(StpFilt*mean(peaks.Amp)>1,1,'last')-MaxIndFilt);
+%       WHlfWidht=round(mean([n1,n2]));
+%       WWidth=2*WHlfWidht+1;
+%      % calculating initial Amps
+%      trekI=filter(ones(WWidth,1),1,trek);
+%      trekI=circshift(trekI,-WHlfWidht-1)/sum(StpFilt(MaxIndFilt-WHlfWidht:MaxIndFilt+WHlfWidht));
+%      p=[];
+%      p(:,1)=peaks.Ind;
+%      p(:,2)=trekI(p(:,1));
+%      % determination Amps by linear equation system
+%      Amps=TrekSDDAmplitude(p,@(delay)KbyDelayIntegral(delay,StpFilt,WWidth));
+%      peaks.Amp=Amps;
+     
+     FilterResponseWidth=FilterResponseWidth*f;
+     n=n+1;
 end;
 
 %% final output
