@@ -1,5 +1,6 @@
-function Response=GaussResponse(InputPulse,sigma)
+function Response=GaussResponse(InputPulse,fwhm)
 % input pulse must contain time and value columns
+sigma=fwhm/(2*sqrt(2*log(2)));
 bool=InputPulse(:,2)>0;
 Ind=find(bool);
 [M,MI]=max(InputPulse(:,2));
