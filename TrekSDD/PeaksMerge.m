@@ -25,56 +25,81 @@ fprintf('removed %3.0f noise marks\n',numel(Ind));
 boolDoubled=false(peaks1.size,1);
 boolCombine=false(peaks1.size,1);
 boolDoubledDouble=false(peaks1.size,1);
+IndPairSave=[];
 
 
-bool=false(peaks1.size,1);
+bool10=false(peaks1.size,1);
+bool2=false(peaks1.size,1);
 
-bool1=bool;
-bool2=bool;
-
-bool1(peaks1.Ind(:,1))=true;
+bool10(peaks1.Ind(:,1))=true;
 bool2(peaks2.Ind)=true;
 
-bool=bool1|bool2;
+for i=1:size(peaks1.Ind,2)
+    bool1=false(peaks1.size,1);
+    bool1(peaks1.Ind(:,i))=true;
+
+
+    bool=bool1|bool2;
+
+    Ind=find(bool);
+    IndL=circshift(Ind,-1);
+    IndR=circshift(Ind,1);
+
+    origin=zeros(peaks1.size,1);
+    origin(bool1)=origin(bool1)+1;
+    origin(bool2)=origin(bool2)+2;
+
+
+
+    % remove peaks with small distance (different markers for same pulse)
+
+    dAfter=Ind(1:end-1)-Ind(2:end);
+    dBefore=Ind(2:end)-Ind(1:end-1);
+    dAfter=[dAfter;peaks1.size-Ind(end)];
+    dBefore=[Ind(1);dBefore];
+    dAfter=abs(dAfter);
+    IndDoubled=Ind((origin(Ind)==2)&((origin(IndL)==1&dAfter<=space)|(origin(IndR)==1&dBefore<=space)));
+    boolDoubled(IndDoubled)=true;
+
+    IndDoubledDouble=Ind(origin(Ind)==2&origin(IndL)==1&origin(IndR)==1&dAfter<=space&dBefore<=space);
+    boolDoubledDouble(IndDoubledDouble)=true;
+
+    % find combined marks
+    IndCombine=Ind(origin(Ind)==2&origin(IndL)==1&origin(IndR)==1&(IndL-IndR)<2*fwhm);
+    boolCombine(IndCombine)=true;
+
+
+    
+    IndPairL=find((origin(Ind)==1)&(origin(IndR)==2&dBefore<=space)); %indexes in space(size) Ind
+    IndPairR=find((origin(Ind)==1)&(origin(IndL)==2&dAfter<=space));
+    IndPair=[[Ind(IndPairL),IndR(IndPairL)];[Ind(IndPairR),IndL(IndPairR)]]; % make pairs ind - alternative ind
+                                                                             % convert to space(size) full trek
+    
+    %find unique IndPair
+    [ii,ia]=unique(IndPair(:,1)); 
+    IndPair=IndPair(ia,:);
+    %convert Indexes to indexes from first column
+    [C,ia,ib]=intersect(IndPair(:,1),peaks1.Ind(:,i));
+    IndPair(ia,1)=peaks1.Ind(ib,1);
+    IndPair=IndPair(ia,:);
+    
+    IndPairSave=[IndPairSave;IndPair];
+    [ii,ia]=unique(IndPairSave(:,1)); 
+    IndPairSave=IndPairSave(ia,:);
+end;
+
+
+bool=bool10|bool2;
 
 Ind=find(bool);
-IndL=circshift(Ind,-1);
-IndR=circshift(Ind,1);
 
-origin=zeros(peaks1.size,1);
-origin(bool1)=origin(bool1)+1;
-origin(bool2)=origin(bool2)+2;
-
-
-
-% remove peaks with small distance (different markers for same pulse)
-
-dAfter=Ind(1:end-1)-Ind(2:end);
-dBefore=Ind(2:end)-Ind(1:end-1);
-dAfter=[dAfter;peaks1.size-Ind(end)];
-dBefore=[Ind(1);dBefore];
-dAfter=abs(dAfter);
-IndDoubled=Ind((origin(Ind)==2)&((origin(IndL)==1&dAfter<=space)|(origin(IndR)==1&dBefore<=space)));
-boolDoubled(IndDoubled)=true;
-
-IndDoubledDouble=Ind(origin(Ind)==2&origin(IndL)==1&origin(IndR)==1&dAfter<=space&dBefore<=space);
-boolDoubledDouble(IndDoubledDouble)=true;
-
-% find combined marks
-IndCombine=Ind(origin(Ind)==2&origin(IndL)==1&origin(IndR)==1&(IndL-IndR)<2*fwhm);
-boolCombine(IndCombine)=true;
-
-
-IndRemove=find(boolDoubled|boolCombine);
-IndPairL=find((origin(Ind)==1)&(origin(IndR)==2&dBefore<=space)); %indexes in space(size) Ind
-IndPairR=find((origin(Ind)==1)&(origin(IndL)==2&dAfter<=space));
 Ind(:,2)=Ind;
-Ind(IndPairL,2)=IndR(IndPairL);
-Ind(IndPairR,2)=IndL(IndPairR);
-
+[C,ia,ib]=intersect(IndPairSave(:,1),Ind(:,1));
+Ind(ib,2)=IndPairSave(ia,2);
+IndRemove=find((boolDoubled|boolCombine)&~bool10);
 [C,ia,ib]=intersect(Ind(:,1),IndRemove);
 Ind(ia,:)=[];
-
+fprintf('%4.0f marks are removed as doubled or combined\n',numel(ia));
 
 
 [C,ia,ib]=intersect(peaks1.Ind(:,1),Ind(:,1));

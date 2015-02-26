@@ -34,10 +34,11 @@ MaxTime=time(MI);
 Resp(:,1)=Stp(:,1);
 
 stepN=5;
-WidthMax=FilterResponseWidth/(2*sqrt(2*log(2)));
-FilterResponseWidth=TrekSet.tau*3/(2*sqrt(2*log(2)));
+WidthMax=FilterResponseWidth;
+FilterResponseWidth=TrekSet.tau*3;
 f=(WidthMax/FilterResponseWidth)^(1/stepN);
 n=1;
+treks=zeros(TrekSet.size,stepN);
 while FilterResponseWidth<=WidthMax
     %% filter calculating
     Resp=GaussResponse(Stp,FilterResponseWidth);
@@ -116,15 +117,15 @@ while FilterResponseWidth<=WidthMax
                 PeakSet(end).trek=trek;
                 PeakSet(end).Threshold=Threshold;
                 PeakSet(end).sigma=FilterResponseWidth;
+                PeakSet(end).fwhm=2*sqrt(2*log(2))*FilterResponseWidth/TrekSet.tau;
                 PeakSet(end).step=n;
-                PeakSet(end).StepMarker=zeros(size(trek));
-                PeakSet(end).StepMarker(SelectedPeakInd)=n;
+                PeakSet(end).StepMarker=ones(size(SelectedPeakInd));              
             if isempty(peaks)
                 peaks=PeakSet;
             else      
                 peaks=PeaksMerge(peaks,PeakSet(end));
             end;
-            fprintf('Now %5.0f peaks founded. Last iteration %5.2f sec\n', numel(peaks.Ind),toc);
+            fprintf('Now %5.0f peaks founded. Last iteration %5.2f sec\n', size(peaks.Ind,1),toc);
         end;
      %% Calculating apmlitude
 %      % determination integration winwow width
@@ -142,17 +143,19 @@ while FilterResponseWidth<=WidthMax
 %      Amps=TrekSDDAmplitude(p,@(delay)KbyDelayIntegral(delay,StpFilt,WWidth));
 %      peaks.Amp=Amps;
      
+     treks(:,n)=trek;
      FilterResponseWidth=FilterResponseWidth*f;
      n=n+1;
 end;
 
 %% final output
-trekMinus=TrekSet.trek;
+% trekMinus=TrekSet.trek;
 TrekSet=TrekSetIn;
-peaks(:,2)=peaks(:,1)*TrekSet.tau+TrekSet.StartTime;
-peaks(2:end,3)=diff(peaks(:,2));
-peaks(:,4)=0;
-peaks=sortrows(peaks,2);
-TrekSet.peaks=peaks;
+TrekSet.peaks=zeros(size(peaks.Ind,1),7);
+TrekSet.peaks(:,1)=peaks.Ind(:,1);
+TrekSet.peaks(:,2)=peaks.Ind(:,1)*TrekSet.tau+TrekSet.StartTime;
+TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
+TrekSet.peaks(:,4)=0;
+TrekSet.peaks=sortrows(TrekSet.peaks,2);
 
 
