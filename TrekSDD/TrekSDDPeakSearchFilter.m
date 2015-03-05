@@ -26,10 +26,12 @@ TrekSetIn=TrekSet;
 %% filter initialization
 
 STP=TrekSet.STP;
-time=(STP.TimeInd-1)*TrekSet.tau;
+% time=(STP.TimeInd-1)*TrekSet.tau;
+time=([1:STP.size]-1)'*TrekSet.tau;
 Stp(:,1)=time;
-Stp(:,2)=STP.FinePulse;
-[M,MI]=max(STP.FinePulse);
+% Stp(:,2)=STP.FinePulse;
+Stp(:,2)=STP.Stp;
+[M,MI]=max(Stp(:,2));
 MaxTime=time(MI);
 Resp(:,1)=Stp(:,1);
 
@@ -47,6 +49,9 @@ while FilterResponseWidth<=WidthMax
     kernel=KernelByTimeStep(Kernel,0.02);
     StpFilt=filter(kernel,1,STP.Stp);
     [M,MaxIndFilt]=max(StpFilt);
+%     kernel=kernel(1:2*MaxIndFilt);
+%     StpFilt=filter(kernel,1,STP.Stp);
+%     [M,MaxIndFilt]=max(StpFilt);
 
     %% Peaks Searching
     Threshold=[];
@@ -144,18 +149,23 @@ while FilterResponseWidth<=WidthMax
 %      peaks.Amp=Amps;
      
      treks(:,n)=trek;
+     FilteredPulses(:,n)=StpFilt;
+     FWHMs(n)=FilterResponseWidth/TrekSet.tau;
+     Thresholds(n)=Threshold;
      FilterResponseWidth=FilterResponseWidth*f;
      n=n+1;
 end;
 
 %% final output
 % trekMinus=TrekSet.trek;
+peaks=TrekSDDAmplitudesByFilter(peaks.Ind(:,1),treks,FilteredPulses,round(FWHMs),Thresholds);
 TrekSet=TrekSetIn;
-TrekSet.peaks=zeros(size(peaks.Ind,1),7);
-TrekSet.peaks(:,1)=peaks.Ind(:,1);
-TrekSet.peaks(:,2)=peaks.Ind(:,1)*TrekSet.tau+TrekSet.StartTime;
+TrekSet.peaks=zeros(size(peaks,1),7);
+TrekSet.peaks(:,1)=peaks(:,1);
+TrekSet.peaks(:,2)=peaks(:,1)*TrekSet.tau+TrekSet.StartTime;
 TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
 TrekSet.peaks(:,4)=0;
+TrekSet.peaks(:,5)=peaks(:,5);
 TrekSet.peaks=sortrows(TrekSet.peaks,2);
 
 
