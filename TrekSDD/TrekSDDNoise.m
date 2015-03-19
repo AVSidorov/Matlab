@@ -34,7 +34,7 @@ end;
 trek=TrekSet.trek(StartInd:EndInd);
 NoiseSet=NoiseStd(trek);
 %% Search Long enough parts
-bool=TrekSet.trek<NoiseSet.Thr;
+bool=abs(TrekSet.trek)<NoiseSet.Thr;
 PSet=PartsSearch(bool,3,1000);
 trek=TrekSet.trek(PSet.bool);
 %% Search noise using assumpition that noise is normal distibuted
