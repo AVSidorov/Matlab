@@ -17,6 +17,7 @@ end;
 %% remove old noise marks
 Ind=find(peaks2.trek(peaks1.Ind(:,1))<peaks2.Threshold);
 peaks1.Ind(Ind,:)=[];
+peaks1.StepMarker(Ind)=[];
 fprintf('removed %3.0f noise marks\n',numel(Ind));
 
 
@@ -104,14 +105,16 @@ fprintf('%4.0f marks are removed as doubled or combined\n',numel(ia));
 
 [C,ia,ib]=intersect(peaks1.Ind(:,1),Ind(:,1));
 IndFinal=peaks1.Ind(ia,:);
-StepMarker=peaks1.StepMarker(ia);
 IndFinal(:,end+1)=Ind(ib,2);
 [C,ia]=setdiff(Ind(:,1),IndFinal(:,1));
 IndAdd=zeros(numel(ia),size(IndFinal,2));
 IndAdd(:,1)=Ind(ia,1);
 IndAdd(:,end)=Ind(ia,2);
 IndFinal=[IndFinal;IndAdd];
-StepMarker=[StepMarker;ones(numel(ia),1)*peaks2.step];
+
+StepMarker=peaks2.step*ones(size(IndFinal,1),1);
+[C,ia,ib]=intersect(peaks1.Ind(:,1),IndFinal(:,1));
+StepMarker(ib)=peaks1.StepMarker(ia);
 [IndFinal,ia]=sortrows(IndFinal);
 StepMarker=StepMarker(ia);
 
