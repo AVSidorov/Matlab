@@ -77,7 +77,7 @@ if (~isGood&&manual)||TrekSet.Plot
         STP=StpStruct;
      end;    
     if exist('MaxInd','var')==0||isempty(MaxInd)
-        MaxInd=round(FIT.MaxInd-FIT.Shift);
+        MaxInd=round(FIT.MaxInd+FIT.Shift);
     end;
     Ind=[MaxInd-TrekSet.STP.size:MaxInd+TrekSet.STP.size];
     Ind(Ind<1|Ind>TrekSet.size)=[];
@@ -93,13 +93,35 @@ if (~isGood&&manual)||TrekSet.Plot
     if isGood
         title('Good');
     else
-        title('Bad');
+        s='Bad';
+%         Abool&&Bbool&&FitPointBool&&PointBool
+        if ~Abool
+            s=char(s,'Amplitude lower than Threshold');
+        end;
+        if ~Bbool
+            s=char(s,'Background line is too high');            
+        end;
+        if ~FitPointBool
+            s=char(s,'It has been used too few points for fitting');            
+        end;
+        if ~PointBool
+            s=char(s,'There are points outside noise band');            
+        end;
+            
+        title(s);
     end;
     BGLine=polyval(FIT.BGLineFit,[1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd)';
     plot(Ind,TrekSet.trek(Ind));
+    plot(FIT.FitInd,TrekSet.trek(FIT.FitInd),'or-');
+    plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,BGLine,'k');
     plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,FIT.FitPulse*FIT.A+FIT.B+BGLine,'r');
-    plot(IndS,TrekSet.trek(IndS),'.r');
-    plot(MaxInd,TrekSet.trek(MaxInd),'*r');
+    cm=colormap('Lines');    
+    for i=1:numel(FIT.A);
+        plot([1:FIT.FitPulseN]+FIT.MaxInd-STP.MaxInd,FIT.FitPulse(:,i)*FIT.A(i)+FIT.B+BGLine,'Color',cm(3+i,:));
+        plot(MaxInd(i),TrekSet.trek(MaxInd(i)),'>','MarkerSize',12,'LineWidth',2,'Color',cm(3+i,:));
+    end;
+    plot(IndS,TrekSet.trek(IndS),'.r','MarkerSize',20);
+    
     plot(Ind,TrekSet1.trek(Ind),'k');
     plot(IndS1,TrekSet1.trek(IndS1),'.m');
     if ~exist('stI','var')||isempty(stI)
@@ -137,7 +159,7 @@ if (~isGood&&manual)||TrekSet.Plot
             isGood=true;
         end;
     else
-        pause;
+         pause;
     end;
     if not(isempty(ts))&&ishandle(ts)
         close(ts);
