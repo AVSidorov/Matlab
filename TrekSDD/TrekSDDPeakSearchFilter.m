@@ -38,6 +38,7 @@ Resp(:,1)=Stp(:,1);
 stepN=5;
 WidthMax=FilterResponseWidth;
 FilterResponseWidth=TrekSet.tau*3;
+FilterWidths=[FilterResponseWidth;FilterResponseWidth+TrekSet.tau*[1:3]'];
 f=(WidthMax/FilterResponseWidth)^(1/stepN);
 n=1;
 treks=zeros(TrekSet.size,stepN);
@@ -152,8 +153,13 @@ while FilterResponseWidth<=WidthMax
      FilteredPulses(:,n)=StpFilt;
      FWHMs(n)=FilterResponseWidth/TrekSet.tau;
      Thresholds(n)=Threshold;
-     FilterResponseWidth=FilterResponseWidth*f;
+
+     FilterResponseWidth=FilterWidths(1)*f^n;
      n=n+1;
+     if ~isempty(FilterWidths)&&n<=numel(FilterWidths)&&FilterResponseWidth>=FilterWidths(n)
+         FilterResponseWidth=FilterWidths(n);
+     end;
+
 end;
 
 %% final output
