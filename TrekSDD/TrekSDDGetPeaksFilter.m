@@ -1,6 +1,8 @@
 function TrekSet=TrekSDDGetPeaksFilter(TrekSet)
 BckgFitN=5;
 StartSearchTime=14500;
+
+TrekSet.SelectedPeakInd=TrekSet.peaks(:,1);
 TrekSetIn=TrekSet;
 TrekSet.peaks=[];
 STP=TrekSet.STP;
@@ -57,7 +59,7 @@ for i=1:size(TrekSetIn.peaks,1)
 
         ShStart=[];
         shMin=MaxIndByStartInd-FIT.MaxInd;
-        while ~ExcelentFit&&numel(ShStart)<=2&&FIT.MaxInd-SkipPointBack>TrekSet.STP.TailInd&&SkipPointForward-FIT.MaxInd>0
+        while ~ExcelentFit&&size(ShStart,1)<=2&&FIT.MaxInd-SkipPointBack>TrekSet.STP.TailInd&&SkipPointForward-FIT.MaxInd>0
             [FIT,ShStart]=NewShift(FIT,MaxIndNext,MaxIndNextGood,shMin,ShStart);
             FIT.FitInd=[StartInd:round(FIT.MaxInd+max(FIT.Shift))]';         
             FIT=TrekSDD2FitFunctionsN(TrekSet,FIT);
