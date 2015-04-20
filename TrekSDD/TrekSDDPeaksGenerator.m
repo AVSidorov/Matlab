@@ -6,7 +6,7 @@ Amp=1000;
 TimeStep=TrekSet.STP.size*TrekSet.tau;
 AmpNoise=0.0;
 AmpNoiseType='unif'; % see random function. Assumes using  'unif' and 'norm'
-TimeStepNoise=0.0;
+TimeStepNoise=0.01;
 TimeStepType='norm';
 TimeStart=TrekSet.STP.size*TrekSet.tau;
 E=[200:15000]';
@@ -28,11 +28,14 @@ end;
 TrekSet.StartPlasma=TimeStart-TrekSet.STP.size*TrekSet.tau;
 TrekSet.peaks=zeros(N,7);
 
-if AmpNoiseType=='trek'
+if strcmpi(AmpNoiseType,'trek')
     Maxw=exp(-E/Te);
     Absorption=AbsorptionSDD(dBe,E);
     pdf=[E,Absorption(:,2).*Maxw];
     TrekSet.peaks(:,5)=curvernd(pdf,N,1);
+elseif strcmpi(TimeStepType,'doubled')&&exist('Amp1','var')&&~isempty(Amp1)    
+     TrekSet.peaks(1:2:N,5)=random('norm',Amp,AmpNoise,numel(1:2:N),1);
+     TrekSet.peaks(2:2:N,5)=random('norm',Amp1,AmpNoise,numel(2:2:N),1);
 else
     TrekSet.peaks(:,5)=random('norm',Amp,AmpNoise,N,1);
 end;
@@ -48,3 +51,5 @@ else
 %     if TimStepType=='fix'||TimStepType=='fixed'   
      TrekSet.peaks(:,2)=TimeStart+[1:N]'*TimeStep+random(TimeStepType,0.0,TimeStepNoise,N,1);
 end;
+
+TrekSet.peaks(:,1)=round((TrekSet.peaks(:,2)-TrekSet.StartTime)/TrekSet.tau);
