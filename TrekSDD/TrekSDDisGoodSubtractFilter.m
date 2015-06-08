@@ -149,7 +149,8 @@ if (~isGood&&manual)||TrekSet.Plot
 
   
 %     set(ts, 'Units', 'normalized', 'Position', [0.01, 0.01, 0.8, 0.8]);
-    axis([stI-TrekSet.STP.MaxInd,endI+TrekSet.STP.MaxInd,min(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd)),max(TrekSet.trek(stI-TrekSet.STP.MaxInd:endI+TrekSet.STP.MaxInd))]);
+    IndAxis=[max([1,stI-TrekSet.STP.MaxInd]):min([TrekSet.size,endI+TrekSet.STP.MaxInd])];
+    axis([min(IndAxis),max(IndAxis),min(TrekSet.trek(IndAxis)),max(TrekSet.trek(IndAxis))]);
     if ~isGood
          t=0:1/5000:0.5;
          B=500*t.^2.*exp(-t/0.05).*sin(2*pi*1000*t);
