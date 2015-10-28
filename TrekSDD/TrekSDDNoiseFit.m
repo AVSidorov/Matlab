@@ -22,6 +22,6 @@ TrekSet.trek=TrekSet.trek-NoiseSet.MeanVal;
 TrekSet.MeanVal=0;
 TrekSet.MaxSignal=TrekSet.MaxSignal-NoiseSet.MeanVal;
 TrekSet.MinSignal=TrekSet.MinSignal-NoiseSet.MeanVal;
-TrekSet.Threshold=NoiseSet.Thr;
+TrekSet.Threshold=NoiseSet.Threshold;
 TrekSet.StdVal=NoiseSet.StdVal;
 
