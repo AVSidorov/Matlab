@@ -24,7 +24,7 @@ for i=1:n
     [M,MI]=max(Pulse);
     
     Dbefore=zeros(size(PeaksInd));
-    Dbefore(1,1)=min([fwhm,PeaksInd(1)]);
+    Dbefore(1,1)=min([fwhm,PeaksInd(1)-1]);
 
     for ii=2:numel(PeaksInd)
         Dbefore(ii,1)=min([fwhm,Ibefore(ii)-fwhm]);
