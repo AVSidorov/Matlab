@@ -5,7 +5,7 @@ if isfield(TrekSet,'StartTime')&&~isempty(TrekSet.StartTime)
 else
     StartTime=0;
 end;    
-if isfield(TrekSet,'StartPlasma')&&~isempty(TrekSet.StartPlasma)
+if isfield(TrekSet,'StartPlasma')&&~isempty(TrekSet.StartPlasma)&&TrekSet.StartPlasma>StartTime
     EndTime=TrekSet.StartPlasma;
 else
     EndTime=TrekSet.StartTime+(TrekSet.size-1)*TrekSet.tau;
