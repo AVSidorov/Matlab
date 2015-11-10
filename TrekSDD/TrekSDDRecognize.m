@@ -21,7 +21,7 @@ TrekSet.ThresholdLD=[];
 TrekSet.PeakPolarity=1;
 TrekSet.NoiseSet=[];
 
-TrekSet.STP=StpStruct('D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_2.dat');
+TrekSet.STP=StpStruct('D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_3.dat');
 % TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak20ns_1.dat';
 %TrekSet.StandardPulseFile='D:\!SCN\EField\StandPeakAnalys\StPeak.dat';
 
