@@ -1,5 +1,9 @@
 function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,FilterResponseWidth)
 
+mode='exp';
+StdValFile='D:\!SCN\FilteringSDD\StdVal-vs-fwhm.mat';
+
+
 if nargin<2
     FilterResponseWidth=0.8;
 end;
@@ -38,7 +42,16 @@ Resp(:,1)=Stp(:,1);
 stepN=5;
 WidthMax=FilterResponseWidth;
 FilterResponseWidth=TrekSet.tau*3;
-FilterWidths=[FilterResponseWidth;FilterResponseWidth+TrekSet.tau*[1:3]'];
+load(StdValFile,'fwhm');
+load(StdValFile,['StdVal_',mode]);
+StdValTab(:,1)=fwhm;
+eval(['StdValTab(:,2)=StdVal_',mode,';']);
+StdValStart=interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth);
+StdValEnd=interp1(StdValTab(:,1),StdValTab(:,2),WidthMax,'linear',min(StdValTab(:,2)));
+FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),[StdValStart:(StdValEnd-StdValStart)/stepN:StdValEnd]')';
+if max(FilterWidths)~=WidthMax 
+    FilterWidths(end)=WidthMax;
+end;
 f=(WidthMax/FilterResponseWidth)^(1/stepN);
 n=1;
 treks=zeros(TrekSet.size,stepN);
@@ -154,7 +167,8 @@ while FilterResponseWidth<=WidthMax
      FWHMs(n)=FilterResponseWidth/TrekSet.tau;
      Thresholds(n)=Threshold;
 
-     FilterResponseWidth=FilterWidths(1)*f^n;
+%      FilterResponseWidth=FilterWidths(1)*f^n;
+     FilterResponseWidth=FilterWidths(n);
      n=n+1;
      if ~isempty(FilterWidths)&&n<=numel(FilterWidths)&&FilterResponseWidth>=FilterWidths(n)
          FilterResponseWidth=FilterWidths(n);
