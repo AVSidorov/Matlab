@@ -1,4 +1,4 @@
-function FilterSet=MakeFilterByResponse(Response,Pulse,Plot)
+function FilterSet=MakeFilterByResponse(Response,Pulse,NFFT,Plot)
 %function makes FIR filter set (structure)  for given initial and filtered Pulse forms.
 %first column in arrays is time in us
 % This function made from MakeKernelByResponse to increase number of output
@@ -6,6 +6,14 @@ function FilterSet=MakeFilterByResponse(Response,Pulse,Plot)
 
 if nargin<3
     Plot=true;
+end;
+    
+if nargin<4
+    if islogical(NFFT)
+        Plot=NFFT;
+    else
+        Plot=true;
+    end;
 end;
 
 if size(Response,1)<size(Response,2)
@@ -39,7 +47,11 @@ response=interp1(Response(:,1),Response(:,2),time,'spline',0);
 pulse=interp1(Pulse(:,1),Pulse(:,2),time,'spline',0);
 
 Fs=1/(timeStep*1e-6);
-NFFT=pow2(nextpow2(numel(response)));
+
+if nargin<4||islogical(NFFT)
+    NFFT=pow2(nextpow2(numel(response)));
+end;
+
 f = Fs/2*linspace(0,1,NFFT/2+1);
 Ypulse=fft(pulse,NFFT);
 Yresp =fft(response,NFFT);
