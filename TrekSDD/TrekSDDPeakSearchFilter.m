@@ -1,13 +1,16 @@
-function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,FilterResponseWidth)
+function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,WidthMax)
 
 mode='exp';
 StdValFile='D:\!SCN\FilteringSDD\StdVal-vs-fwhm.mat';
 
+stepN=5;
+
+FilterResponseWidth=TrekSet.tau*2;
+
 
 if nargin<2
-    FilterResponseWidth=0.8;
+    WidthMax=0.8;
 end;
-
 peaks=[];
 
 
@@ -29,50 +32,42 @@ TrekSetIn=TrekSet;
 
 %% filter initialization
 
-STP=TrekSet.STP;
+% STP=TrekSet.STP;
 % time=(STP.TimeInd-1)*TrekSet.tau;
-time=([1:STP.size]-1)'*TrekSet.tau;
-Stp(:,1)=time;
+% Stp(:,1)=time;
 % Stp(:,2)=STP.FinePulse;
-Stp(:,2)=STP.Stp;
-[M,MI]=max(Stp(:,2));
-MaxTime=time(MI);
-Resp(:,1)=Stp(:,1);
 
-stepN=5;
-WidthMax=FilterResponseWidth;
-FilterResponseWidth=TrekSet.tau*3;
+Stp=([1:TrekSet.STP.size]'-1)*TrekSet.tau;
+Stp(:,2)=TrekSet.STP.Stp;
+
+
+
 load(StdValFile,'fwhm');
 load(StdValFile,['StdVal_',mode]);
 StdValTab(:,1)=fwhm;
 eval(['StdValTab(:,2)=StdVal_',mode,';']);
-StdValStart=interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth);
+StdValStart=interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)));
 StdValEnd=interp1(StdValTab(:,1),StdValTab(:,2),WidthMax,'linear',min(StdValTab(:,2)));
-FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),[StdValStart:(StdValEnd-StdValStart)/stepN:StdValEnd]')';
+StdVals=[StdValStart:(StdValEnd-StdValStart)/(stepN-1):StdValEnd]';
+FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals)';
 if max(FilterWidths)~=WidthMax 
     FilterWidths(end)=WidthMax;
 end;
+
 f=(WidthMax/FilterResponseWidth)^(1/stepN);
 n=1;
 treks=zeros(TrekSet.size,stepN);
-while FilterResponseWidth<=WidthMax
-    %% filter calculating
+
+for n=1:stepN
+    tic;
+    %% filtering calculating
+    FilterResponseWidth=FilterWidths(n);
     Resp=GaussResponse(Stp,FilterResponseWidth);
-    
-    Kernel=MakeKernelByResponse(Resp,Stp,false);
-    kernel=KernelByTimeStep(Kernel,0.02);
-    StpFilt=filter(kernel,1,STP.Stp);
-    [M,MaxIndFilt]=max(StpFilt);
-%     kernel=kernel(1:2*MaxIndFilt);
-%     StpFilt=filter(kernel,1,STP.Stp);
-%     [M,MaxIndFilt]=max(StpFilt);
+    [trek,StpFilt]=TrekSDDFilterFFT(TrekSet,Resp);
 
     %% Peaks Searching
     Threshold=[];
     
-    tic;
-    trek=filter(kernel,1,TrekSet.trek);
-    trek=circshift(trek,STP.MaxInd-MaxIndFilt);
 
      for i=1:numel(TrekSet.ResetStartInd)
          Ind=[TrekSet.ResetStartInd(i):min([TrekSet.size,TrekSet.ResetInd(i)+100])]';
@@ -86,7 +81,10 @@ while FilterResponseWidth<=WidthMax
 
      S=SpecialTreks(trek);
      %% determintion of Threshold for filtered trek
-        if isempty(Threshold);
+     
+     %determination by tabled StdVal
+     Threshold=TrekSet.Threshold*StdVals(n);
+        if isempty(Threshold)&&TrekSet.Plot;
             TrekSetF=TrekSet;
             rmfield(TrekSetF,'STP');
             TrekSetF.trek=trek;
@@ -168,11 +166,9 @@ while FilterResponseWidth<=WidthMax
      Thresholds(n)=Threshold;
 
 %      FilterResponseWidth=FilterWidths(1)*f^n;
-     FilterResponseWidth=FilterWidths(n);
-     n=n+1;
-     if ~isempty(FilterWidths)&&n<=numel(FilterWidths)&&FilterResponseWidth>=FilterWidths(n)
-         FilterResponseWidth=FilterWidths(n);
-     end;
+%      n=n+1;
+%      FilterResponseWidth=FilterWidths(n);
+   
 
 end;
 
