@@ -1,9 +1,13 @@
 function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,WidthMax)
 
 mode='exp';
+if strcmp(lower(TrekSet.name),'generated')
+    mode='white';
+end;
 StdValFile='D:\!SCN\FilteringSDD\StdVal-vs-fwhm.mat';
 
-stepN=5;
+
+stepN=10;
 
 FilterResponseWidth=TrekSet.tau*2;
 
@@ -40,13 +44,46 @@ TrekSetIn=TrekSet;
 Stp=([1:TrekSet.STP.size]'-1)*TrekSet.tau;
 Stp(:,2)=TrekSet.STP.Stp;
 
-
-
+%% load StdVal vs Fwhm dependence for filtering
 load(StdValFile,'fwhm');
 load(StdValFile,['StdVal_',mode]);
 StdValTab(:,1)=fwhm;
 eval(['StdValTab(:,2)=StdVal_',mode,';']);
-StdValStart=interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)));
+
+%% Fast Spectrum determination 
+% This procedure performed for correct minimal filtered pulse width
+% determination
+% to avoid loosing all signal under noise threshold after filtering.
+Resp=GaussResponse(Stp,WidthMax);
+trek=TrekSDDFilterFFT(TrekSet,Resp);
+S=SpecialTreks(trek);
+SelectedPeakInd=find(S.MaxBool&trek>TrekSet.Threshold&TrekSet.trek<TrekSet.MaxSignal);
+SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];
+Hist=HistOnNet(trek(SelectedPeakInd),[TrekSet.Threshold:TrekSet.StdVal:max(trek)]);
+A=cumsum(Hist(:,2));
+Ind=find(diff(A)==0);
+Ind=[1;Ind;numel(A)];
+[l,i]=max(diff(Ind));
+% ThresholdQLost is array dependence  relative quantity of Lost pulses from
+% Threshold level 
+ThresholdQLost(:,1)=Hist(Ind(i):Ind(i+1),1);
+ThresholdQLost(:,2)=A(Ind(i):Ind(i+1))/A(end); %take part of Histogram whithout zero bins whith max length
+
+%mean pulse detecting time
+mTau=range(SelectedPeakInd)*TrekSet.tau/A(end);
+% using dependence StdVal growth from filtered pulse fwhm(=)dead time
+% calculate relative part of lost pulses caused by overlapping
+OverlapQlost(:,1)=TrekSet.Threshold*StdValTab(:,2); % recalculate relative StdVal change to absolute Threshold
+OverlapQlost(:,2)=1-exp(-StdValTab(:,1)/mTau);
+
+%minimal width of filtered pulse (maximal noise level) is determinated as
+%point there number of lost pulses in noise (under threshold) is equal to
+%number fo not overlapped pulses
+[x,y]=intersections(ThresholdQLost(:,1),ThresholdQLost(:,2),OverlapQlost(:,1),1-OverlapQlost(:,2));
+StdValStart=x/TrekSet.Threshold;
+
+%%
+StdValStart=min([StdValStart,interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)))]);
 StdValEnd=interp1(StdValTab(:,1),StdValTab(:,2),WidthMax,'linear',min(StdValTab(:,2)));
 StdVals=[StdValStart:(StdValEnd-StdValStart)/(stepN-1):StdValEnd]';
 FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals)';
@@ -54,11 +91,14 @@ if max(FilterWidths)~=WidthMax
     FilterWidths(end)=WidthMax;
 end;
 
-f=(WidthMax/FilterResponseWidth)^(1/stepN);
+
+
 n=1;
 treks=zeros(TrekSet.size,stepN);
 
-for n=1:stepN
+ex=false;
+
+while ~ex
     tic;
     %% filtering calculating
     FilterResponseWidth=FilterWidths(n);
@@ -84,7 +124,8 @@ for n=1:stepN
      
      %determination by tabled StdVal
      Threshold=TrekSet.Threshold*StdVals(n);
-        if isempty(Threshold)&&TrekSet.Plot;
+     
+     if isempty(Threshold)&&TrekSet.Plot;
             TrekSetF=TrekSet;
             rmfield(TrekSetF,'STP');
             TrekSetF.trek=trek;
@@ -117,7 +158,7 @@ for n=1:stepN
             end;
             fprintf('New Threshold is %3.0f\n',Threshold);
             close(h1);
-        end;
+         end;
 
        %% indexes finding
         SelectedPeakInd=find(S.MaxBool&trek>Threshold&TrekSet.trek<TrekSet.MaxSignal);
@@ -143,33 +184,22 @@ for n=1:stepN
                 peaks=PeaksMerge(peaks,PeakSet(end));
             end;
             fprintf('Now %5.0f peaks founded. Last iteration %5.2f sec\n', size(peaks.Ind,1),toc);
+            treks(:,n)=trek;
+            FilteredPulses(:,n)=StpFilt;
+            FWHMs(n)=FilterResponseWidth/TrekSet.tau;
+            Thresholds(n)=Threshold;
+            n=n+1;
+        else
+            StdVals=[StdVals(n+1):(StdValEnd-StdVals(n+1))/(stepN-1):StdValEnd]';
+            FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals)';
+            if max(FilterWidths)~=WidthMax 
+                FilterWidths(end)=WidthMax;
+            end;
         end;
-     %% Calculating apmlitude
-%      % determination integration winwow width
-%       n1=round(MaxIndFilt-find(StpFilt*mean(peaks.Amp)>1,1,'first'));
-%       n2=round(find(StpFilt*mean(peaks.Amp)>1,1,'last')-MaxIndFilt);
-%       WHlfWidht=round(mean([n1,n2]));
-%       WWidth=2*WHlfWidht+1;
-%      % calculating initial Amps
-%      trekI=filter(ones(WWidth,1),1,trek);
-%      trekI=circshift(trekI,-WHlfWidht-1)/sum(StpFilt(MaxIndFilt-WHlfWidht:MaxIndFilt+WHlfWidht));
-%      p=[];
-%      p(:,1)=peaks.Ind;
-%      p(:,2)=trekI(p(:,1));
-%      % determination Amps by linear equation system
-%      Amps=TrekSDDAmplitude(p,@(delay)KbyDelayIntegral(delay,StpFilt,WWidth));
-%      peaks.Amp=Amps;
-     
-     treks(:,n)=trek;
-     FilteredPulses(:,n)=StpFilt;
-     FWHMs(n)=FilterResponseWidth/TrekSet.tau;
-     Thresholds(n)=Threshold;
 
-%      FilterResponseWidth=FilterWidths(1)*f^n;
-%      n=n+1;
-%      FilterResponseWidth=FilterWidths(n);
-   
-
+        if n>stepN
+            ex=true;
+        end; 
 end;
 
 %% final output
@@ -183,5 +213,8 @@ TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
 TrekSet.peaks(:,4)=0;
 TrekSet.peaks(:,5)=peaks(:,5);
 TrekSet.peaks=sortrows(TrekSet.peaks,2);
+
+
+
 
 
