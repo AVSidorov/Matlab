@@ -12,6 +12,13 @@ TimeStart=TrekSet.STP.size*TrekSet.tau;
 E=[200:15000]';
 Te=550;
 dBe=58;
+
+TrekSet.FileName='';
+TrekSet.name='Generated';
+TrekSet.Date=str2num(datestr(now,'yymmdd'));
+TrekSet.Shot=[];
+TrekSet.Amp=[];
+
 if isfield(TrekSet,'StartPlasma')&&~isempty(TrekSet.StartPlasma)
     TimeStart=TimeStart+TrekSet.StartPlasma;
 end;
@@ -33,6 +40,8 @@ if strcmpi(AmpNoiseType,'trek')
     Absorption=AbsorptionSDD(dBe,E);
     pdf=[E,Absorption(:,2).*Maxw];
     TrekSet.peaks(:,5)=curvernd(pdf,N,1);
+    TrekSet.StdVal=100;
+    TrekSet.Threshold=500;
 elseif strcmpi(TimeStepType,'doubled')&&exist('Amp1','var')&&~isempty(Amp1)    
      TrekSet.peaks(1:2:N,5)=random('norm',Amp,AmpNoise,numel(1:2:N),1);
      TrekSet.peaks(2:2:N,5)=random('norm',Amp1,AmpNoise,numel(2:2:N),1);
