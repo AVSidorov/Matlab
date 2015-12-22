@@ -46,8 +46,8 @@ for i=1:size(TrekSetIn.peaks,1)
         FIT.FitIndStrict=[StartInd:FIT.MaxInd]';
         FIT.A=TrekSetIn.peaks(i,5);
         % Noise burst checking
-            N=find(STP.Stp*FIT.A>TrekSet.Threshold);
-        if ~all(TrekSet.trek(StartInd+BckgFitN+1:StartInd+N)>TrekSet.StdVal)
+            N=numel(find(STP.Stp*FIT.A>TrekSet.Threshold));
+        if ~all(TrekSet.trek(StartInd+BckgFitN+1:StartInd+BckgFitN+N)>TrekSet.StdVal)
             continue;
         end;
         
