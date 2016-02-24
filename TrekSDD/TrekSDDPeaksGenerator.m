@@ -62,3 +62,4 @@ else
 end;
 
 TrekSet.peaks(:,1)=round((TrekSet.peaks(:,2)-TrekSet.StartTime)/TrekSet.tau);
+TrekSet.peaks(2:end,3)=diff(TrekSet.peaks(:,2));
