@@ -68,6 +68,10 @@ Ind=[1;Ind;numel(A)];
 % Threshold level 
 ThresholdQLost(:,1)=Hist(Ind(i):Ind(i+1),1);
 ThresholdQLost(:,2)=A(Ind(i):Ind(i+1))/A(end); %take part of Histogram whithout zero bins whith max length
+%make full length dependence
+ThresholdQLost=[[min(trek(SelectedPeakInd)),0];ThresholdQLost];
+ThresholdQLost=[ThresholdQLost;[max(trek(SelectedPeakInd)),1]]; 
+
 
 %mean pulse detecting time
 mTau=range(SelectedPeakInd)*TrekSet.tau/A(end);
@@ -78,7 +82,7 @@ OverlapQlost(:,2)=1-exp(-StdValTab(:,1)/mTau);
 
 %minimal width of filtered pulse (maximal noise level) is determinated as
 %point there number of lost pulses in noise (under threshold) is equal to
-%number fo not overlapped pulses
+%number for not overlapped pulses
 [x,y]=intersections(ThresholdQLost(:,1),ThresholdQLost(:,2),OverlapQlost(:,1),1-OverlapQlost(:,2));
 StdValStart=x/TrekSet.Threshold;
 
