@@ -77,19 +77,16 @@ for i=1:size(peaks1.Ind,2)
                                                                              % convert to space(size) full trek
     
     %find unique IndPair
-     if size(IndPair,2)<1
-         IndPair=zeros(0,2);
-     end;
-        [ii,ia]=unique(IndPair(:,1)); 
-        IndPair=IndPair(ia,:);
-        %convert Indexes to indexes from first column
-        [C,ia,ib]=intersect(IndPair(:,1),peaks1.Ind(:,i));
-        IndPair(ia,1)=peaks1.Ind(ib,1);
-        IndPair=IndPair(ia,:);
-
-        IndPairSave=[IndPairSave;IndPair];
-        [ii,ia]=unique(IndPairSave(:,1)); 
-        IndPairSave=IndPairSave(ia,:);
+    [ii,ia]=unique(IndPair(:,1)); 
+    IndPair=IndPair(ia,:);
+    %convert Indexes to indexes from first column
+    [C,ia,ib]=intersect(IndPair(:,1),peaks1.Ind(:,i));
+    IndPair(ia,1)=peaks1.Ind(ib,1);
+    IndPair=IndPair(ia,:);
+    
+    IndPairSave=[IndPairSave;IndPair];
+    [ii,ia]=unique(IndPairSave(:,1)); 
+    IndPairSave=IndPairSave(ia,:);
 end;
 
 
