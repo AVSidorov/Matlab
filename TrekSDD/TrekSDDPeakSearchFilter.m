@@ -61,17 +61,20 @@ SelectedPeakInd=find(S.MaxBool&trek>TrekSet.Threshold&TrekSet.trek<TrekSet.MaxSi
 SelectedPeakInd(SelectedPeakInd*TrekSet.tau+TrekSet.StartTime<TrekSet.StartPlasma)=[];
 Hist=HistOnNet(trek(SelectedPeakInd),[TrekSet.Threshold:TrekSet.StdVal:max(trek)]);
 A=cumsum(Hist(:,2));
-Ind=find(diff(A)==0);
-Ind=[1;Ind;numel(A)];
-[l,i]=max(diff(Ind));
 % ThresholdQLost is array dependence  relative quantity of Lost pulses from
 % Threshold level 
-ThresholdQLost(:,1)=Hist(Ind(i):Ind(i+1),1);
-ThresholdQLost(:,2)=A(Ind(i):Ind(i+1))/A(end); %take part of Histogram whithout zero bins whith max length
-%make full length dependence
-ThresholdQLost=[[min(trek(SelectedPeakInd)),0];ThresholdQLost];
-ThresholdQLost=[ThresholdQLost;[max(trek(SelectedPeakInd)),1]]; 
 
+ThresholdQLost(:,1)=Hist(:,1);
+ThresholdQLost(:,2)=A(:)/A(end); 
+%Taking part without zero bins we may obtain curve with not enough length
+%for finding intersection further
+% 
+%take part of Histogram whithout zero bins whith max length
+% Ind=find(diff(A)==0);
+% Ind=[1;Ind;numel(A)];
+% [l,i]=max(diff(Ind));
+% ThresholdQLost(:,1)=Hist(Ind(i):Ind(i+1),1);
+% ThresholdQLost(:,2)=A(Ind(i):Ind(i+1))/A(end); 
 
 %mean pulse detecting time
 mTau=range(SelectedPeakInd)*TrekSet.tau/A(end);
@@ -79,6 +82,12 @@ mTau=range(SelectedPeakInd)*TrekSet.tau/A(end);
 % calculate relative part of lost pulses caused by overlapping
 OverlapQlost(:,1)=TrekSet.Threshold*StdValTab(:,2); % recalculate relative StdVal change to absolute Threshold
 OverlapQlost(:,2)=1-exp(-StdValTab(:,1)/mTau);
+% to extend curve for all pulses amplitude range we add point with maximal
+% amplitude. In small filtering output widths region Threshold raises very
+% fast, so we take dead time (=output width) almost same as minimal in table
+OverlapQlost(end+1,1)=Hist(end,1);
+OverlapQlost(end,2)=1-exp(-min(StdValTab(:,1))*0.9/mTau);
+OverlapQlost=sortrows(OverlapQlost);
 
 %minimal width of filtered pulse (maximal noise level) is determinated as
 %point there number of lost pulses in noise (under threshold) is equal to
