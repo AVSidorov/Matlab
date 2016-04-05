@@ -96,7 +96,8 @@ OverlapQlost=sortrows(OverlapQlost);
 StdValStart=x/TrekSet.Threshold;
 
 %%
-StdValStart=min([StdValStart,interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)))]);
+StdValStart=max([StdValStart,interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)))]);
+StdValStart=min([StdValStart,max(StdValTab(:,2))]);
 StdValEnd=interp1(StdValTab(:,1),StdValTab(:,2),WidthMax,'linear',min(StdValTab(:,2)));
 StdVals=[StdValStart:(StdValEnd-StdValStart)/(stepN-1):StdValEnd]';
 FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals)';
@@ -136,7 +137,25 @@ while ~ex
      %% determintion of Threshold for filtered trek
      
      %determination by tabled StdVal
-     Threshold=TrekSet.Threshold*StdVals(n);
+     ThresholdTable=TrekSet.Threshold*StdVals(n);
+     
+     %determination by part whihtout signal 
+     ThresholdPlasma=[];
+     if isfield(TrekSet,'NoiseSet')&&~isempty(TrekSet.NoiseSet)&&isstruct(TrekSet.NoiseSet)&&...
+        isfield(TrekSet.NoiseSet,'NoiseInd')&&~isempty(TrekSet.NoiseSet.NoiseInd)&&numel(TrekSet.NoiseSet.NoiseInd)>1000
+        NoiseSet=NoiseStd(trek(TrekSet.NoiseSet.NoiseInd));        
+        ThresholdPlasma=NoiseSet.Thr;
+     else
+         TrekSetF=TrekSet;
+         TrekSetF.trek=trek;
+         TrekSetF=TrekSDDNoise(TrekSetF);         
+         ThresholdPlasma=TrekSetF.Threshold;
+     end;
+     if ~isempty(ThresholdPlasma)
+            Threshold=ThresholdPlasma;
+     else
+            Threshold=ThresholdTable;         
+     end;
      
      if isempty(Threshold)&&TrekSet.Plot;
             TrekSetF=TrekSet;
@@ -217,6 +236,7 @@ end;
 
 %% final output
 % trekMinus=TrekSet.trek;
+PeakSet=peaks;
 peaks=TrekSDDAmplitudesByFilter(peaks.Ind(:,1),treks,FilteredPulses,round(FWHMs),Thresholds);
 TrekSet=TrekSetIn;
 TrekSet.peaks=zeros(size(peaks,1),7);
