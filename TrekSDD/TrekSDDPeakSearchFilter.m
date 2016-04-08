@@ -95,16 +95,22 @@ OverlapQlost=sortrows(OverlapQlost);
 [x,y]=intersections(ThresholdQLost(:,1),ThresholdQLost(:,2),OverlapQlost(:,1),1-OverlapQlost(:,2));
 StdValStart=x/TrekSet.Threshold;
 
-%%
+%% Determination of StdVal borders and linear spaced set
 StdValStart=max([StdValStart,interp1(StdValTab(:,1),StdValTab(:,2),FilterResponseWidth,'linear',max(StdValTab(:,2)))]);
 StdValStart=min([StdValStart,max(StdValTab(:,2))]);
 StdValEnd=interp1(StdValTab(:,1),StdValTab(:,2),WidthMax,'linear',min(StdValTab(:,2)));
 StdVals=[StdValStart:(StdValEnd-StdValStart)/(stepN-1):StdValEnd]';
-FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals)';
+
+%% Making FilterWidths
+FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals);
 if max(FilterWidths)~=WidthMax 
     FilterWidths(end)=WidthMax;
 end;
-
+% avoiding large gaps in FilterWidhts
+Io = find(diff(FilterWidths)>=(range(FilterWidths)/stepN),1,'first');
+FilterWidths=[FilterWidths;[max(FilterWidths)-range(FilterWidths)/stepN:-range(FilterWidths)/stepN:FilterWidths(Io)]'];
+FilterWidths=sortrows(FilterWidths);
+StdVals=interp1(StdValTab(:,1),StdValTab(:,2),FilterWidths);
 
 
 n=1;
@@ -229,15 +235,19 @@ while ~ex
             end;
         end;
 
-        if n>stepN
+        if n>numel(FilterWidths)
             ex=true;
         end; 
 end;
 
 %% final output
 % trekMinus=TrekSet.trek;
-PeakSet=peaks;
+%PeakSet=peaks; %some lines for search history plotting
 peaks=TrekSDDAmplitudesByFilter(peaks.Ind(:,1),treks,FilteredPulses,round(FWHMs),Thresholds);
+% [ind,ia,ib]=intersect(peaks(:,1),PeakSet.Ind(:,1));
+% PeakSet.Ind=PeakSet.Ind(ib,:);
+% PeakSet.Amp=peaks(:,5);
+PeakSet.StepMarker=PeakSet.StepMarker(ib,:);
 TrekSet=TrekSetIn;
 TrekSet.peaks=zeros(size(peaks,1),7);
 TrekSet.peaks(:,1)=peaks(:,1);
