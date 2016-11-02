@@ -53,7 +53,9 @@ BckgFitN=FirstNotZero-1;
 FrontN=MaxInd-BckgFitN;
 TailInd=find(StandardPulse<=0);
 TailInd(TailInd<MaxInd)=[];
-TailInd=TailInd(1);
+if ~isempty(TailInd)
+    TailInd=TailInd(1);
+end;
 LastNotZero=find(abs(StandardPulse),1,'last');
 ZeroTailN=numel(StandardPulse)-LastNotZero;
 
