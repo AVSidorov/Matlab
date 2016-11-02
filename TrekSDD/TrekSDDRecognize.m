@@ -56,7 +56,7 @@ if ~isempty(varargin)&&mod(nargsin,2)~=0
     return;
 end;
 
-if isempty(TrekSetIn)
+if nargin<1||isempty(TrekSetIn)
     disp('Empty TrekSet structure created');
     return;
 end;
