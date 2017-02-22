@@ -1,4 +1,11 @@
 function STSet=SpecialTreks(trek)
+% This function searchs local Minima and Maxima of given trek
+% and calculates additional stat such as FrontHigh, FrontN (front length in
+% points) etc.
+% First Minimum is always before first Maximum
+% Quantity of MinInd, MaxInd, Fronts and Tails are equal
+% Front is part from minimum to maximum
+% Tail is part from maximum to minimum
 trSize=numel(trek);
 
 
@@ -13,7 +20,7 @@ MinInd=find(MinBool);
 MinN=numel(MinInd);
 
 if ~isempty(MaxInd)
-    if isempty(MinInd)||MinInd(1)>MaxInd(1)
+    if isempty(MinInd)||MinInd(1)>MaxInd(1) % MinInd always first
         MinInd=[1;MinInd];    
         MinN=MinN+1;
     end;
@@ -36,6 +43,11 @@ end;
 
  FrontN=MaxInd-MinInd;
  TailN=MinInd(2:end)-MaxInd(1:end-1);
+ if MaxInd(end)==trSize
+     TailN=[TailN;0];
+ else
+     TailN=[TailN;trSize-MaxInd(end)];
+ end
  DoubleFrontN=MaxInd-circshift(MinInd,1);
  DoubleFrontN(1)=FrontN(1);
  
@@ -47,6 +59,12 @@ end;
 %  QuadFrontHigh=trek(MaxInd)-trek(circshift(MinInd,3));
 %  QuadFrontHigh(1:3)=TripleFrontHigh(1:3);
  TailHigh=trek(MaxInd(1:end-1))-trek(MinInd(2:end));
+ % MakeEqual FrontHigh and TailHigh
+ if MaxInd(end)==trSize
+     TailHigh=[TailHigh;0];
+ else
+    TailHigh=[TailHigh;trek(MaxInd(end))-trek(end)];
+ end
 %  for i=0:5
 %      tt(i+1,:)=trek(circshift(MaxInd,-i))-trek(MinInd);
 %  end;
