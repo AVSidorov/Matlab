@@ -17,8 +17,8 @@ for i=1:n
     Ffit(:,i)=F(:,i)*A(i);
 end;
 khi=sum((Y-sum(Ffit,2)).^2)/N;
+FIT.Khi=khi;
 FIT.A=A;
-FIT.khi=khi;
 FIT.Y=Y;
 FIT.Ffit=Ffit;
 FIT.Yfit=sum(Ffit,2);
