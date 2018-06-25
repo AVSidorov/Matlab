@@ -1,5 +1,4 @@
-function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,WidthMax)
-
+function [TrekSet,trekMinus]=TrekSDDPeakSearchFilter(TrekSet,WidthMax,WidthMin)
 mode='exp';
 if strcmp(lower(TrekSet.name),'generated')
     mode='white';
@@ -9,12 +8,17 @@ StdValFile='D:\!SCN\FilteringSDD\StdVal-vs-fwhm.mat';
 
 stepN=10;
 
-FilterResponseWidth=TrekSet.tau*2;
+
 
 
 if nargin<2
     WidthMax=0.8;
 end;
+
+if nargin<3
+    WidthMin=TrekSet.tau*2;
+end;
+FilterResponseWidth=WidthMin;
 peaks=[];
 
 
@@ -106,9 +110,13 @@ FilterWidths=interp1(StdValTab(:,2),StdValTab(:,1),StdVals);
 if max(FilterWidths)~=WidthMax 
     FilterWidths(end)=WidthMax;
 end;
+
 % avoiding large gaps in FilterWidhts
 Io = find(diff(FilterWidths)>=(range(FilterWidths)/stepN),1,'first');
 FilterWidths=[FilterWidths;[max(FilterWidths)-range(FilterWidths)/stepN:-range(FilterWidths)/stepN:FilterWidths(Io)]'];
+
+FilterWidths(FilterWidths<WidthMin)=[];
+
 FilterWidths=sortrows(FilterWidths);
 StdVals=interp1(StdValTab(:,1),StdValTab(:,2),FilterWidths);
 
@@ -242,12 +250,13 @@ end;
 
 %% final output
 % trekMinus=TrekSet.trek;
+
 %PeakSet=peaks; %some lines for search history plotting
 peaks=TrekSDDAmplitudesByFilter(peaks.Ind(:,1),treks,FilteredPulses,round(FWHMs),Thresholds);
 % [ind,ia,ib]=intersect(peaks(:,1),PeakSet.Ind(:,1));
 % PeakSet.Ind=PeakSet.Ind(ib,:);
 % PeakSet.Amp=peaks(:,5);
-PeakSet.StepMarker=PeakSet.StepMarker(ib,:);
+% PeakSet.StepMarker=PeakSet.StepMarker(ib,:);
 TrekSet=TrekSetIn;
 TrekSet.peaks=zeros(size(peaks,1),7);
 TrekSet.peaks(:,1)=peaks(:,1);
