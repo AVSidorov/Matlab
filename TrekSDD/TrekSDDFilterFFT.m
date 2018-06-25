@@ -1,4 +1,4 @@
-function [trek,StpFilt]=TrekSDDFilterFFT(TrekSet,Resp)
+function [trek,StpFilt]=TrekSDDFilterFFT(TrekSet,Resp,n)
 % This function filters TrekSet.trek to Resp form pulses
 % Resp must contain two columns (time and value).
 if isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)&&isstruct(TrekSet.STP)
@@ -17,6 +17,18 @@ f = Fs/2*linspace(0,1,NFFT/2+1);
 % it seems better to use for filter construction same tact as in trek
 Stp=([1:TrekSet.STP.size]'-1)*TrekSet.tau;
 Stp(:,2)=TrekSet.STP.Stp;
+
+if nargin>2
+   timeStep=min(diff(TrekSet.STP.TimeInd));
+   Nfit=1/timeStep;
+   if abs(Nfit-round(Nfit))<timeStep/100
+       Nfit=round(Nfit);
+       if n<Nfit
+           Ind=[1:Nfit:numel(TrekSet.STP.FinePulse)-Nfit]+n;
+           Stp(1:numel(Ind),2)=TrekSet.STP.FinePulse([1:Nfit:numel(TrekSet.STP.FinePulse)-Nfit]+n);
+       end;
+   end;
+end;
 
 FilterSet=MakeFilterByResponse(Resp,Stp,TrekSet.Plot);
 % Yfilter=interp1(FilterSet.Fs*linspace(0,1,FilterSet.NFFT),FilterSet.Yfilter,Fs*linspace(0,1,NFFT))';
