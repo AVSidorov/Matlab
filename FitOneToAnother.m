@@ -48,7 +48,7 @@ while any(isinf(ShKhi(:,2)))
           N=numel(YInd);
           xF=Y(YInd,1);
           xfit=xF-BaseShift-ShKhi(i,1); %x points for fit function interpolation
-          Ffit=interp1(F(:,1),F(:,2),xfit,'cubic',0);  
+          Ffit=interp1(F(:,1),F(:,2),xfit,'PCHIP',0);  
             p=polyfit(Ffit,Y(YInd,2),1);
             A=p(1);
             B=p(2);
