@@ -8,12 +8,12 @@ if nargin<3
     Plot=true;
 end;
     
-if nargin<4
-    if islogical(NFFT)
-        Plot=NFFT;
-    else
-        Plot=true;
-    end;
+if nargin==3
+        if islogical(NFFT)
+            Plot=NFFT;
+        else
+            Plot=true;
+        end;
 end;
 
 if size(Response,1)<size(Response,2)
@@ -48,7 +48,7 @@ pulse=interp1(Pulse(:,1),Pulse(:,2),time,'spline',0);
 
 Fs=1/(timeStep*1e-6);
 
-if nargin<4||islogical(NFFT)
+if ~exist('NFFT','var')||isempty(NFFT)||islogical(NFFT)
     NFFT=pow2(nextpow2(numel(response)));
 end;
 
