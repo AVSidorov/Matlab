@@ -8,6 +8,11 @@ timeMax=InputPulse(MI,1);
 timeStep=mean(diff(InputPulse(:,1)));
 
 timeMaxResp=InputPulse(Ind(1),1)+sqrt(-2*sigma^2*log(InputPulse(Ind(1),2)))+sigma;
+timeMiddle=min(InputPulse(:,1))+range(InputPulse(:,1))/2;
+%try to change maximum position
+%second version (by MK) in the middle of Input pulse
+timeMaxResp=max([timeMaxResp,timeMiddle,InputPulse(Ind(round(numel(Ind)/2)),1)]);
+
 timeMax=max([timeMax,timeMaxResp]);
 timeMax=round(timeMax/timeStep)*timeStep;
 
