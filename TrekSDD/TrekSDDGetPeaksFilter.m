@@ -19,7 +19,7 @@ FIT0.FitFast=false;
 FIT0.BGLineFit=[0,0];
 
 FIT0.FitIndPulseStrict=[STP.BckgFitN-BckgFitN+1:TrekSet.STP.MinFitPoint]';
-SkipPoints=sort([1;TrekSet.ResetInd;TrekSet.OverloadEnd,TrekSet.size]);
+SkipPoints=sort([1;TrekSet.ResetInd;TrekSet.OverloadEnd;TrekSet.size]);
 
 
 for i=1:size(TrekSetIn.peaks,1)
