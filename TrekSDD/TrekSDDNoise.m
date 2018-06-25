@@ -34,7 +34,9 @@ end;
 Ind=StartInd:EndInd;
 trek=TrekSet.trek(Ind);
 NoiseSet=NoiseStd(trek);
+
 %% Search Long enough parts
+trek=trek-NoiseSet.MeanVal; %normalizing trek
 bool=abs(trek)<NoiseSet.Thr;
 PSet=PartsSearch(bool,3,1000);
 Ind=Ind(PSet.bool);
