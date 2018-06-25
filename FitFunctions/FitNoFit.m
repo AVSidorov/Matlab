@@ -1,4 +1,4 @@
-function [khi,FIT]= FitNoFit(Y,F)
+function [khi,FIT]= FitNoFit(Y,F,FIT)
 % Empty fit function calculates Y=F only khi
 % Y,F must be same size
 N=numel(F);
