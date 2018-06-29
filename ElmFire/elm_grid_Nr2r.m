@@ -5,7 +5,7 @@ function r=elm_grid_Nr2r(Nr,Grid,icri)
 r=nan(size(Nr));
 
 if nargin>2
-    %check consistence. Number of input grid radii must be dnx+2
+    %checking consistence. Number of input grid radii must be dnx+2
     if ~length(Grid.r)==icri.elm2.dnx+2
         error('The input parameters for grid is not consitent');
     end
