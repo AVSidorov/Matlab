@@ -1,4 +1,6 @@
 function [nx,ny,nz]=elm_grid_ind2NxNyNz(ind,Grid,icri)
+% Function to convert vector grid coordinates to radial, poloidal and toroidal grid numbers
+
 Nsection=sum(Grid.Npoloidal(1:end-2));
 SectionIdx=circshift(cumsum(Grid.Npoloidal),1)+1; % array with starting index for flux surface
 SectionIdx(1)=1;
