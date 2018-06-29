@@ -9,7 +9,7 @@ if exist(['.\out\',filename],'file')==2
 end;
 
 if exist(['.\3D\',filename],'file')==2
-    filename=['.\out\',filename];
+    filename=['.\3D\',filename];
 end;
 
 if exist(filename,'file')~=2
