@@ -1,13 +1,21 @@
-function elm_grid_draw(Grid)
+function elm_grid_draw(Grid,icri)
 
-theta=[0:2*pi/max(Grid.Npoloidal):2*pi];
+th=[0:2*pi/max(Grid.Npoloidal):2*pi];
 figure;
 grid on; hold on;
 cm=colormap(lines(length(Grid.r)));
 haxes=gca;
 for i=1:length(Grid.r)
-    plot(haxes,Grid.r(i)*cos(theta),Grid.r(i)*sin(theta),'Color',cm(i,:));
-    plot(haxes,Grid.r(i)*cos(2*pi/Grid.Npoloidal(i)*[0:Grid.Npoloidal(i)-1]),Grid.r(i)*sin(2*pi/Grid.Npoloidal(i)*[0:Grid.Npoloidal(i)-1]),'.','Color',cm(i,:));
+    plot(haxes,Grid.r(i)*cos(th),Grid.r(i)*sin(th),'Color',cm(i,:));
+    Theta=2*pi/Grid.Npoloidal(i)*[0:Grid.Npoloidal(i)-1];    
+    if nargin>1
+        theta=elm_grid_Theta2theta(Theta,icri);
+    else
+        theta=Theta;
+    end;
+       
+    plot(haxes,Grid.r(i)*cos(theta),Grid.r(i)*sin(theta),'.','Color',cm(i,:));
+
 end;
 set(haxes,'DataAspectRatio',[1 1 1]);
 
