@@ -10,14 +10,14 @@ end;
 
 x=zeros(GridSet.Nsection,1);
 y=x;
-for i=1:length(Grid.r)
-    Theta=2*pi/Grid.Npoloidal(i)*[0:Grid.Npoloidal(i)-1];    
+for nx=1:length(Grid.r)
+    Theta=2*pi/Grid.Npoloidal(nx)*[0:Grid.Npoloidal(nx)-1];
     if nargin>1
-        theta=elm_grid_Theta2theta(Theta,icri);
+        theta=elm_grid_Theta2theta(icri,[],nx-1,Grid);
     else
         theta=Theta;
     end;
        
-    x(GridSet.SurfaceInd(i,1):GridSet.SurfaceInd(i,2))=Grid.r(i)*cos(theta);
-    y(GridSet.SurfaceInd(i,1):GridSet.SurfaceInd(i,2))=Grid.r(i)*sin(theta);
+    x(GridSet.SurfaceInd(nx,1):GridSet.SurfaceInd(nx,2))=Grid.r(nx)*cos(theta);
+    y(GridSet.SurfaceInd(nx,1):GridSet.SurfaceInd(nx,2))=Grid.r(nx)*sin(theta);
 end;

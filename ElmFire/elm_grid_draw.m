@@ -5,16 +5,16 @@ figure;
 grid on; hold on;
 cm=colormap(lines(length(Grid.r)));
 haxes=gca;
-for i=1:length(Grid.r)
-    plot(haxes,Grid.r(i)*cos(th),Grid.r(i)*sin(th),'Color',cm(i,:));
-    Theta=2*pi/Grid.Npoloidal(i)*[0:Grid.Npoloidal(i)-1];    
+for nx=1:length(Grid.r)
+    plot(haxes,Grid.r(nx)*cos(th),Grid.r(nx)*sin(th),'Color',cm(nx,:));
+    Theta=2*pi/Grid.Npoloidal(nx)*[0:Grid.Npoloidal(nx)-1];
     if nargin>1
-        theta=elm_grid_Theta2theta(Theta,icri);
+        theta=elm_grid_Theta2theta(icri,[],nx-1,Grid);
     else
         theta=Theta;
     end;
        
-    plot(haxes,Grid.r(i)*cos(theta),Grid.r(i)*sin(theta),'.','Color',cm(i,:));
+    plot(haxes,Grid.r(nx)*cos(theta),Grid.r(nx)*sin(theta),'.','Color',cm(nx,:));
 
 end;
 set(haxes,'DataAspectRatio',[1 1 1]);
