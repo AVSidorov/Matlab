@@ -108,10 +108,10 @@ PartLength(HoleEnd>TailInd)=[]; %remove parts after TailInd
 
 % This is till TailFit is not introduced
 
-if ~isempty(FitIndPulseStrict)
-    PartInd=find(FitIndPulse(HoleStart)>=FitIndPulseStrict(end),1,'first');
-elseif ~isempty(FitIndPulse)
-    PartInd=find(FitInd(HoleStart)>=FitIndStrict(end),1,'first');
+if ~isempty(FIT.FitIndPulseStrict)
+    PartInd=find(FitIndPulse(HoleStart)>=FIT.FitIndPulseStrict(end),1,'first');
+elseif ~isempty(FitIndPulse)&&~isempty(FIT.FitIndStrict)
+    PartInd=find(FitInd(HoleStart)>=FIT.FitIndStrict(end),1,'first');
 else
     PartInd=find(PartLength>=MinPartLength,1,'first'); %take first longenough part
 end;

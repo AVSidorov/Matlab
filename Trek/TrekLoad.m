@@ -34,7 +34,7 @@ if isempty(TrekSet.trek)
             TrekSet.size=count;
         end;
         fprintf('Loading time of %3.0f points=                               %7.4f  sec\n',count ,toc); 
-        TrekSet.trek=TrekSet.trek(1:pow2(fix(log2(TrekSet.size)))); %make number of points pow of 2
+%       TrekSet.trek=TrekSet.trek(1:pow2(fix(log2(TrekSet.size)))); %make number of points pow of 2
         TrekSet.size=numel(TrekSet.trek);
         if range(TrekSet.trek)<5    
             fprintf('Trek is probably in volts.\n Converting to counts will be performed common with base line determination\n');

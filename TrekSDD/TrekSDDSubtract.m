@@ -18,8 +18,6 @@ end;
 
 PulseN=FitStruct.FitPulseN;
 MaxInd=StpSet.MaxInd;
-FitInd=FitStruct.FitInd;
-FitIndPulse=FitStruct.FitIndPulse;
 Ind=FitStruct.MaxInd;
 
 
@@ -59,7 +57,7 @@ if TrekSet.Plot
         plot(SubtractInd,TrekSetIn.trek(SubtractInd));
         plot(Ind,TrekSetIn.trek(Ind),'*r');
         plot(SubtractInd,PulseSubtract(SubtractIndPulse)+FitStruct.B+BGLine,'.r-');
-        plot(FitInd,TrekSetIn.trek(FitInd),'ob');
+%         plot(FitInd,TrekSetIn.trek(FitInd),'ob');
         plot(SubtractInd,TrekSet1.trek(SubtractInd),'k');
         plot(SubtractInd,BGLine,'m');        
         plot(SubtractInd,BGLine+TrekSet.OverSt*TrekSet.StdVal+FitStruct.B,'g');

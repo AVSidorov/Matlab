@@ -1,56 +1,103 @@
 function TrekSet=TrekSDDGetPeaksFilter(TrekSet)
 BckgFitN=5;
 StartSearchTime=14500;
-NoiseTime=[2000,13000];
-NoiseInd=[fix((NoiseTime(1)-TrekSet.StartTime)/TrekSet.tau):fix((NoiseTime(end)-TrekSet.StartTime)/TrekSet.tau)];
-StartSearchInd=fix((StartSearchTime-TrekSet.StartTime)/TrekSet.tau);
-NoiseSet=NoiseFitAuto(TrekSet.trek(NoiseInd));
-% NoiseSet.MeanVal=median(TrekSet.trek(NoiseInd));
-% NoiseSet.StdVal=std(TrekSet.trek(NoiseInd));
-% NoiseSet.Threshold=5*NoiseSet.StdVal;
-TrekSet.trek=TrekSet.trek-NoiseSet.MeanVal;
-TrekSet.MeanVal=0;
-TrekSet.StdVal=NoiseSet.StdVal;
-TrekSet.MaxSignal=TrekSet.MaxSignal-NoiseSet.MeanVal;
-TrekSet.MinSignal=TrekSet.MinSignal-NoiseSet.MeanVal;
-TrekSet.Threshold=ceil(NoiseSet.Threshold);
-TrekSet.OverSt=3.5;
 
+TrekSet.SelectedPeakInd=TrekSet.peaks(:,1);
+TrekSetIn=TrekSet;
+TrekSet.peaks=[];
 STP=TrekSet.STP;
-[TrekSet,trek]=TrekSDDPeakSearchFilter(TrekSet,NoiseInd);
-TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd<StartSearchInd)=[];
-for i=1:numel(TrekSet.SelectedPeakInd-1)
-        FIT.Shift=0;
-        FIT.FitPulse=TrekSet.STP.Stp;
-        FIT.FitPulseN=TrekSet.STP.size;
-        FIT.MaxInd=TrekSet.SelectedPeakInd(i);
-        FIT.A=trek(TrekSet.SelectedPeakInd(i));
-        FIT.B=0;
-        FIT.Khi=inf;
-        Npoints=BckgFitN+TrekSet.SelectedPeakInd(i+1)-TrekSet.SelectedPeakInd(i);
-        %not neccesary add FrontN because we add Front for first pulse, and
-        %resiude front of next
-        Npoints=min([Npoints,STP.size-(STP.BckgFitN-BckgFitN)]);
-        %don't check for trek size, because work till previouse for last
-        %marker
-        FIT.N=Npoints;
-        FIT.FitIndPulseStrict=[STP.BckgFitN-BckgFitN+1:STP.BckgFitN-BckgFitN+Npoints]';
-        if FIT.FitIndPulseStrict(end)<STP.MinFitPoint-BckgFitN
+MinFrontN=STP.MinFitPoint-STP.BckgFitN;
+
+FIT0.Shift=0;
+FIT0.FitPulse=TrekSet.STP.Stp;
+FIT0.FitPulseN=TrekSet.STP.size;
+FIT0.B=0;
+FIT0.Khi=inf;
+FIT0.ShiftRangeL=2;
+FIT0.ShiftRangeR=2;
+FIT0.FitFast=false;
+FIT0.BGLineFit=[0,0];
+
+FIT0.FitIndPulseStrict=[STP.BckgFitN-BckgFitN+1:TrekSet.STP.MinFitPoint]';
+SkipPoints=sort([1;TrekSet.ResetInd;TrekSet.OverloadEnd;TrekSet.size]);
+
+
+for i=1:size(TrekSetIn.peaks,1)
+        FIT=FIT0;
+%% regular fit        
+        FIT.MaxInd=TrekSetIn.peaks(i,1);
+        if TrekSet.trek(FIT.MaxInd)<TrekSet.Threshold
             continue;
         end;
-        FIT.FitIndStrict=FIT.FitIndPulseStrict+FIT.MaxInd-STP.MaxInd;
-        FIT.ShiftRangeL=2;
-        FIT.ShiftRangeR=2;
-        FIT=TrekSDDGetFitInd(TrekSet,FIT);
-        FIT.FitFast=false;
-        FIT.BGLineFit=[0,0];
-        FIT.Good=all((TrekSet.trek(FIT.FitIndStrict)-FIT.A*FIT.FitPulse(FIT.FitIndPulseStrict)-FIT.B)<TrekSet.OverSt*TrekSet.StdVal);
-
-        FIT=TrekSDDFitTime(TrekSet,FIT);
+        if i<size(TrekSetIn.peaks,1)
+            MaxIndNext=TrekSetIn.peaks(i+1,1);
+        else
+            MaxIndNext=FIT.MaxInd;
+        end;
+        MaxIndNextGood=TrekSetIn.peaks(find(TrekSetIn.peaks(:,1)>FIT.MaxInd&TrekSetIn.peaks(:,7)==0,1,'first'),1);
+        StartInd=find(TrekSet.trek(1:FIT.MaxInd)<TrekSet.StdVal*TrekSet.OverSt,1,'last')-BckgFitN;
+        MaxIndByStartInd=StartInd+STP.FrontN;
+        SkipPointBack=SkipPoints(find(SkipPoints<FIT.MaxInd,1,'last'));
+        SkipPointForward=SkipPoints(find(SkipPoints>FIT.MaxInd,1,'first'));
+        
+        
+                
+        
+        FIT.FitIndStrict=[StartInd:FIT.MaxInd]';
+        FIT.A=TrekSetIn.peaks(i,5);
+        % Noise burst checking
+            N=numel(find(STP.Stp*FIT.A>TrekSet.Threshold));
+        if ~all(TrekSet.trek(StartInd+BckgFitN+1:StartInd+BckgFitN+N)>TrekSet.StdVal)
+            continue;
+        end;
+        
+        FIT=TrekSDDGetFitInd(TrekSet,FIT);      
+                
+        FIT=TrekSDD2FitFunctions(TrekSet,FIT);
         [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);
-        [ExcelentFit,TrekSet,FIT1,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT);
-        if not(ExcelentFit)&&FIT.A>TrekSet.Threshold&&FIT.A<TrekSet.MaxSignal
+        [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
+
+        ShStart=[];
+        shMin=MaxIndByStartInd-FIT.MaxInd;
+        while ~ExcelentFit&&size(ShStart,1)<=2&&FIT.MaxInd-SkipPointBack>TrekSet.STP.TailInd&&SkipPointForward-FIT.MaxInd>0
+            [FIT,ShStart]=NewShift(FIT,MaxIndNext,MaxIndNextGood,shMin,ShStart);
+            FIT.FitInd=[StartInd:round(FIT.MaxInd+max(FIT.Shift))]';         
+            FIT=TrekSDD2FitFunctionsN(TrekSet,FIT);
+            [TrekSet,TrekSet1]=TrekSDDSubtractN(TrekSet,FIT);
+            [ExcelentFit,TrekSet]=TrekSDDisGoodSubtractFilter(TrekSet,TrekSet1,FIT,false);
+        end;
+        if ~ExcelentFit
+            FIT=FIT0;
+            FIT.A=TrekSetIn.peaks(i,5);
+            FIT.MaxInd=TrekSetIn.peaks(i,1);
+            [TrekSet,TrekSet1]=TrekSDDSubtract(TrekSet,FIT);
             TrekSet=TrekSet1;
         end;
         assignin('base','TrekSet',TrekSet);
 end;
+
+function [FIT,ShStart]=NewShift(FIT,MaxIndNext,MaxIndNextGood,shMin,ShStart)
+if size(ShStart,2)==4
+    ShStart=[];
+end;
+
+FIT.Shift=sort(FIT.Shift);
+
+if numel(FIT.Shift)==1    
+    FIT.Shift=[min([FIT.Shift;shMin])-1;max([FIT.Shift;shMin])+1];
+elseif isempty(ShStart)
+    FIT.Shift=[min([FIT.Shift;shMin])-1;max([FIT.Shift;shMin])+1];
+    FIT.Shift=[FIT.Shift;mean(FIT.Shift)];        
+elseif size(ShStart,2)==1
+    FIT.Shift=2*FIT.Shift-ShStart(:,end);    
+elseif size(ShStart,2)==2
+    c=FIT.Shift-ShStart(:,1);
+    FIT.Shift(1:2)=FIT.Shift(1:2)+[-c(2);c(1)];
+elseif size(ShStart,2)==3
+    FIT.Shift=2*FIT.Shift-ShStart(:,end);
+end
+
+FIT.Shift=sort(FIT.Shift);
+   
+ShStart=[ShStart,FIT.Shift];
+

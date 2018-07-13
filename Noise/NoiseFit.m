@@ -21,16 +21,16 @@ grid on; hold on;
 
 title('Zoom figure. Choose region for fit Std.');
 Ind=[];
-HighBorder=0;
-LowBorder=0;
+HighBorder=[];
+LowBorder=[];
 ch=input('Zoom figure. Add Region? (just ''Enter'').If input is not empty go NextStep (whole trek)\n','s');    
 while isempty(ch)
     title('Input fit borders. Y is important too (for histogram borders)');
     [x,y]=ginput(2);
     Ind=[Ind,round(min(x)):round(max(x))];
     %TODO whats bad work on non normilized trek (MeanVal~=0)
-    HighBorder=round(max(y))-0.5;
-    LowBorder=round(min(y))-0.5;
+    HighBorder=max([HighBorder,round(max(y))-0.5]);
+    LowBorder=min([LowBorder,round(min(y))-0.5]);
     plot([round(min(x)),round(min(x))],[LowBorder,HighBorder],'r','LineWidth',2);
     plot([round(max(x)),round(max(x))],[LowBorder,HighBorder],'r','LineWidth',2);
     h=findobj('tag','PointsInWork');

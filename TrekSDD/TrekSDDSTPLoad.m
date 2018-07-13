@@ -1,6 +1,6 @@
 function TrekSet=TrekSDDSTPLoad(TrekSet,filename)
 if nargin<2
-    filename='D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_2.dat';
+    filename='D:\!SCN\StandPeakAnalys\StPeakSDD_20ns_3.dat';
 end;
 TrekSet.STP=StpStruct(filename);
 if isfield(TrekSet,'Nfit')&&~isempty(TrekSet.Nfit)

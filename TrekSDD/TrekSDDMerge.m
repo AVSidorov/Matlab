@@ -41,6 +41,7 @@ for i=1:4
    TrekSet(end).Plot=false; 
    if TrekSet(end).type>0 
         TrekSet(end)=TrekLoad(TrekSet(end));
+        TrekSet(end)=TrekSDDSTPLoad(TrekSet(end));
         TrekSet(end)=TrekSDDNoise(TrekSet(end));
         StdVals(end+1,1)=TrekSet(end).StdVal;
         TrekSet(end)=TrekPickTime(TrekSet(end),TrekSet(1).StartTime,TrekSet(1).size*TrekSet(1).tau);

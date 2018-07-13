@@ -1,6 +1,7 @@
 function [isGood,TrekSet,FIT,Istart]=TrekSDDisGoodSubtract(TrekSet,TrekSet1,FIT,FIT1)
 
 isGood=false;
+Istart=[];
 if FIT.Good&&FIT.FitIndPulse(1)<=TrekSet.STP.BckgFitN-5
     isGood=true;
 else
@@ -43,15 +44,16 @@ else
 %         FIT=FIT1;
 %         Istart=[];
 %         return;
-    elseif FIT1.MaxInd>FIT.MaxInd
-        FIT=FIT1;
-        Istart=[];
-        return;
-    else
-        Istart=FIT.MaxInd;
-        FIT=[];
-        return;
-    end;
+
+%     elseif FIT1.MaxInd>FIT.MaxInd
+%         FIT=FIT1;
+%         Istart=[];
+%          return;
+%     else
+%         Istart=FIT.MaxInd;
+%         FIT=[];
+%          return;
+     end;
 end;
 
 if ~isGood
@@ -106,7 +108,11 @@ if FIT.A>TrekSet.StdVal*TrekSet.OverSt
                     %TODO make stI more far from current peak for beter Background fit
                     stI=find(TrekSet1.trek(1:MaxInd-TrekSet.STP.FrontN)-FIT.B>TrekSet.OverSt*TrekSet.StdVal,1,'last')+1;
 
-                     endMarker=min(TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>MaxInd));
+                     if isfield(TrekSet1,'SelectedPeakInd')&&~isempty(TrekSet.SelectedPeakInd)
+                        endMarker=min(TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>MaxInd));
+                     else
+                         endMarker=MaxInd+STP.size; 
+                     end;
                      endI=min([nextMarker-STP.FrontN;stI-1+find(TrekSet1.trek(stI:nextMarker)-FIT.B<TrekSet.OverSt*TrekSet.StdVal,1,'last');TrekSet.size]);
                      endI=max([endI;FIT.FitInd(end)]);
                      if isempty(endI)
@@ -152,7 +158,7 @@ end;
 end;
 
 s='d';
-if ~isGood||TrekSet.Plot
+if (~isGood&&FIT.A>TrekSet.Threshold)||TrekSet.Plot
      if exist('STP','var')==0&&isfield(TrekSet,'STP')&&~isempty(TrekSet.STP)
         STP=TrekSet.STP;
      elseif exist('STP','var')==0
@@ -163,8 +169,13 @@ if ~isGood||TrekSet.Plot
     end;
     Ind=[MaxInd-TrekSet.STP.size:MaxInd+TrekSet.STP.size];
     Ind(Ind<1|Ind>TrekSet.size)=[];
-    IndS=TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>Ind(1)&TrekSet.SelectedPeakInd<Ind(end));
-    IndS1=TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>Ind(1)&TrekSet1.SelectedPeakInd<Ind(end));
+    if isfield(TrekSet,'SelectedPeakInd')
+        IndS=TrekSet.SelectedPeakInd(TrekSet.SelectedPeakInd>Ind(1)&TrekSet.SelectedPeakInd<Ind(end));
+        IndS1=TrekSet1.SelectedPeakInd(TrekSet1.SelectedPeakInd>Ind(1)&TrekSet1.SelectedPeakInd<Ind(end));
+    else
+        IndS=[];
+        IndS1=[];
+    end;
     ts=figure;
     grid on; hold on;
     if isGood
@@ -179,6 +190,10 @@ if ~isGood||TrekSet.Plot
     plot(MaxInd,TrekSet.trek(MaxInd),'*r');
     plot(Ind,TrekSet1.trek(Ind),'k');
     plot(IndS1,TrekSet1.trek(IndS1),'.m');
+    if ~exist('stI','var')||isempty(stI)
+        stI=Ind(1);
+        endI=Ind(end);
+    end;
     plot([stI,endI],FIT.B+[TrekSet.OverSt*TrekSet.StdVal,TrekSet.OverSt*TrekSet.StdVal],'m');
     plot([stI,endI],FIT.B+[-TrekSet.OverSt*TrekSet.StdVal,-TrekSet.OverSt*TrekSet.StdVal],'m');
     plot([stI,endI],FIT.B+[TrekSet.Threshold,TrekSet.Threshold],'r');
@@ -187,7 +202,9 @@ if ~isGood||TrekSet.Plot
     if exist('nextMarker','var')>0
         plot(nextMarker,TrekSet1.trek(nextMarker),'om');
     end;
-    plot(BadInd,TrekSet1.trek(BadInd),'+r');
+    if exist('BadInd','var')&&~isempty(BadInd)
+        plot(BadInd,TrekSet1.trek(BadInd),'+r');
+    end;
     if exist('p','var')>0&&~isempty(p)
         plot(stI:endI,polyval(p,stI:endI,S,mu),'g');
         plot(stI:endI,TrekSet.OverSt*TrekSet.StdVal+polyval(p,stI:endI,S,mu),'m');
@@ -207,6 +224,7 @@ if ~isGood||TrekSet.Plot
         if not(isempty(s))
             isGood=true;
         end;
+        Istart=[];
     else
         pause;
     end;
