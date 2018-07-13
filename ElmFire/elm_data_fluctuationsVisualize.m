@@ -1,7 +1,7 @@
 function tbl=elm_data_fluctuationsVisualize(filename,Grid,icri,varargin)
 
 
-hfig=figure('CreateFcn',@CreateFig);
+hfig=figure('CreateFcn',@CreateFig,'Color','w');
 
 % set(hfig,'KeyPressFcn',@KeyPress_fcn);
 
@@ -21,7 +21,7 @@ hfig=figure('CreateFcn',@CreateFig);
         data.NtimeStep=size(data.MatFile,'tbl',1)/data.Ngrid;
 
         %% preparing the plotting grid
-        [data.x data.y]=elm_grid_xy(data.GridSet);
+        [data.x data.y]=elm_grid_xy(data.GridSet,icri);
 
         data.x=data.x(1:data.GridSet.Nsection);
         data.y=data.y(1:data.GridSet.Nsection);
@@ -47,8 +47,8 @@ hfig=figure('CreateFcn',@CreateFig);
             tbl=data.MatFile.tbl(Ind,data.nS);
             tblAv=elm_data_fluxAvr(tbl,data.GridSet);
             tblD=tbl-tblAv;
-            trisurf(data.tri,data.x,data.y,tblD,'LineStyle','none','Parent',data.haxes);
-            title(data.haxes,['Time step is ',num2str((data.t-1)*data.icri.elm3.nene,'%d')]);
+            trisurf(data.tri,data.x,data.y,tblD,'LineStyle','none','Parent',data.haxes,'FaceColor','interp');
+            title(data.haxes,['Time step is ',num2str((data.t-1)*data.icri.elm3.nene*data.icri.elm3.tint/1e-6,'%5.2f'),' \mus']);
             set(data.haxes,'DataAspectRatio',[1 1 data.scaleZ]);
             caxis([-data.scaleZ +data.scaleZ]);
             view(2);
@@ -65,8 +65,10 @@ hfig=figure('CreateFcn',@CreateFig);
         data=guidata(obj);
         if strcmpi(data.htimer.Running,'off')
             start(data.htimer);
+            set(obj,'String','Stop');
         else
             stop(data.htimer);
+            set(obj,'String','Start');
         end
     end
 
