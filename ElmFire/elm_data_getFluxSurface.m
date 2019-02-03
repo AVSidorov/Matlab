@@ -4,7 +4,15 @@ function tbl=elm_data_getFluxSurface(Nr,T,nS,filename,GridSet)
 filename=elm_read_filename(filename);
 MatFile=matfile(filename);
 %% checkig that grid and tbl in mat are consistent
-Ngrid=MatFile.Ngrid;
+if isprop(MatFile,'Ngrid')    
+    Ngrid=MatFile.Ngrid;
+    if Ngrid~=GridSet.Ngrid
+        error('elm_apps:err:read','GridSet isn''t consistent with MatFile');
+    end;
+else
+    Ngrid=GridSet.Ngrid;
+end;
+
 NtimeStep=size(MatFile,'tbl',1)/Ngrid;
 %% reading
 indSurface=elm_grid_fluxSurfaceIndByNr(Nr,GridSet);

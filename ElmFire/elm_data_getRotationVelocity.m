@@ -14,6 +14,12 @@ VelocityTab=zeros(timeShiftMax,dnz,dnt);
 
 Ny=[0:GridSet.Grid.Npoloidal(nx)-1];
 theta=elm_grid_Theta2theta(icri,[],nx-1,GridSet);
+
+Theta=[0:2*pi/GridSet.Grid.Npoloidal(nx):2*pi];
+Theta(end)=[];
+% if interpolation was made in elm_data_getRotation theta=Theta
+theta=Theta;
+
 %recalculate lags to distance
 for timeShift=1:timeShiftMax    
     VelocityTab(timeShift,:,:)=sign(corrLag(timeShift,:,:)).*interp1(Ny,theta,abs(corrLag(timeShift,:,:))*timeShift,'phcip')*GridSet.Grid.r(nx)/(Ts*timeShift)/1e3;

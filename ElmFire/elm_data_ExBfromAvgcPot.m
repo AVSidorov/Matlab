@@ -14,4 +14,4 @@ end;
 % B=repmat(B(1:end-3),1,dnt);
 % mean ExB velocity is on magnet axis r=0
 B=icri.elm1.bt;
-Velocity=Er./B;
+Velocity=Er.*B./(B.*B);
