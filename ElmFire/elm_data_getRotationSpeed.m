@@ -1,11 +1,11 @@
-function [corrLag,corrVal]=elm_data_getRotationSpeed(dtbl,timeShiftMax)
+function [corrLag,corrVal]=elm_data_getRotationSpeed(dtbl,timeShiftMax,nx,GridSet,icri)
 % This function extracts plasma  fluctuations poloidal rotation speed
 % dtbl is three dimensional poloidal x toroidal x time 
 % relative fluctuations table
 % corrLag is Lag in poloidal dimension to get max correlation scaled to one time step
 % table format is timeShift x toroidal x time
 % timeShift is time difference between time layers used for corrLag extraction
-if nargin<2
+if nargin<2||isempty(timeShiftMax)
     timeShiftMax=15;
 end
 
@@ -20,10 +20,27 @@ NmaxDeterm=3;
 d=fix(NmaxDeterm/2);
 maxLags=150;
 
+%for correct correlation between time layers dtbl must by interpolated in
+%equidistant angles. Otherwise can be distortions caused by grid
+Theta=[0:2*pi/GridSet.Grid.Npoloidal(nx):2*pi/GridSet.Grid.Npoloidal(nx)*dny];
+Theta(end)=[];
+
+
+if nargin>2&&dny==GridSet.Grid.Npoloidal(nx)
+    theta=elm_grid_Theta2theta(icri,[],nx-1,GridSet);
+else
+    theta=Theta;
+end;
+
+
 for timeShift=1:timeShiftMax
     for nZ=1:dnz
         for i=1:dnt-timeShift
-            [CrossCorr(:,i),lags]=xcorr(dtbl(:,nZ,i),dtbl(:,nZ,i+timeShift),maxLags,'coeff');
+            %for correct correlation between time layers dtbl must by interpolated in
+            %equidistant angles. Otherwise can be distortions caused by grid
+            vec1=interp1(theta,dtbl(:,nZ,i),Theta,'pchip');
+            vec2=interp1(theta,dtbl(:,nZ,i+timeShift),Theta,'pchip');
+            [CrossCorr(:,i),lags]=xcorr(vec1,vec2,maxLags,'coeff');
         end
         [m,mi]=max(CrossCorr);
         % searchig fine max by parabolic fit
@@ -40,3 +57,4 @@ for timeShift=1:timeShiftMax
         end;            
     end;
 end
+
