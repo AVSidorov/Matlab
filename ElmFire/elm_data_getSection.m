@@ -14,6 +14,7 @@ else
 end;
 
 NtimeStep=size(MatFile,'tbl',1)/Ngrid;
+T=T(T<=NtimeStep);
 %% reading
 indSection=elm_grid_fullsections(Nz(1),GridSet);
 Nsection=numel(indSection);
