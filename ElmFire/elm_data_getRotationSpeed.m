@@ -18,7 +18,7 @@ corrVal=corrLag;
 
 NmaxDeterm=3;
 d=fix(NmaxDeterm/2);
-maxLags=150;
+maxLags=min([150,round(GridSet.Grid.Npoloidal(nx)/2)]);
 
 %for correct correlation between time layers dtbl must by interpolated in
 %equidistant angles. Otherwise can be distortions caused by grid
@@ -32,7 +32,7 @@ else
     theta=Theta;
 end;
 
-
+lags=[-maxLags:maxLags];
 for timeShift=1:timeShiftMax
     for nZ=1:dnz
         for i=1:dnt-timeShift
@@ -40,7 +40,7 @@ for timeShift=1:timeShiftMax
             %equidistant angles. Otherwise can be distortions caused by grid
             vec1=interp1(theta,dtbl(:,nZ,i),Theta,'pchip');
             vec2=interp1(theta,dtbl(:,nZ,i+timeShift),Theta,'pchip');
-            [CrossCorr(:,i),lags]=xcorr(vec1,vec2,maxLags,'coeff');
+            CrossCorr(:,i)=xcorr(vec1,vec2,maxLags,'coeff');
         end
         [m,mi]=max(CrossCorr);
         % searchig fine max by parabolic fit
