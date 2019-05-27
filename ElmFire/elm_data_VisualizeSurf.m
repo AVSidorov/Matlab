@@ -1,5 +1,4 @@
-function tbl=elm_data_VisualizeSurf(X,Y,V)
-
+function tbl=elm_data_fluctuationsVisualize(X,Y,V)
 
 hfig=figure('CreateFcn',@CreateFig,'Color','w');
 
