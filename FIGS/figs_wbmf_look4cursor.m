@@ -25,6 +25,7 @@ function figs_wbmf_look4cursor(obj,evnt)
             data.look4cursor.endY=C(1,2);
             PxWidth=range([data.look4cursor.stX data.look4cursor.endX])/range(XLim)*Position(3);
             PxHeight=range([data.look4cursor.stY data.look4cursor.endY])/range(YLim)*Position(4);
+            %     TODO relative tolerance
             if PxWidth>PxHeight&&PxHeight<=data.look4cursor.tolerance
                 data.look4cursor.mode='vert';
             elseif PxWidth<PxHeight&&PxWidth<=data.look4cursor.tolerance

@@ -1,5 +1,8 @@
 function figs_look4cursor(haxes)
 % function ads cursor to axes
+
+%TODO properties in input arguments
+%TODO remove function
 if nargin<1||isempty(haxes)||~ishandle(haxes)||~strcmpi(get(haxes,'Type'),'axes')
     haxes=gca;
 end
@@ -7,7 +10,8 @@ end
     mf=ancestor(haxes,'figure');
     data=guidata(mf);
     data.look4cursor.on=false;
-    data.look4cursor.tolerance=2;
+%     TODO relative tolerance
+    data.look4cursor.tolerance=5;
     data.look4cursor.mode='rect';
     if isfield(data.look4cursor,'haxes')
         data.look4cursor.haxes=[data.look4cursor.haxes;haxes];
