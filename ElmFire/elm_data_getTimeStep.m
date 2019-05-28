@@ -1,4 +1,4 @@
-function tbl=elm_data_getSection(Nz,T,nS,filename,GridSet)
+function tbl=elm_data_getTimeStep(T,nS,filename,GridSet)
 % Function reads from .MAT file full fluxsurface data for given time and
 % column(species) number
 filename=elm_read_filename(filename);
@@ -16,18 +16,18 @@ end;
 NtimeStep=size(MatFile,'tbl',1)/Ngrid;
 T=T(T<=NtimeStep);
 %% reading
-indSection=elm_grid_fullsections(Nz(1),GridSet);
-Nsection=numel(indSection);
-%Nsection=GridSet.Nsection;
-tbl=zeros(Nsection,numel(T),numel(Nz));
-for nz=1:numel(Nz)
-    indSection=elm_grid_fullsections(Nz(nz),GridSet);
+if all(diff(T)==1)
+     ind=1+(T(1)-1)*Ngrid:T(end)*Ngrid;
+     tbl=MatFile.tbl(ind,nS);
+     tbl=reshape(tbl,[],length(T));
+else
+    tbl=zeros(Ngrid,numel(T));
     for i=1:numel(T)
         t=T(i);
         % for reading from .mat file 
         % "Indices can be a single value, an equally spaced range of increasing values, or a colon (:)"
         % So read the full time Step
-        ind=(t-1)*Ngrid+indSection;
-        tbl(:,i,nz)=MatFile.tbl(ind,nS);
+        ind=1+(t-1)*Ngrid:t*Ngrid;
+        tbl(:,i)=MatFile.tbl(ind,nS);
     end;
 end

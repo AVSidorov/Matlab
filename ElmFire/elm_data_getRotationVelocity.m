@@ -33,15 +33,19 @@ Vstd=mean(std(VelocityTab,0,3),2);
 bool=abs(Vmean-Vmean(1))<=Vstd(1);
 Velocity=squeeze(mean(VelocityTab(bool,:,:),2));    
 % check correlation value
-V=Velocity(1,:);
-Std=inf;
-timeShiftMax=size(Velocity,1);
-for timeShift=2:timeShiftMax
-    dV=Velocity(timeShift,:)-V;
-    Std=min([Std,std(dV(timeShiftMax:end-timeShiftMax))]);
-    if all(abs(dV(timeShiftMax:end-timeShiftMax))<=10*Std)
-        V=mean(Velocity(1:timeShift,:),1);
+if ~isempty(Velocity)
+    V=Velocity(1,:);
+    Std=inf;
+    timeShiftMax=size(Velocity,1);
+    for timeShift=2:timeShiftMax
+        dV=Velocity(timeShift,:)-V;
+        Std=min([Std,std(dV(timeShiftMax:end-timeShiftMax))]);
+        if all(abs(dV(timeShiftMax:end-timeShiftMax))<=10*Std)
+            V=mean(Velocity(1:timeShift,:),1);
+        end;
     end;
-end;
-Velocity=squeeze(V); 
+    Velocity=squeeze(V); 
+else
+    Velocity=zeros(1,dnt);
+end
  
