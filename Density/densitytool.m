@@ -27,6 +27,7 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
         
         data=guidata(obj);
         
+        data.trek=[];
         data.Fs=5e6;
         data.freq=420e3/(data.Fs/2);
         data.freqF=data.freq;
@@ -278,6 +279,9 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
     end
     function NewTrek(obj,evnt)        
         data=guidata(obj);
+        if isempty(data.trek)
+            return;
+        end;
             h=findobj(data.hvideo,'Tag','trek');
             delete(h);
             plot(data.hvideo,[0:length(data.trek)-1]*1/data.Fs/data.timeScale,data.trek,'b','LineWidth',2,'Tag','trek');
