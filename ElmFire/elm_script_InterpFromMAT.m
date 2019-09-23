@@ -1,5 +1,5 @@
 diary on;
-filename='deltaNeInterp';
+filename='deltaNe';
 tStep=5;
 
 elm_script_init;
@@ -13,38 +13,34 @@ for i=1:length(R)
     yq(:,i)=R(i).*sin(Theta);
 end
 dNinterp=zeros(length(Theta),length(R),GridSet.dnz,2);
-if ~exist([filename,'.mat'],'file')
+if ~exist([filename,'interp.mat'],'file')
     %make .mat file version 7.3 with creating array        
-    save([filename,'.mat'],'dNinterp','-v7.3')
+    save([filename,'interp.mat'],'dNinterp','-v7.3')
     tStart=1;
 end
-MatFile=matfile([filename,'.mat'],'Writable',true);
+clear dNinterp;
+MatFileIn=matfile([filename,'.mat']);
+MatFile=matfile([filename,'interp.mat'],'Writable',true);
 MatFile.Theta=Theta;
 MatFile.R=R;
 MatFile.xq=xq;
 MatFile.yq=yq;
 MatFile.timeInd=1:tStep:length(time);
 tStart=size(MatFile,'dNinterp',4)+tStep;
-if isempty(tStart)||tStart<1
+if isempty(tStart)||tStart<=2+tStep
     tStart=1;
 end;
+dNinterp=zeros(size(xq,1),size(yq,2),GridSet.dnz);
 MainTimer=tic;
  for t=tStart:tStep:length(time)
     tic;
-    N=elm_data_getTimeStep(t,1,'Dnsvct.mat',GridSet);
-    dN=N;
-    for r=1:GridSet.dnx
-        ind=elm_grid_fluxSurfaceIndByNr(r,GridSet);
-        dN(ind)=(N(ind)-mean(N(ind)))/mean(N(ind));
-    end
-    dN=reshape(dN,[],GridSet.dnz);
+    dN=MatFileIn.dN(:,:,t);
     for nz=1:GridSet.dnz
         dNinterp(1:size(xq,1),1:size(yq,2),nz)=griddata(x,y,dN(:,nz),xq,yq,'cubic'); 
-    end
-    toc;
+    end    
     MatFile.dNinterp(1:size(xq,1),1:size(yq,2),1:GridSet.dnz,t)=dNinterp(1:size(xq,1),1:size(yq,2),1:GridSet.dnz);
-    MatFile.tcur=t;
-    clear N dN dNinterp
+    MatFile.tcur=t;    
+    toc;
 end
 toc(MainTimer);
 diary off;
