@@ -27,6 +27,8 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
         
         data=guidata(obj);
         
+        data.trek=[];
+        data.filename='';
         data.Fs=5e6;
         data.freq=420e3/(data.Fs/2);
         data.freqF=data.freq;
@@ -195,6 +197,7 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
         [trek,filename]=DensityTrekLoadFromSingle;
         if ~isempty(trek)
             data.trek=trek;
+            data.filename=filename;
             set(obj,'String',filename);
         end
         guidata(obj,data);
@@ -203,16 +206,23 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
     function ButtonSave(obj,evnt)
         data=guidata(obj);
         if ~isempty(data.phZK)
-            [FileName,PathName,FilterIndex]=uiputfile({'*.dat','File of single';'*.txt','ASCII tab'},'Save phase to file');
-            switch FilterIndex
-                case 1
-                    fid=fopen(fullfile(PathName,FileName),'w');
-                    fwrite(fid,data.phZK(:,2),'single');
-                    dt=mean(diff(data.phZK(:,1)));
-                    save(fullfile(PathName,['dt_',FileName]),'dt','-ascii','-double');
-                    fclose(fid);
-                otherwise
-                    save(fullfile(PathName,FileName),'-struct','data','phZK','-ascii','-double','-tabs');
+            [FileName,PathName,FilterIndex]=uiputfile({'*.txt','ASCII tab';'*.dat','File of single'},'Save phase to file');
+            [pathstr,FileName1,ext]=fileparts(FileName);
+            
+            for i=1:size(data.trek,2)
+                [pathstr,FileName2,ext2]=fileparts(data.filename{i});
+                switch FilterIndex
+                    case 2
+                            fid=fopen(fullfile(PathName,[FileName,'_',data.filename{i}]),'w');
+                            fwrite(fid,data.phZK(:,2,i),'single');
+                            dt=mean(diff(data.phZK(:,1,i)));
+                            save(fullfile(PathName,[FileName1,'_',FileName2],ext),'dt','-ascii','-double');
+                            fclose(fid);
+                    otherwise
+                        phZK=squeeze(data.phZK(:,:,i));
+%                         save(fullfile(PathName,[FileName,'_',data.filename{i}]),'-struct','data','phZK','-ascii','-double','-tabs');                         
+                        save(fullfile(PathName,[FileName1,'_',FileName2,ext]),'phZK','-ascii','-double','-tabs');
+               end
             end
         end
     end
@@ -220,9 +230,11 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
         set(obj,'Enable','off');
         drawnow;
         data=guidata(obj);
-        [data.phZK,data.freq,data.trekF]=DensityAdjustFreq(@DensityPhaseZeroCross,data.trek,1/data.Fs,data.bandwidth,data.timeBase,data.timeTail,data.freq);
+        [phZK,data.freq,data.trekF]=DensityAdjustFreq(@DensityPhaseZeroCross,data.trek(:,1),1/data.Fs,data.bandwidth,data.timeBase,data.timeTail,data.freq);
+        data.phZK(1:length(phZK),:,1)=phZK;
         data.freqF=data.freq;
         guidata(obj,data); 
+        Recalculate(obj,evnt);
         set(obj,'Enable','on');
         ControlRedraw(obj,data);
         ReDraw(obj,data);
@@ -278,9 +290,12 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
     end
     function NewTrek(obj,evnt)        
         data=guidata(obj);
+        if isempty(data.trek)
+            return;
+        end;
             h=findobj(data.hvideo,'Tag','trek');
-            delete(h);
-            plot(data.hvideo,[0:length(data.trek)-1]*1/data.Fs/data.timeScale,data.trek,'b','LineWidth',2,'Tag','trek');
+            delete(h);            
+            plot(data.hvideo,[0:length(data.trek(:,1))-1]*1/data.Fs/data.timeScale,data.trek(:,1),'b','LineWidth',2,'Tag','trek');
 
             data.NFFT=fix(length(data.trek)/2)*2;          
             Y=fft(data.trek,data.NFFT);            
@@ -288,9 +303,9 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
             
             h=findobj(data.hspec,'Tag','spec');
             delete(h);
-            plot(data.hspec,data.f,abs(Y(1:data.NFFT/2+1))/max(abs(Y)),'k','LineWidth',3,'tag','spec');
+            plot(data.hspec,data.f,abs(Y(1:data.NFFT/2+1,:))/max(abs(Y(:))),'LineWidth',3,'tag','spec');
 
-            data.freq=getMaxFreq(data.trek);
+            data.freq=getMaxFreq(data.trek(:,1));
             data.freqF=data.freq;
 
             h=findobj(data.hspec,'Tag','freq');            
@@ -306,10 +321,16 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
     end
     function Recalculate(obj,evnt)
         data=guidata(obj);        
-        if isfield(data,'trek')&&~isempty(data.trek)                                             
-            [data.trekF,data.Y,data.Filter]=BandFFT(data.trek,data.freqF,data.bandwidth,1e-10,data.NFFT);                       
-            data.phZK=DensityPhaseZeroCross(data.trekF,1/data.Fs,data.freq*data.Fs/2,false);
-            [data.phZK,data.timeBase,data.timeTail]=DensityAdjustPhase(data.phZK,1/data.Fs,data.timeBase,data.timeTail);
+        if isfield(data,'trek')&&~isempty(data.trek)
+            data.trekF=[];
+            data.phZK=[];
+            for i=1:size(data.trek,2)
+                [data.trekF(:,i),Y,data.Filter]=BandFFT(data.trek(:,i),data.freqF,data.bandwidth,1e-10,data.NFFT);                       
+                phZK=DensityPhaseZeroCross(data.trekF(:,i),1/data.Fs,data.freq*data.Fs/2,false);
+                phBool=phZK(:,1)>=data.timeBase(1)&phZK(:,1)<=data.timeBase(end);
+                phZK(:,2)=phZK(:,2)-mean(phZK(phBool,2));
+                data.phZK(1:length(phZK),:,i)=phZK;                
+            end
         end;                      
         guidata(obj,data);
         ReDraw(obj,evnt);
@@ -335,12 +356,13 @@ hfig=figure('CreateFcn',@CreateFig,'Color','w','Resize','off');
             
             h=findobj(data.hvideo,'Tag','trekF');
             delete(h);
-            plot(data.hvideo,[0:length(data.trekF)-1]*1/data.Fs/data.timeScale,data.trekF,'r','LineWidth',2,'Tag','trekF');
+            plot(data.hvideo,[0:length(data.trekF(:,1))-1]*1/data.Fs/data.timeScale,data.trekF(:,1),'r','LineWidth',2,'Tag','trekF');
                         
             h=findobj(data.hphase,'Tag','phase');
             set(h,'Tag','trace');
             set(h,'Color',[0.5 0.5 0.5]);
-            plot(data.hphase,data.phZK(:,1)/data.timeScale,data.phZK(:,2),'r','LineWidth',3,'Tag','phase');             
+            plot(data.hphase,squeeze(data.phZK(:,1,1))/data.timeScale,squeeze(data.phZK(:,2,:)),'LineWidth',3,'Tag','phase');
+            legend(findobj(data.hphase,'Tag','phase'),data.filename);
         end;                      
         guidata(obj,data);
         ControlRedraw(obj,evnt);
