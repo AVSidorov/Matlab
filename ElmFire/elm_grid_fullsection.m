@@ -1,4 +1,4 @@
-function ind=elm_grid_fullsections(nZ,Grid)
+function ind=elm_grid_fullsection(nZ,Grid)
 
 %function for getting indexes for full cross sections with given toroidal
 %grid numbers
