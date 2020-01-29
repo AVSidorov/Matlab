@@ -4,7 +4,7 @@ rlim=0.078;
 rmax=0.08;
 phase_bck=0.01;
 xx=[-rmax:0.001:rmax]';
-phase_smth=csaps([-rmax;-rlim;phase(:,1); rlim; rmax ],[0;phase_bck;phase(:,4);phase_bck;0],1,xx);
+phase_smth=csaps([-rmax;-rlim;phase(:,1); rlim; rmax ],[0;phase_bck;phase(:,2);phase_bck;0],1,xx);
 
 %intial rxy
 if nargin<2||isempty(rxy0)
@@ -34,13 +34,13 @@ function [khi,denL,denR]=calc_den(d)
     rxy_work=rxy;
     rxy_work(1:n,2)=rxy(1:n,2)+d;
     %prepare matrix and chords
-    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work);
+    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(n:end,:));
     %interpolate phase in chords points
     phase_smthL=interp1(xx,phase_smth,xChordL,'PChip');
     phase_smthR=interp1(xx,phase_smth,xChordR,'PChip');
     %finding densities
     denL=linsolve(AL,phase_smthL);
     denR=linsolve(AR,phase_smthR);
-    khi=sqrt((denL(n)-denR(n))^2);
+    khi=sqrt((denL(1)-denR(1))^2);
 end
 end
