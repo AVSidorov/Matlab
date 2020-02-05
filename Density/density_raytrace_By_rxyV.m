@@ -45,8 +45,8 @@ currentPoint=1;
 trace(true); %trace inside
 trace(false); %trace outside
 
-
-function curR=trace(InOut)
+function trace(InOut)
+%% counter setting
     stI=currentR;
     if InOut
         stp=1;
@@ -55,6 +55,7 @@ function curR=trace(InOut)
         stp=-1;
         endI=1;
     end
+%% tracing    
     for curR=stI:stp:endI
         %% find intersections
         [xi,yi]=linecirc(slope,intercpt,rxy(curR,2),rxy(curR,3),rxy(curR,1));
@@ -63,7 +64,7 @@ function curR=trace(InOut)
             currentR=curR-1;
             break;
         end
-        
+       
         %% pick refraction point from intersections
         if InOut
             %leave only upper part
@@ -79,20 +80,17 @@ function curR=trace(InOut)
         XYRV(currentPoint,4)=Den(curR);
         currentPoint=currentPoint+1;
 
-        %% refraction
+        %% refraction = changing ray vector
         if curR~=1&&curR~=endI % for inner/outter circle no refraction           
-            %% changing ray vector
-
             %incedence ray vector (before)
-%             if currentPoint<=2
-%                 l=[cos(atan(slope)) sin(atan(slope))];
-%             else
-                l=[xi-XYRV(currentPoint-2,1) yi-XYRV(currentPoint-2,2)];
-                l=l/norm(l);
-            % this way of l determination is better so as vectors l=-l have same slope
-            %TODO add artificially start point of ray to use second equation in all cases
-%             end
-            %v1=[cos(atan(slope)) sin(atan(slope))]*V(i);
+            l=[xi-XYRV(currentPoint-2,1) yi-XYRV(currentPoint-2,2)];
+            l=l/norm(l);
+            % this way of l determination is better than from slope so as
+            % vectors l=-l have same slope.
+            % currentPoint everytime>3 because refraction starts from
+            % second density circle and currentPoint counter was
+            % incremented one more time
+            % after storing current refraction position
 
             % normalized vector from center is normal to circle density border
             n=[xi-rxy(curR,2) yi-rxy(curR,3)];
@@ -106,8 +104,7 @@ function curR=trace(InOut)
             C=-n*l';
 
             %refracted (new) ray vector
-            v=R*l+(R*C-sqrt(1-R^2*(1-C^2)))*n; %wiki eng
-            %v2=v1+(sqrt((V(i+1)^2+V(i)^2)/(v1*r')^2+1)-1)*(v1*r')*r;
+            v=R*l+(R*C-sqrt(1-R^2*(1-C^2)))*n; %wiki eng            
 
             if ~isreal(v) %reflection
                 drc=1;
@@ -116,7 +113,6 @@ function curR=trace(InOut)
             end;
             %% new line for intersections
             %new slope and intercpt
-            %if v(1)~=0
             if abs(v(1))>eps
                 slope=v(2)/v(1);
                 intercpt=yi-xi/v(1)*v(2);
