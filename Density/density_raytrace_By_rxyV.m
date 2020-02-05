@@ -7,6 +7,7 @@ ELECTRONMASS   = 9.1083E-28;
 OMEGA          = 2*pi*LIGHTVELOS/LAMBDA;
 DENSCOEFF      = (ELECTRONCHARGE)^2/OMEGA/LIGHTVELOS/ELECTRONMASS;%*2*pi;
 OMEGAPLCOEFF   = 4*pi*ELECTRONCHARGE^2/ELECTRONMASS;
+ OMEGA=2*pi*136e9;
 %% data prepare
 %in case of refraction slope is intial value
 if nargin<4&&size(rxy,2)==4
@@ -37,7 +38,6 @@ N=sqrt(1-N*OMEGAPLCOEFF/OMEGA^2);
 N=N(index);
 
 %propagation direction must be traced because reflection is possible
-drc=-1; %from top to bottom
 
 currentR=1; 
 currentPoint=1;
@@ -65,15 +65,38 @@ function trace(InOut)
             break;
         end
        
-        %% pick refraction point from intersections
-        if InOut
-            %leave only upper part
-            [yi,ind]=max(yi);
+        %% pick refraction point from intersections        
+        if currentPoint==1
+            if abs(yi(1)-yi(2))>eps
+                if InOut
+                    %leave only upper part
+                    [yi,ind]=max(yi);
+                else
+                    %leave only lower part
+                    [yi,ind]=min(yi);
+                end
+                    xi=xi(ind);
+            else
+                if InOut
+                    %leave only low field side
+                    [xi,ind]=max(xi);
+                else
+                    %leave only high field side
+                    [xi,ind]=min(yi);
+                end
+                yi=yi(ind);
+            end        
         else
-            %leave only lower part
-            [yi,ind]=min(yi);
+            dist=sqrt((XYRV(currentPoint-1,1)-xi).^2+(XYRV(currentPoint-1,2)-yi).^2);
+            if curR~=stI
+                [dist,ind]=min(dist);
+            else
+                [dist,ind]=max(dist);
+            end
+            xi=xi(ind);
+            yi=yi(ind);
         end
-        xi=xi(ind);    
+        %% store point
         XYRV(currentPoint,1)=xi;
         XYRV(currentPoint,2)=yi;    
         XYRV(currentPoint,3)=rxy(curR,1);
@@ -120,7 +143,7 @@ function trace(InOut)
                 slope=inf*sign(v(2));
                 intercpt=xi;
             end;
-        elseif curR==1
+        elseif curR==1&&~InOut
             XYRV=XYRV(1:currentPoint-1,:);
         end
     end
