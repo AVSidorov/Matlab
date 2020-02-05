@@ -24,8 +24,13 @@ if ~isempty(h)&&all(ishandle(h))
     delete(h)
 end;
 
-for i=1:length(rxy)
-    plot(axesFT2,cos(theta)*rxy(i,1)+rxy(i,2),sin(theta)*rxy(i,1)+rxy(i,3),'k','LineWidth',1,'Tag','rcn');
+n=size(rxy,1);
+cm=colormap(jet(n));
+if size(rxy,2)>3   
+    cm=cm(round((rxy(:,4)-min(rxy(:,4)))/range(rxy(:,4))*(n-1))+1,:);
+end;
+for i=1:n
+    plot(axesFT2,cos(theta)*rxy(i,1)+rxy(i,2),sin(theta)*rxy(i,1)+rxy(i,3),'Color',cm(i,:),'LineWidth',1,'Tag','rcn');
 end
 axis(axesFT2,'equal');
 plot(axesFT2,rxy(:,2),rxy(:,3),'r','LineWidth',2);

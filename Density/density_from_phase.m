@@ -47,7 +47,8 @@ function [khi,denL,denR]=calc_den(d)
     phase_smthR=interp1(xx,phase_smth,xChordR,'PChip',0);
     %finding densities
     denL=linsolve(AL,phase_smthL);
-    denR=linsolve(AR,phase_smthR);
-    khi=sqrt((denL(1)-denR(1))^2);
+    denR=linsolve(AR,phase_smthR);    
+    %khi=sqrt((denL(1)-denR(1))^2);
+    khi=norm(denL-denR);
 end
 end
