@@ -7,7 +7,7 @@ ELECTRONMASS   = 9.1083E-28;
 OMEGA          = 2*pi*LIGHTVELOS/LAMBDA;
 DENSCOEFF      = (ELECTRONCHARGE)^2/OMEGA/LIGHTVELOS/ELECTRONMASS;%*2*pi;
 OMEGAPLCOEFF   = 4*pi*ELECTRONCHARGE^2/ELECTRONMASS;
- OMEGA=2*pi*136e9;
+OMEGA=2*pi*136e9;
 %% data prepare
 %in case of refraction slope is intial value
 if nargin<4&&size(rxy,2)==4
@@ -36,11 +36,12 @@ N=sqrt(1-N*OMEGAPLCOEFF/OMEGA^2);
 
 [rxy,index]=sortrows(rxy,-1);
 N=N(index);
+Den=Den(index);
 
-%propagation direction must be traced because reflection is possible
 
 currentR=1; 
 currentPoint=1;
+
 
 trace(true); %trace inside
 trace(false); %trace outside
