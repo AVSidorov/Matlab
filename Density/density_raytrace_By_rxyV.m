@@ -1,4 +1,4 @@
-function XYRV=density_raytrace_By_rxyV(slope,intercpt,rxy,N)
+function [XYRV,reflCount]=density_raytrace_By_rxyV(slope,intercpt,rxy,N)
 %% const in CGS
 LAMBDA         = 0.22;%2.15E-1;%wavelength of the interferometer
 ELECTRONCHARGE = 4.8027E-10;
@@ -22,6 +22,7 @@ N(bool,:)=[];
 N(N==0)=eps;
 lenRXY=size(rxy,1);
 XYRV=zeros(lenRXY*2,4);
+errLV=zeros(lenRXY*2,3);
 
 %% convert dencity to refractive index
 Den=N;
@@ -41,7 +42,10 @@ Den=Den(index);
 
 currentR=1; 
 currentPoint=1;
+reflCount=0;
 
+v=[];%refracted (new) ray vector 
+     %intialy is empty
 
 trace(true); %trace inside
 trace(false); %trace outside
@@ -49,6 +53,10 @@ trace(false); %trace outside
 function trace(InOut)
 %% counter setting
     stI=currentR;
+    reflected=false; % reflection flag
+    xi=NaN;
+    yi=NaN;
+    
     if InOut
         stp=1;
         endI=lenRXY;
@@ -61,13 +69,13 @@ function trace(InOut)
         %% find intersections
         [xi,yi]=linecirc(slope,intercpt,rxy(curR,2),rxy(curR,3),rxy(curR,1));
         %exit if no intersection
-        if ~all(isfinite([xi,yi]))
-            currentR=curR-1;
+        if ~all(isfinite(reshape([xi yi],1,[])))
             break;
         end
        
         %% pick refraction point from intersections        
-        if currentPoint==1
+        if currentPoint==1&&isempty(v) %start ray propagation from border
+            %TODO introduce intial propagation vector v                    
             if abs(yi(1)-yi(2))>eps
                 if InOut
                     %leave only upper part
@@ -87,27 +95,46 @@ function trace(InOut)
                 end
                 yi=yi(ind);
             end        
-        else
-            dist=sqrt((XYRV(currentPoint-1,1)-xi).^2+(XYRV(currentPoint-1,2)-yi).^2);
-            if curR~=stI
-                [dist,ind]=min(dist);
+        elseif ~isempty(v) %use known ray propagation vector            
+            l1=[xi(1)-XYRV(currentPoint-1,1) yi(1)-XYRV(currentPoint-1,2)]; %two new potential incedence vectors
+            l2=[xi(2)-XYRV(currentPoint-1,1) yi(2)-XYRV(currentPoint-1,2)];
+            a1=l1./v;            
+            errLV(currentPoint,1)=diff(a1);
+            a1=mean(a1);                        
+            a2=l2./v;
+            errLV(currentPoint,2)=diff(a2);
+            a2=mean(a2);
+            if a1*a2>0
+                if rxy(curR,1)~=XYRV(currentPoint-1,3)
+                    [~,ind]=min([a1 a2]);
+                else
+                    [~,ind]=max([a1 a2]);
+                end
+                xi=xi(ind);
+                yi=yi(ind);
+            elseif a1>0
+                xi=xi(1);
+                yi=yi(1);
             else
-                [dist,ind]=max(dist);
+                xi=xi(2);
+                yi=yi(2);                
+            end
+        else %TODO introduce intial propagation vector v
+            dist=sqrt((xi-XYRV(currentPoint-1,1)).^2+(yi-XYRV(currentPoint-1,2)).^2);
+            if rxy(curR,1)~=XYRV(currentPoint-1,3)
+                [~,ind]=min(dist);
+            else
+                [~,ind]=max(dist);
             end
             xi=xi(ind);
             yi=yi(ind);
         end
-        %% store point
-        XYRV(currentPoint,1)=xi;
-        XYRV(currentPoint,2)=yi;    
-        XYRV(currentPoint,3)=rxy(curR,1);
-        XYRV(currentPoint,4)=Den(curR);
-        currentPoint=currentPoint+1;
 
         %% refraction = changing ray vector
-        if curR~=1&&curR~=endI % for inner/outter circle no refraction           
+        if curR~=1&&...% for inner/outter circle no refraction           
+            rxy(curR,1)~=XYRV(currentPoint-1,3) %refraction only on border of different densities 
             %incedence ray vector (before)
-            l=[xi-XYRV(currentPoint-2,1) yi-XYRV(currentPoint-2,2)];
+            l=[xi-XYRV(currentPoint-1,1) yi-XYRV(currentPoint-1,2)];
             l=l/norm(l);
             % this way of l determination is better than from slope so as
             % vectors l=-l have same slope.
@@ -115,7 +142,20 @@ function trace(InOut)
             % second density circle and currentPoint counter was
             % incremented one more time
             % after storing current refraction position
-
+            
+            % another way incedence ray vector is previous refracted(new)
+            % vector
+            if ~isempty(v)
+                l_=v/norm(v);
+                errLV(currentPoint,3)=norm(l-l_);
+%                 %check                
+%                 if norm(l-l_)>100*eps
+%                     warning('current incedence vector is different to previous refracted');
+%                 end
+               l=l_; %use as incedence vector exact previous refracted one
+            end
+            
+            
             % normalized vector from center is normal to circle density border
             n=[xi-rxy(curR,2) yi-rxy(curR,3)];
             n=stp*n/norm(n); %unit vector stp=1 means propagation inside circle stp=-1 outside
@@ -130,10 +170,9 @@ function trace(InOut)
             %refracted (new) ray vector
             v=R*l+(R*C-sqrt(1-R^2*(1-C^2)))*n; %wiki eng            
 
-            if ~isreal(v) %reflection
-                drc=1;
+            if ~isreal(v) %reflection                
                 v=l-2*(l*n')*n;
-                break;
+                reflected=true;
             end;
             %% new line for intersections
             %new slope and intercpt
@@ -147,7 +186,23 @@ function trace(InOut)
         elseif curR==1&&~InOut
             XYRV=XYRV(1:currentPoint-1,:);
         end
+        %% store point
+        XYRV(currentPoint,1)=xi;
+        XYRV(currentPoint,2)=yi;    
+        XYRV(currentPoint,3)=rxy(curR,1);
+        XYRV(currentPoint,4)=Den(curR);
+        currentPoint=currentPoint+1;
+        if reflected 
+            reflCount=reflCount+1;
+            break;
+        end;
     end
+    if reflected||~all(isfinite(reshape([xi yi],1,[])))
+        currentR=curR-1;
+    else
+        currentR=curR;
+    end
+    
 end
 
 end
