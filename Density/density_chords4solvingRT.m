@@ -1,17 +1,17 @@
 function [AL,AR,xChordL,xChordR,xOutL,xOutR]=density_chords4solvingRT(rxyn)
 
-rxyn=sortrows(rxyn,-1); %start from boundary
+    rxyn=sortrows(rxyn,-1); %start from boundary
 
-xChordL=[rxyn(:,2)-rxyn(:,1);rxyn(end,2)];
-xChordL=0.5*(xChordL(1:end-1)+xChordL(2:end));
-xChordR=[rxyn(:,2)+rxyn(:,1);rxyn(end,2)];
-xChordR=0.5*(xChordR(1:end-1)+xChordR(2:end));
+    xChordL=[rxyn(:,2)-rxyn(:,1);rxyn(end,2)];
+    xChordL=0.5*(xChordL(1:end-1)+xChordL(2:end));
+    xChordR=[rxyn(:,2)+rxyn(:,1);rxyn(end,2)];
+    xChordR=0.5*(xChordR(1:end-1)+xChordR(2:end));
 
-[AL,xChordL,xOutL]=MakeMatrix(rxyn,xChordL);
-[AR,xChordR,xOutR]=MakeMatrix(rxyn,xChordR);
+    [AL,xChordL,xOutL]=MakeMatrix(rxyn,xChordL);
+    [AR,xChordR,xOutR]=MakeMatrix(rxyn,xChordR);
 
-AL=AL';
-AR=AR';    
+    AL=AL';
+    AR=AR';    
 end
 
 function [A,xChord,xOut]=MakeMatrix(rxyn,xChord)
