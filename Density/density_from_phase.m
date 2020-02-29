@@ -24,29 +24,34 @@ end;
 % rxy(end+1,:)=[rlim 0 0];
 % rxy(end+1,:)=[rmax 0 0];
 
-rxy=sortrows(rxy);
+rxy=sortrows(rxy,-1);
 
 
 Nrxy=length(rxy);
+%correct rxy to correspond xx fx
+%boundary must be less or equal the width of phase to avoid zero phases in interpolation
+ind=find(rxy(:,1)+rxy(:,2)>max(xx)|-rxy(:,1)+rxy(:,2)<min(xx));
+if ~isempty(ind);
+    rxy(ind,:)=[];
+    %place boundary on ends of phase(fx)
+    rxy=[[range(xx)/2,(min(xx)+max(xx))/2,0];rxy];
+end
 
-for n=Nrxy-1:-1:1 %start moving from boundary
-    x1=rxy(n+1,2)-rxy(n+1,1)-rxy(n,2)+rxy(n,1)+eps;
-    x2=rxy(n+1,2)+rxy(n+1,1)-rxy(n,2)-rxy(n,1)-eps;
+
+for n=2:Nrxy %start moving from boundary
+    x1=rxy(n-1,2)-rxy(n-1,1)-rxy(n,2)+rxy(n,1)+eps;
+    x2=rxy(n-1,2)+rxy(n-1,1)-rxy(n,2)-rxy(n,1)-eps;
     d=fminbnd(@(d)calc_den(d),x1,x2);
-    rxy(1:n,2)=rxy(1:n,2)+d;
+    rxy(n:end,2)=rxy(n:end,2)+d;
 end
 [khi,denL,denR]=calc_den(0);
-%flip because this function works in ascending by r rxy
-%but density_chords4solving with descending by r rxy
-denL=flip(denL);
-denR=flip(denR);
 
 function [khi,denL,denR]=calc_den(d)
     rxy_work=rxy;
-    rxy_work(1:n,2)=rxy(1:n,2)+d;
+    rxy_work(n:end,2)=rxy(n:end,2)+d;
     %prepare matrix and chords
-    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(n:end,:));
-    if n>1
+    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(1:n,:));
+    if n<Nrxy
         AL=AL(1:end-1,1:end-1);
         AR=AR(1:end-1,1:end-1);
         xChordL(end)=[];
