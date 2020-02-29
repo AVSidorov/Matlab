@@ -11,7 +11,7 @@ rmax=0.085;
 if nargin<3||isempty(rxy0)
     rxy=density_rcn_from_XN([xx,phase_smth]);
 else
-    rxy=rxy0;
+    rxy=rxy0(:,1:3);
 end;
 
 % Preparing rxy must be whiht phase smoothing
@@ -36,12 +36,22 @@ for n=Nrxy-1:-1:1 %start moving from boundary
     rxy(1:n,2)=rxy(1:n,2)+d;
 end
 [khi,denL,denR]=calc_den(0);
+%flip because this function works in ascending by r rxy
+%but density_chords4solving with descending by r rxy
+denL=flip(denL);
+denR=flip(denR);
 
 function [khi,denL,denR]=calc_den(d)
     rxy_work=rxy;
     rxy_work(1:n,2)=rxy(1:n,2)+d;
     %prepare matrix and chords
     [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(n:end,:));
+    if n>1
+        AL=AL(1:end-1,1:end-1);
+        AR=AR(1:end-1,1:end-1);
+        xChordL(end)=[];
+        xChordR(end)=[];
+    end;     
     %interpolate phase in chords points
     phase_smthL=interp1(xx,phase_smth,xChordL,'PChip',0);
     phase_smthR=interp1(xx,phase_smth,xChordR,'PChip',0);
