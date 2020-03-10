@@ -21,13 +21,13 @@ N(bool,:)=[];
 % to avoid null division
 N(N==0)=eps;
 lenRXY=size(rxy,1);
-XYRV=zeros(lenRXY*2,4);
+XYRV=zeros(lenRXY*2+1,4); %We have start point and potentially two intersections for each density circle
 errLV=zeros(lenRXY*2,3);
 
 %% convert dencity to refractive index
 Den=N;
 if max(N)<1e10 %convert phase to density unit
-    N=N/(DENSCOEFF*100); %*100 because working in meters
+    N=density_phase2den(N);
 end;
 N=sqrt(1-N*OMEGAPLCOEFF/OMEGA^2);    
 
@@ -39,16 +39,38 @@ N=sqrt(1-N*OMEGAPLCOEFF/OMEGA^2);
 N=N(index);
 Den=Den(index);
 
-
-currentR=1; 
 currentPoint=1;
 reflCount=0;
 
-v=[];%refracted (new) ray vector 
-     %intialy is empty
+%check of way that starting point given
+if numel(slope)==1&&numel(intercpt)==1
+    slope2v;
+else
+    xi=slope(1);
+    yi=slope(2);
+    v=intercpt;
+    v=reshape(v,1,[]); 
+    v2slope;   
+end
+
+r=density_xy2r(xi,yi,rxy);    
+currentR=find(rxy(:,1)<r,1,'first');    
+
+XYRV(currentPoint,1)=xi;
+XYRV(currentPoint,2)=yi;
+XYRV(currentPoint,3)=r;
+XYRV(currentPoint,4)=interp1(rxy(:,1),Den,r);
+
+currentPoint=2;
 
 trace(true); %trace inside
 trace(false); %trace outside
+
+% %remove unused and start point
+% XYRV=XYRV(2:currentPoint-1,:);
+%remove unused points
+ XYRV=XYRV(1:currentPoint-1,:);
+%remove start point to keep compatibility whith other functions
 
 function trace(InOut)
 %% counter setting
@@ -68,68 +90,12 @@ function trace(InOut)
     for curR=stI:stp:endI
         %% find intersections
         [xi,yi]=linecirc(slope,intercpt,rxy(curR,2),rxy(curR,3),rxy(curR,1));
+        pickPnt(curR);  %pick refraction point from intersections
         %exit if no intersection
         if ~all(isfinite(reshape([xi yi],1,[])))
             break;
         end
-       
-        %% pick refraction point from intersections        
-        if currentPoint==1&&isempty(v) %start ray propagation from border
-            %TODO introduce intial propagation vector v                    
-            if abs(yi(1)-yi(2))>eps
-                if InOut
-                    %leave only upper part
-                    [yi,ind]=max(yi);
-                else
-                    %leave only lower part
-                    [yi,ind]=min(yi);
-                end
-                    xi=xi(ind);
-            else
-                if InOut
-                    %leave only low field side
-                    [xi,ind]=max(xi);
-                else
-                    %leave only high field side
-                    [xi,ind]=min(yi);
-                end
-                yi=yi(ind);
-            end        
-        elseif ~isempty(v) %use known ray propagation vector            
-            l1=[xi(1)-XYRV(currentPoint-1,1) yi(1)-XYRV(currentPoint-1,2)]; %two new potential incedence vectors
-            l2=[xi(2)-XYRV(currentPoint-1,1) yi(2)-XYRV(currentPoint-1,2)];
-            a1=l1./v;            
-            errLV(currentPoint,1)=diff(a1);
-            a1=mean(a1);                        
-            a2=l2./v;
-            errLV(currentPoint,2)=diff(a2);
-            a2=mean(a2);
-            if a1*a2>0
-                if rxy(curR,1)~=XYRV(currentPoint-1,3)
-                    [~,ind]=min([a1 a2]);
-                else
-                    [~,ind]=max([a1 a2]);
-                end
-                xi=xi(ind);
-                yi=yi(ind);
-            elseif a1>0
-                xi=xi(1);
-                yi=yi(1);
-            else
-                xi=xi(2);
-                yi=yi(2);                
-            end
-        else %TODO introduce intial propagation vector v
-            dist=sqrt((xi-XYRV(currentPoint-1,1)).^2+(yi-XYRV(currentPoint-1,2)).^2);
-            if rxy(curR,1)~=XYRV(currentPoint-1,3)
-                [~,ind]=min(dist);
-            else
-                [~,ind]=max(dist);
-            end
-            xi=xi(ind);
-            yi=yi(ind);
-        end
-
+        
         %% refraction = changing ray vector
         if curR~=1&&...% for inner/outter circle no refraction           
             rxy(curR,1)~=XYRV(currentPoint-1,3) %refraction only on border of different densities 
@@ -175,16 +141,7 @@ function trace(InOut)
                 reflected=true;
             end;
             %% new line for intersections
-            %new slope and intercpt
-            if abs(v(1))>eps
-                slope=v(2)/v(1);
-                intercpt=yi-xi/v(1)*v(2);
-            else
-                slope=inf*sign(v(2));
-                intercpt=xi;
-            end;
-        elseif curR==1&&~InOut
-            XYRV=XYRV(1:currentPoint-1,:);
+            v2slope;
         end
         %% store point
         XYRV(currentPoint,1)=xi;
@@ -205,4 +162,63 @@ function trace(InOut)
     
 end
 
+    function v2slope
+            %new slope and intercpt
+            if abs(v(1))>eps
+                slope=v(2)/v(1);
+                intercpt=yi-xi/v(1)*v(2);
+            else
+                slope=inf*sign(v(2));
+                intercpt=xi;
+            end;
+    end
+    function slope2v
+            %new slope and intercpt
+           if ~isinf(slope)
+               v(1)=-1; 
+               v(2)=slope*v(1);
+               v=v/norm(v);
+               xi=max(rxy(:,1)+rxy(:,2));               
+               yi=intercpt+xi/v(1)*v(2);
+            else
+                v=[0,-1];
+                xi=intercpt;
+                yi=max(rxy(:,1)+rxy(:,3));
+            end;
+    end
+    function pickPnt(curR)
+        if all(isfinite(reshape([xi yi],1,[])))
+            % pick refraction point from intersections
+            l1=[xi(1)-XYRV(currentPoint-1,1) yi(1)-XYRV(currentPoint-1,2)]; %two new potential incedence vectors
+            l2=[xi(2)-XYRV(currentPoint-1,1) yi(2)-XYRV(currentPoint-1,2)];
+            a1=l1(v~=0)./v(v~=0);            
+            if numel(a1)>1
+                errLV(currentPoint,1)=diff(a1);
+            end;
+            a1=mean(a1);                        
+            a2=l2(v~=0)./v(v~=0);
+            if numel(a2)>1
+                errLV(currentPoint,2)=diff(a2);
+            end
+            a2=mean(a2);
+            if a1>0&&a2>0
+                if rxy(curR,1)~=XYRV(currentPoint-1,3)
+                    [~,ind]=min([a1 a2]);
+                else
+                    [~,ind]=max([a1 a2]);
+                end
+                xi=xi(ind);
+                yi=yi(ind);
+            elseif a1>0
+                xi=xi(1);
+                yi=yi(1);
+            elseif a2>0
+                xi=xi(2);
+                yi=yi(2);
+            else
+                xi=NaN;
+                yi=NaN;
+            end
+        end
+    end
 end
