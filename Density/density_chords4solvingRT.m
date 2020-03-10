@@ -1,38 +1,78 @@
-function [AL,AR,xChordL,xChordR,xOutL,xOutR]=density_chords4solvingRT(rxyn)
+function [AL,AR,xChordL,xChordR,xOutL,xOutR,rMinChordL,rMinChordR]=density_chords4solvingRT(rxyn,AL,AR,xChordL,xChordR,xOutL,xOutR)
 
     rxyn=sortrows(rxyn,-1); %start from boundary
+    
+    if nargin<2
+        AL=[];
+    end
+    if nargin<3
+        AR=[];
+    end
+    
+    if nargin<4||isempty(xChordL)
+        xChordL=[];
+        nChL=0;
+    else    
+        nChL=size(xChordL,1);
+    end   
+    if nargin<5||isempty(xChordR)
+        xChordR=[];
+        nChR=0;
+    else
+        nChR=size(xChordR,1);
+    end        
+    
+    if nargin<6
+        xOutL=[];
+    end
+    if nargin<7
+        xOutR=[];
+    end
 
-    xChordL=[rxyn(:,2)-rxyn(:,1);rxyn(end,2)];
-    xChordL=0.5*(xChordL(1:end-1)+xChordL(2:end));
-    xChordR=[rxyn(:,2)+rxyn(:,1);rxyn(end,2)];
-    xChordR=0.5*(xChordR(1:end-1)+xChordR(2:end));
+    
+    n=size(rxyn,1);
+    
+    xChordLbnd=[rxyn(:,2)-rxyn(:,1);rxyn(end,2)];
+    xChordL(nChL+1:n,1)=0.5*(xChordLbnd(nChL+1:n)+xChordLbnd(nChL+2:n+1));
+    xChordRbnd=[rxyn(:,2)+rxyn(:,1);rxyn(end,2)];
+    xChordR(nChR+1:n,1)=0.5*(xChordRbnd(nChR+1:n)+xChordRbnd(nChR+2:n+1));
 
-    [AL,xChordL,xOutL]=MakeMatrix(rxyn,xChordL);
-    [AR,xChordR,xOutR]=MakeMatrix(rxyn,xChordR);
+    [AL,xChordL,xOutL,rMinChordL]=MakeMatrix(rxyn,xChordL,AL,xOutL);
+    [AR,xChordR,xOutR,rMinChordR]=MakeMatrix(rxyn,xChordR,AR,xOutR);
 
-    AL=AL';
-    AR=AR';    
 end
 
-function [A,xChord,xOut]=MakeMatrix(rxyn,xChord)
+function [A,xChord,xOut,rMinChord]=MakeMatrix(rxyn,xChord,A,xOut)
     n=size(rxyn,1);
-    A=zeros(n);
-    xOut=zeros(n-1,1);
-    for i=1:n
-        [XYRV,xChord(i)]=ChordAdjust(rxyn,rxyn(i,1),xChord(i));    
+    if nargin<3||isempty(A)        
+        A=zeros(n);
+        nA=0;
+    else        
+        nA=size(A,1);
+        A(nA+1:n,nA+1:n)=0;
+    end;
+    if nargin<4||isempty(xOut)
+        xOut=zeros(n,1);
+    else
+        xOut(nA+1:n,1)=0;
+    end;
+    rMinChord=zeros(n,1);
+    
+    for i=nA+1:n
+        [XYRV,xChord(i),rMinChord(i)]=ChordAdjust(rxyn,rxyn(i,1),xChord(i));    
         xOut(i)=XYRV(end,1);
 
         dL(:,1)=R2nR(XYRV(1:end-1,3),rxyn);
         dL(:,2)=R2nR(XYRV(2:end,3),rxyn);
         dL(:,3)=sqrt(diff(XYRV(:,1)).^2+diff(XYRV(:,2)).^2);
         for k=1:size(dL,1)
-            A(min(dL(k,1:2)),i)=A(min(dL(k,1:2)),i)+dL(k,3); %min because outer circle numerate density ring
+            A(i,min(dL(k,1:2)))=A(i,min(dL(k,1:2)))+dL(k,3); %min because outer circle numerate density ring
         end
         dL=[];
     end;
 end
 
-function [XYRV,xChord]=ChordAdjust(rxyn,Rmin,xChord,stp)
+function [XYRV,xChord,rMinChord]=ChordAdjust(rxyn,Rmin,xChord,stp)
     nR=find(Rmin==rxyn(:,1));
     if nargin<3
         stp=1;
@@ -56,14 +96,16 @@ function [XYRV,xChord]=ChordAdjust(rxyn,Rmin,xChord,stp)
     [XYRV,rc]=density_raytrace_By_rxyV(inf,xChord,rxyn);
     ind=find(XYRV(:,3)==min(XYRV(:,3)));
     vec=[sum(XYRV(ind,1)-xChordMinD) sum(XYRV(ind,2))]/numel(ind);
-    xChordRmin=norm(vec);
-    while rc>0||abs(xChordRmin-xChordMinR)>xChordTol
-        stp=LR*(xChordMinR-xChordRmin);
+    rMinChord=norm(vec);
+    cnt=0;
+    while rc>0||abs(rMinChord-xChordMinR)>xChordTol
+        cnt=cnt+1;
+        stp=LR*(xChordMinR-rMinChord);
         xChord=xChord+stp;
         [XYRV,rc]=density_raytrace_By_rxyV(inf,xChord,rxyn);
         ind=find(XYRV(:,3)==min(XYRV(:,3)));
         vec=[sum(XYRV(ind,1)-xChordMinD) sum(XYRV(ind,2))]/numel(ind);
-        xChordRmin=norm(vec);
+        rMinChord=norm(vec);
     end
 end
 

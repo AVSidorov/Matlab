@@ -37,7 +37,10 @@ if ~isempty(ind);
     rxy=[[range(xx)/2,(min(xx)+max(xx))/2,0];rxy];
 end
 
-
+AL=[];
+AR=[];
+xChordL=[];
+xChordR=[];
 for n=2:Nrxy %start moving from boundary
     x1=rxy(n-1,2)-rxy(n-1,1)-rxy(n,2)+rxy(n,1)+eps;
     x2=rxy(n-1,2)+rxy(n-1,1)-rxy(n,2)-rxy(n,1)-eps;
@@ -47,10 +50,10 @@ end
 [khi,denL,denR]=calc_den(0);
 
 function [khi,denL,denR]=calc_den(d)
-    rxy_work=rxy;
+    rxy_work=rxy;    
     rxy_work(n:end,2)=rxy(n:end,2)+d;
     %prepare matrix and chords
-    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(1:n,:));
+    [AL,AR,xChordL,xChordR]=density_chords4solving(rxy_work(1:n,:),AL(1:n-2,1:n-2),AR(1:n-2,1:n-2),xChordL(1:n-2),xChordR(1:n-2));
     if n<Nrxy
         AL=AL(1:end-1,1:end-1);
         AR=AR(1:end-1,1:end-1);
@@ -61,8 +64,8 @@ function [khi,denL,denR]=calc_den(d)
     phase_smthL=interp1(xx,phase_smth,xChordL,'PChip',0);
     phase_smthR=interp1(xx,phase_smth,xChordR,'PChip',0);
     %finding densities
-    denL=linsolve(AL,phase_smthL);
-    denR=linsolve(AR,phase_smthR);    
+    denL=linsolve(AL,phase_smthL');
+    denR=linsolve(AR,phase_smthR');    
     %khi=sqrt((denL(1)-denR(1))^2);
     khi=norm(denL-denR);
 end
