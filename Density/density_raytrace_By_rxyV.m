@@ -71,6 +71,7 @@ trace(false); %trace outside
 %remove unused points
  XYRV=XYRV(1:currentPoint-1,:);
 %remove start point to keep compatibility whith other functions
+ XYRV=XYRV(2:end,:);
 
 function trace(InOut)
 %% counter setting
