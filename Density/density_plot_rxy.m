@@ -1,4 +1,4 @@
-function density_plot_rxy(rxy)
+function [figFT2,axesFT2]=density_plot_rxy(rxy)
 
 h=findobj('Type','figure','Tag','FT2fig');
 if ~isempty(h)&&ishandle(h)
