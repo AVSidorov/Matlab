@@ -1,29 +1,12 @@
 function [rxy,denL,denR]=density_from_phase(xx,phase_smth,rxy0)
-%phase smoothing and intepolation
-rlim=0.078;
-rmax=0.085;
-
-% Smoothing must be separated function
-% xx=[-rmax:0.001:rmax]';
-% phase_smth=csaps([-rmax;-rlim;phase(:,1); rlim; rmax ],[0;phase_bck;phase(:,2);phase_bck;0],1,xx);
-
-%intial rxy
+%% intial rxy
 if nargin<3||isempty(rxy0)
     rxy=density_rcn_from_XN([xx,phase_smth]);
 else
     rxy=rxy0(:,1:3);
 end;
 
-% Preparing rxy must be whiht phase smoothing
-% %prepare rxy
-% rxy(:,3)=0;
-% rxy=rxy(isfinite(rxy(:,1))&isfinite(rxy(:,2))&isfinite(rxy(:,3)),:);
-% rxy(rxy(:,1)+sqrt(rxy(:,2).^2+rxy(:,3).^2)>=rlim,:)=[]; %% all surfaces must be inside dia
-% rxy=sortrows(rxy);
-% 
-% rxy(end+1,:)=[rlim 0 0];
-% rxy(end+1,:)=[rmax 0 0];
-
+%%
 rxy=sortrows(rxy,-1);
 
 
@@ -48,6 +31,7 @@ for n=2:Nrxy %start moving from boundary
     rxy(n:end,2)=rxy(n:end,2)+d;
 end
 [khi,denL,denR]=calc_den(0);
+
 
 function [khi,denL,denR]=calc_den(d)
     rxy_work=rxy;    

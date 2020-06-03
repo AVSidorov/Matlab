@@ -17,7 +17,7 @@ function [AL,AR,xChordL,xChordR]=density_chords4solving(rxy,AL,AR,xChordL,xChord
 
     xChordRbnd=[rxy(:,2)+rxy(:,1);rxy(end,2)];
     xChordR(nAR+1:n)=0.5*(xChordRbnd(nAR+1:n)+xChordRbnd(nAR+2:n+1));
-
+    
     [AL,xChordL]=MakeMatrix(rxy,xChordL,AL);
     [AR,xChordR]=MakeMatrix(rxy,xChordR,AR);
 
