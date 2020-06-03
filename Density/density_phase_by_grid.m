@@ -1,7 +1,7 @@
 function [phX,phX0]=density_phase_by_grid(x,n,freq)
 % x in cm
 
-if nargin<7||isempty(freq)
+if nargin<3||isempty(freq)
     f=135e9;    
 else
     f=freq;
