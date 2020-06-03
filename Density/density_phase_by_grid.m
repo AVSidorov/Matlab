@@ -1,4 +1,4 @@
-function [phX,phX0]=density_phase_by_grid(x,n,freq)
+function [phX,phX0]=density_phase_by_grid(y,n,freq)
 % x in cm
 
 if nargin<3||isempty(freq)
@@ -7,11 +7,11 @@ else
     f=freq;
 end;
 
-if ~iscolumn(x)
-    x=x';
+if ~iscolumn(y)
+    y=y';
 end
 
-dx=diff(x);
+dy=diff(y);
 [dPhdL,dPhdL0]=density_den2phase(n,f);
-phX=dPhdL(1:end-1,1:end-1)'*dx;
-phX0=dPhdL0(1:end-1,1:end-1)'*dx;
+phX=dPhdL(1:end-1,:)'*dy;
+phX0=dPhdL0(1:end-1,:)'*dy;
