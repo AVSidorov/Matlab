@@ -1,4 +1,4 @@
-function ph=density_beamtrace(x,y,n,rays,antx,anty,freq)
+function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
 % x,y in cm
 
 if nargin<7||isempty(freq)
@@ -52,18 +52,24 @@ R=(dz)*(1.+z_R^2/dz^2);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     
-    % initial beam "width"
-    distbase=sum(sqrt(diff(curX).^2 + diff(curY).^2 ));
 
     % preallocation
     curPhase=zeros(Nr,1);    
     ssignal=zeros(Nr,1);
     xpos=ones(Nr,1)*x(end);
     out=false(Nr,1);
-   
+    amp=ones(Nr,1);
+    distbase=zeros(Nr,1);
+    distnew=distbase;
+
+    % initial rays "widths"  
+    distbase(1:end-1)=sqrt(diff(curX).^2 + diff(curY).^2);
+    distbase(end)=distbase(end-1);
+    distbase(2:end-1)=(distbase(1:end-2)+distbase(2:end-1))/2;
+    distold=distbase;    
+
+    
     %%%actual ray tracing for each ray step by step
-    distold=distbase;
-    amp=1;
     i=1;
     %%%calculate not ray by ray 
     %%%calculate time step by step (beam front)
@@ -83,7 +89,7 @@ R=(dz)*(1.+z_R^2/dz^2);
                 if ~out(j) && curX(j)>1 && curX(j)<nx && ((curY(j)-dy/gridstepx)-ny)*(curY(j)-ny)<=0
                     xpos(j)=x(round(curX(j))); %faster
                     %xpos(j)=interp1(1:nx,x,curX(j));
-                    ssignal(j)=amp*rays(j,5)*exp(-1i*curPhase(j));
+                    ssignal(j)=amp(j)*rays(j,5)*exp(-1i*curPhase(j));
                 end
                 out(j)=true;
                 dkx=0;
@@ -104,14 +110,24 @@ R=(dz)*(1.+z_R^2/dz^2);
                                                            
         end;
         %%% calculate beam width
-        distnew=sum(sqrt(diff(curX).^2 + diff(curY).^2 ));
-        amp=amp*distold/distnew;
+        distnew(1:end-1)=sqrt(diff(curX).^2 + diff(curY).^2);
+        distnew(end)=distnew(end-1);
+        distnew(2:end-1)=(distnew(1:end-2)+distnew(2:end-1))/2;        
+        amp=amp.*distold./distnew;
         distold=distnew;
     end;
 
     rayGBeam_Amplitude=waist/wa*exp(-(xpos/100-x(ypos)/100).^2/(wa*1)^2);
     rayGauss=rayGBeam_Amplitude.*exp(1i*(2*pi*dz/lambd+pi*(xpos/100-x(ypos)/100).^2/(R*lambd)));
-    total=sum(rayGauss.*ssignal*0.7);  
-
+    
+    distint=sqrt(diff(xpos).^2);
+    distint(end+1)=distint(end);
+    distint(2:end-1)=(distint(1:end-2)+distint(2:end-1))/2;
+    
+    total=sum(rayGauss.*ssignal.*distint*0.7);  
+    
     ph=angle(total);
+    [ph1,ph0]=density_phase_by_grid(y,n,f);
+    ph1=interp1(x,ph1,antx);
+    ph0=interp1(x,ph0,antx);
 end
