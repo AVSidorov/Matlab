@@ -37,7 +37,6 @@ focus=0.09+x(1)/100;
 lambd  = 299792458.0/f;
 z_R = pi * waist^2 / lambd;
 z=-focus;
-ypos=round(interp1(x,1:nx,antx,'linear',1));
 dz=z-(1-1)*0.0002;
 wa=waist*sqrt(1.+(dz^2/z_R^2));
 R=(dz)*(1.+z_R^2/dz^2);
@@ -117,8 +116,8 @@ R=(dz)*(1.+z_R^2/dz^2);
         distold=distnew;
     end;
 
-    rayGBeam_Amplitude=waist/wa*exp(-(xpos/100-x(ypos)/100).^2/(wa*1)^2);
-    rayGauss=rayGBeam_Amplitude.*exp(1i*(2*pi*dz/lambd+pi*(xpos/100-x(ypos)/100).^2/(R*lambd)));
+    rayGBeam_Amplitude=waist/wa*exp(-(xpos/100-antx/100).^2/(wa*1)^2);
+    rayGauss=rayGBeam_Amplitude.*exp(1i*(2*pi*dz/lambd+pi*(xpos/100-antx/100).^2/(R*lambd)));
     
     distint=sqrt(diff(xpos).^2);
     distint(end+1)=distint(end);
