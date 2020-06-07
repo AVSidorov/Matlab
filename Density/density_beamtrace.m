@@ -7,7 +7,7 @@ else
     f=freq;
 end;
 
-Nr=size(rays,1);
+
 Nsteps=10000;
 dt=1e-13;
 
@@ -32,22 +32,26 @@ gridstepy=y(2)-y(1);
 [dMy,dMx]=gradient(n,gridstepx);
 
 %Gauss beam parameters
+% in meters
 waist=0.0035;
-focus=0.09+x(1)/100;
+focus=0.0009; %distanse of Gauss beam waist from antenna surface
+
 lambd  = 299792458.0/f;
-z_R = pi * waist^2 / lambd;
+z_R = pi * waist^2 / lambd; % Rayleigh length
 z=-focus;
-dz=z-(1-1)*0.0002;
+dz=z;
 wa=waist*sqrt(1.+(dz^2/z_R^2));
 R=(dz)*(1.+z_R^2/dz^2);
 
-
-
+% %% make rays by gauss beam
+%     [rays,F]=density_beam_rays(165,5e-2,[],focus,f);
+    Nr=size(rays,1);
+    %phase0=angle(F);
 
     
-    %%% initialization of the rays
-    curX=round(interp1(x,1:nx,rays(:,1)*100+antx,'linear',1));
-    curY=round(interp1(y,1:ny,rays(:,2)*100+anty,'linear',1));
+    %%  initialization of the rays
+    curX=interp1(x,1:nx,rays(:,1)*100+antx,'linear',1);
+    curY=interp1(y,1:ny,rays(:,2)*100+anty,'linear',1);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     
