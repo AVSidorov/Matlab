@@ -1,62 +1,50 @@
 function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
 % x,y in cm
 
-if nargin<7||isempty(freq)
-    f=135e9;    
-else
-    f=freq;
-end;
+%% input check
+    if nargin<7||isempty(freq)
+        f=135e9;    
+    else
+        f=freq;
+    end;
 
+%% settings
+    Nsteps=10000;
+    dt=1e-13;
 
-Nsteps=10000;
-dt=1e-13;
+%% constants
+    w=2*pi*f;
+    c=299792458*100;
+    e=4.803e-10;
+    me=9.10938356e-28;
+    nc=me*w^2/(4*pi*e^2);
 
-w=2*pi*f;
-c=299792458*100;
-e=4.803e-10;
-me=9.10938356e-28;
-nc=me*w^2/(4*pi*e^2);
+%% adjust grid by ant
+    Ind=find(abs(y)>abs(anty));
+    y(Ind)=[];
+    n(Ind,:)=[];
 
+    nx=size(n,2);
+    ny=size(n,1);
 
-% adjust grid by ant
-Ind=find(abs(y)>abs(anty));
-y(Ind)=[];
-n(Ind,:)=[];
+    gridstepx=x(2)-x(1);
+    gridstepy=y(2)-y(1);
+    [dMy,dMx]=gradient(n,gridstepx);
 
-nx=size(n,2);
-ny=size(n,1);
-
-
-gridstepx=x(2)-x(1);
-gridstepy=y(2)-y(1);
-[dMy,dMx]=gradient(n,gridstepx);
-
-%Gauss beam parameters
-% in meters
-waist=0.0035;
-focus=0.0009; %distanse of Gauss beam waist from antenna surface
-
-lambd  = 299792458.0/f;
-z_R = pi * waist^2 / lambd; % Rayleigh length
-z=-focus;
-dz=z;
-wa=waist*sqrt(1.+(dz^2/z_R^2));
-R=(dz)*(1.+z_R^2/dz^2);
-
-% %% make rays by gauss beam
-%     [rays,F]=density_beam_rays(165,5e-2,[],focus,f);
-    Nr=size(rays,1);
-    %phase0=angle(F);
-
+%% Gauss beam parameters
+    % in meters
+    focus=0.0009; %distanse of Gauss beam waist from antenna surface
     
-    %%  initialization of the rays
+%%  initialization of the rays
     curX=interp1(x,1:nx,rays(:,1)*100+antx,'linear',1);
     curY=interp1(y,1:ny,rays(:,2)*100+anty,'linear',1);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     
 
-    % preallocation
+%% preallocation
+    Nr=size(rays,1);
+    
     curPhase=zeros(Nr,1);    
     ssignal=zeros(Nr,1);
     xpos=ones(Nr,1)*x(end);
@@ -65,14 +53,14 @@ R=(dz)*(1.+z_R^2/dz^2);
     distbase=zeros(Nr,1);
     distnew=distbase;
 
-    % initial rays "widths"  
+%% initial rays "widths"  
     distbase(1:end-1)=sqrt(diff(curX).^2 + diff(curY).^2);
     distbase(end)=distbase(end-1);
     distbase(2:end-1)=(distbase(1:end-2)+distbase(2:end-1))/2;
     distold=distbase;    
 
     
-    %%%actual ray tracing for each ray step by step
+%% actual ray tracing for each ray step by step
     i=1;
     %%%calculate not ray by ray 
     %%%calculate time step by step (beam front)
@@ -120,9 +108,10 @@ R=(dz)*(1.+z_R^2/dz^2);
         distold=distnew;
     end;
 
-    rayGBeam_Amplitude=waist/wa*exp(-(xpos/100-antx/100).^2/(wa*1)^2);
-    rayGauss=rayGBeam_Amplitude.*exp(1i*(2*pi*dz/lambd+pi*(xpos/100-antx/100).^2/(R*lambd)));
-    
+%% result phase calculation
+    [~,~,~,rayGauss]=Gauss_beam(xpos/100,antx/100,-focus,f);
+    rayGauss=rayGauss'; % Gauss beam in general case returns array where row is z coordinate number column is x coordinate 
+                        % so we get row vector. but we need column one
     distint=sqrt(diff(xpos).^2);
     distint(end+1)=distint(end);
     distint(2:end-1)=(distint(1:end-2)+distint(2:end-1))/2;
