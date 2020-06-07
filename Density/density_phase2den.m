@@ -1,4 +1,4 @@
-function [den,den0]=density_phase2den(ph,OMEGA)
+function [den,den0]=density_phase2den(ph,freq)
 % converts dPhase[rad/2/pi]/dL [meters]  to density 1/cm-3
 %% const in CGS
 ELECTRONCHARGE = 4.8027E-10;
@@ -10,6 +10,8 @@ if nargin<2||isempty(freq)
     LAMBDA         = 0.22;%2.15E-1;%wavelength of the interferometer
     OMEGA          = 2*pi*LIGHTVELOS/LAMBDA;
 %     OMEGA=2*pi*135e9; %
+else
+    OMEGA=2*pi*freq;
 end;
 
 DENSCOEFF      = (ELECTRONCHARGE)^2/OMEGA/LIGHTVELOS/ELECTRONMASS;%*2*pi;
