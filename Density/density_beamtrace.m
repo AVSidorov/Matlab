@@ -1,4 +1,4 @@
-function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
+function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
 % x,y in cm
 
 %% input check
@@ -20,7 +20,11 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     nc=me*w^2/(4*pi*e^2);
 
 %% adjust grid by ant
-    Ind=find(abs(y)>abs(anty));
+    Ind=find(y<anty_TX);
+    y(Ind)=[];
+    n(Ind,:)=[];
+
+    Ind=find(y>anty_RX);
     y(Ind)=[];
     n(Ind,:)=[];
 
@@ -36,8 +40,8 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     focus=0.0009; %distanse of Gauss beam waist from antenna surface
     
 %%  initialization of the rays
-    curX=interp1(x,1:nx,rays(:,1)*100+antx,'linear',1);
-    curY=interp1(y,1:ny,rays(:,2)*100+anty,'linear',1);
+    curX=interp1(x,1:nx,rays(:,1)*100+antx_TX,'linear',1);
+    curY=interp1(y,1:ny,rays(:,2)*100+anty_TX,'linear',1);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     
@@ -47,7 +51,7 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     
     curPhase=zeros(Nr,1);    
     ssignal=zeros(Nr,1);
-    xpos=ones(Nr,1)*x(end);
+    xpos=zeros(Nr,1);
     out=false(Nr,1);
     amp=ones(Nr,1);
     distbase=zeros(Nr,1);
@@ -65,7 +69,6 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     %%%calculate not ray by ray 
     %%%calculate time step by step (beam front)
     while not(all(out))&&i<=Nsteps
-%         plot(x(1)+curX*gridstepx,y(1)+curY*gridstepx,'.k','MarkerSize',1);
         i=i+1;
         %%% make beam front 
         for j=1:Nr
@@ -78,8 +81,7 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
                 dky=dMy(round(curY(j)),round(curX(j)))*dt*w/2/nc;
             else
                 if ~out(j) && curX(j)>1 && curX(j)<nx && ((curY(j)-dy/gridstepx)-ny)*(curY(j)-ny)<=0
-                    xpos(j)=x(round(curX(j))); %faster
-                    %xpos(j)=interp1(1:nx,x,curX(j));
+                    xpos(j)=curX(j);                  
                     ssignal(j)=amp(j)*rays(j,5)*exp(-1i*curPhase(j));
                 end
                 out(j)=true;
@@ -109,7 +111,12 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     end;
 
 %% result phase calculation
-    [~,~,~,rayGauss]=Gauss_beam(xpos/100,antx/100,-focus,f);
+    %convert xpos from grid to real coordinates
+    xpos=interp1(1:nx,x,xpos,'linear',NaN);
+    ssignal(isnan(xpos))=[];
+    xpos(isnan(xpos))=[];
+    
+    [~,~,~,rayGauss]=Gauss_beam(xpos/100,antx_RX/100,-focus,f);
     rayGauss=rayGauss'; % Gauss beam in general case returns array where row is z coordinate number column is x coordinate 
                         % so we get row vector. but we need column one
     distint=sqrt(diff(xpos).^2);
@@ -119,7 +126,4 @@ function [ph,ph1,ph0]=density_beamtrace(x,y,n,rays,antx,anty,freq)
     total=sum(rayGauss.*ssignal.*distint*0.7);  
     
     ph=angle(total);
-    [ph1,ph0]=density_phase_by_grid(y,n,f);
-    ph1=interp1(x,ph1,antx);
-    ph0=interp1(x,ph0,antx);
 end
