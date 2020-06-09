@@ -1,4 +1,4 @@
-function [ok,delta,Rlcs,dCzero,limSide]=density_CrPcheck(coeffs)
+function [ok,delta,Rlcs,dCzero,dEnd,limSide]=density_CrPcheck(coeffs)
 Rdia=7.9;
 R=55;
 
@@ -46,5 +46,6 @@ else
 end
 ok=false;
 if isfinite(Rlcs)
-    ok=abs(polyval(coeffsD,Rlcs))<=Rlcs/R;
+    dEnd=polyval(coeffsD,Rlcs);
+    ok=dEnd>=-Rlcs/R&dEnd<0;
 end;
