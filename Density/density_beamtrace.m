@@ -2,7 +2,7 @@ function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
 % x,y in cm
 
 %% input check
-    if nargin<7||isempty(freq)
+    if nargin<9||isempty(freq)
         f=135e9;    
     else
         f=freq;
