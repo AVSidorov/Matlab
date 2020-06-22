@@ -12,7 +12,8 @@ if nargin<3||isempty(dz)
     dz=1.23504500132716030000e-02;
 end
 if nargin<4||isempty(focus)
-    focus=0.09;
+%     focus=0.009;
+    focus=0; %default make rays from waist
 end
 if nargin<5
     freq=135e9;
