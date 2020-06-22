@@ -12,6 +12,7 @@ function [curX,curY]=density_beamtrace_(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_
 %% settings
     Nsteps=10000;
     dt=1e-13;
+    focus=0.009; %in meters
 
 %% constants
     w=2*pi*f;
@@ -48,7 +49,7 @@ function [curX,curY]=density_beamtrace_(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_
 %%  initialization of the rays
     
     curX(:,1)=interp1(x,1:nx,rays(:,1)*100+antx_TX,'linear',1);
-    curY(:,1)=interp1(y,1:ny,rays(:,2)*100+anty_TX,'linear',1);
+    curY(:,1)=interp1(y,1:ny,(rays(:,2)-focus)*100+anty_TX,'linear',1);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     

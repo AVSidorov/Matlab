@@ -37,11 +37,11 @@ function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
 
 %% Gauss beam parameters
     % in meters
-    focus=0.0009; %distanse of Gauss beam waist from antenna surface
+    focus=0.009; %distanse of Gauss beam waist from antenna surface
     
 %%  initialization of the rays
     curX=interp1(x,1:nx,rays(:,1)*100+antx_TX,'linear',1);
-    curY=interp1(y,1:ny,rays(:,2)*100+anty_TX,'linear',1);
+    curY=interp1(y,1:ny,(rays(:,2)-focus)*100+anty_TX,'linear',1);
     curKx=rays(:,3)*w/c;
     curKy=rays(:,4)*w/c;
     
