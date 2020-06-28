@@ -90,7 +90,7 @@ function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
 
             end
             
-            %new phasse
+            %new phases
             curPhase(j)=curPhase(j)+dx*curKy(j)+dy*curKx(j);
             
             %new end of ray
