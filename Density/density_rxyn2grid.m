@@ -31,3 +31,4 @@ for nr=1:Nr
     yy(nr,:)=rxyn(nr,3)+rxyn(nr,1)*sin(theta);
 end
 n=griddata(xx,yy,nn,X,Y);
+n(isnan(n(:)))=0;
