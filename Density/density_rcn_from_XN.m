@@ -1,11 +1,25 @@
 function rcn=density_rcn_from_XN(xn,n)
-if nargin<2||isempty(n)
-    n=length(xn);
-end
+if nargin>1&&~isempty(n)
+    if length(xn)~=length(n)
+        error('in case two input arguments xn and n should be a same length');
+    end
+    if length(xn)~=numel(xn)||length(n)~=numel(n)
+         error('in case two input arguments both should be vectors');
+    end
+    if isrow(xn)
+        reshape(xn,[],1);
+    end
+    if isrow(n)
+        reshape(n,[],1);
+    end    
+    xn(:,2)=n;
+end;
+    
+        
 N=length(xn);
-den=linspace(min(xn(:,2)),max(xn(:,2)),n);
-rcn=zeros(n,3);
-for i=1:n
+den=linspace(min(xn(:,2)),max(xn(:,2)),N);
+rcn=zeros(N,3);
+for i=1:N
     leftInd=find(xn(:,2)>=den(i),1,'first');
     ind1=max([1,leftInd-1]);
     ind2=min([N,ind1+1]);
