@@ -6,7 +6,7 @@ if isempty(hfig)||~ishandle(hfig)
     figure('Tag','rxyn_plots');
     i=1;
 else
-    figure(hfig);
+    figure(hfig(1));
     i=2;
 end;
 
