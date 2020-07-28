@@ -1,15 +1,31 @@
 function [rxyn,minR,minRi]=density_laserchordMapping(rxyn,yN)
+  rxyn=sortrows(rxyn);
+
+%% fill y shift from chord
+%   rcn=density_rcn_from_XN(yN);
+%   %in this rcn, r are not true. This is the projection on y axis.  
+%   %c is y shift of center
+%   
+% 
+%   %same projection from rxyn
+%   bool=(rxyn(:,1).^2-(1.5-rxyn(:,2)).^2)>=0;
+%   y=sqrt(rxyn(bool,1).^2-(1.5-rxyn(bool,2)).^2);
+%   rxyn(bool,3)=interp1(rcn(:,1),rcn(:,2),y);
+%   ri=find(isnan(rxyn(:,3)),1,'last');
+%   rxyn(1:ri,3)=rxyn(ri+1,3);
+%%  map
     laserChord=density_chord_By_rxyV(inf,1.5,rxyn);
     laserChord=laserChord(isfinite(laserChord(:,1))&isfinite(laserChord(:,2)),:);
 
     laserChord(:,4)=interp1(yN(:,1),yN(:,2),laserChord(:,2),'pchip',-1);
     laserChord=sortrows(laserChord,3);
-    laserChord(find(diff(laserChord(:,3))==0)+1,:)=[];
+    IndR=find(diff(laserChord(:,3))==0);
+    laserChord(IndR,4)=(laserChord(IndR,4)+laserChord(IndR+1,4))/2;
+    laserChord(IndR+1,:)=[];
 
     rxyn(:,4)=interp1(laserChord(:,3),laserChord(:,4),rxyn(:,1),'pchip',-1);        
 
 
-    rxyn=sortrows(rxyn);
 %% "fill the gap" extrapolate densities to core center, there are not  laser chord data
     % n(r)=...+a2 *r^2 + a1*r + a0  
     % n'(0)=0 =>a1=0
