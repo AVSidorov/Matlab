@@ -51,7 +51,7 @@ subplot(2,nplots/2,4);
 grid on; hold on;
 [~,y,n,X,Y]=density_rxyten2grid(rxyn,200,200,20,20);
 n(isnan(n(:)))=0;
-laserChord=interp2(X,Y,n,xLaser*ones(length(y),1),y);
+laserChord=interp2(X,Y,n,xLaser,y);
 plot(y,laserChord,'LineWidth',2,'Color',color);
 title('laser chord N(y),x=1.5 cm');
 xlabel('y,cm');
