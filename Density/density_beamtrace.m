@@ -1,4 +1,4 @@
-function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
+function [ph,Amp]=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
 % x,y in cm
 
 %% input check
@@ -117,7 +117,7 @@ function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
     xpos(isnan(xpos))=[];
     
     [~,~,~,rayGauss]=Gauss_beam(xpos/100,antx_RX/100,-focus,f);
-    rayGauss=rayGauss'; % Gauss beam in general case returns array where row is z coordinate number column is x coordinate 
+    rayGauss=rayGauss.'; % Gauss beam in general case returns array where row is z coordinate number column is x coordinate 
                         % so we get row vector. but we need column one
     distint=sqrt(diff(xpos).^2);
     distint(end+1)=distint(end);
@@ -126,4 +126,5 @@ function ph=density_beamtrace(x,y,n,rays,antx_TX,anty_TX,antx_RX,anty_RX,freq)
     total=sum(rayGauss.*ssignal.*distint*0.7);  
     
     ph=angle(total);
+    Amp=abs(total);
 end
