@@ -13,8 +13,35 @@ if nargin<2
 end;
 
 Out=In;
+if isstruct(astraTab)
+    if isfield(astraTab,'R')&&~isempty(astraTab.R)&&~isnan(astraTab.R)
+        Out.rcentr=astraTab.R;
+    end;
+    if isfield(astraTab,'I')&&~isempty(astraTab.I)&&~isnan(astraTab.I)
+        Out.cpasma=astraTab.I*1e6; %Astra out in MA
+    end
+    if isfield(astraTab,'B')&&~isempty(astraTab.B)&&~isnan(astraTab.B)
+        Out.bcentr=astraTab.B;
+    end   
+    if isfield(astraTab,'rho')&&~isempty(astraTab.rho)
+        Out.nxefit=size(astraTab.rho,1);
+    end
+    if isfield(astraTab,'xrho')&&~isempty(astraTab.xrho)
+        Out.nxefit=size(astraTab.xrho,1);
+    end
+    
+    if isfield(astraTab,'a_')&&~isempty(astraTab.a_)&&...
+       numel(astraTab.a_)==Out.nxefit;
+        astraTab.a=astraTab.a_;
+    end   
+    if isfield(astraTab,'q_')&&~isempty(astraTab.q_)&&...
+       numel(astraTab.q_)==Out.nxefit;
+        astraTab.q=astraTab.q_;
+    end   
+else
+    Out.nxefit=height(astraTab);
+end
 
-Out.nxefit=height(astraTab);
 Out.nyefit=Out.nxefit;
 Out.rmagx=Out.rcentr+astraTab.shif(1);
 Out.zmagx=astraTab.shiv(1);
