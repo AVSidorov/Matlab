@@ -51,7 +51,7 @@ Out.sibdry=astraTab.psi(end)/2/pi;
 % fpol - Poloidal current function in m-T, F = RBt on uniform flux grid 
 %now B~1/R so fpol is const
 Out.fpol=Out.rcentr*Out.bcentr*ones(Out.nxefit,1);
-Out.pres=astraTab.PRt;
+Out.pres=astraTab.PRt*1e6; %to get Pascals
 Out.ffprim=astraTab.ff*Out.rcentr;
 Out.pprime=astraTab.pf/Out.rcentr;
 Out.qpsi=astraTab.q;
@@ -75,5 +75,6 @@ for i=1:n
     psi(i,:)=astraTab.psi(i)/2/pi;
 end
 x=x+Out.rcentr;
+%% interpolation on R,Z cortesian grid
 Out.psi=griddata(x,y,psi,r,z,'cubic');
 Out.psi(isnan(Out.psi(:)))=astraTab.psi(end)/2/pi;
