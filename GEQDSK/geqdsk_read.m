@@ -17,54 +17,59 @@ end;
 idum = round(str2double(DescSplit{1,1}{N-2}));
 nxefit = round(str2double(DescSplit{1,1}{N-1}));
 nyefit = round(str2double(DescSplit{1,1}{N}));
-
-InArray=cell2mat(textscan(fid,'%f',5,'Delimiter',{'',' ','\t','\n','\r'},'MultipleDelimsAsOne',1)); 
+%% reading full continious number table
+[InArray,pos]=textscan(fid,'%f');
+InArray=cell2mat(InArray);
+Narray=numel(InArray);
+%% parsing
 xdim=InArray(1);    %X Size of domain in meters
 zdim=InArray(2);    %Z Size of domain in meters
 rcentr=InArray(3);  %Reference vacuum toroidal field meters
 rgrid1=InArray(4);  %R of left side of domain
 zmid=InArray(5);    %Z at the middle of the domain
 
-InArray=cell2mat(textscan(fid,'%f',5,'Delimiter',{'',' ','\t','\n','\r'},'MultipleDelimsAsOne',1)); 
-rmagx=InArray(1);   %R Location of magnetic axis
-zmagx=InArray(2);   %Z Location of magnetic axis
-simagx=InArray(3);  %Poloidal flux at the axis (Weber / rad)
-sibdry=InArray(4);  %Poloidal flux at plasma boundary (Weber / rad)
-bcentr=InArray(5);  %Reference vacuum toroidal field T
+rmagx=InArray(6);   %R Location of magnetic axis
+zmagx=InArray(7);   %Z Location of magnetic axis
+simagx=InArray(8);  %Poloidal flux at the axis (Weber / rad)
+sibdry=InArray(9);  %Poloidal flux at plasma boundary (Weber / rad)
+bcentr=InArray(10);  %Reference vacuum toroidal field T
+
+cpasma=InArray(11);  %Plasma current in Amps
+simagx=InArray(12);
+xdum=InArray(13);
+rmagx=InArray(14);
+xdum=InArray(15);
+
+zmagx=InArray(16);
+xdum=InArray(17);
+sibdry=InArray(18);
+xdum=InArray(19);
+xdum=InArray(20);
 
 
-InArray=cell2mat(textscan(fid,'%f',5,'Delimiter',{'',' ','\t','\n','\r'},'MultipleDelimsAsOne',1)); 
-cpasma=InArray(1);  %Plasma current in Amps
-simagx=InArray(2);
-xdum=InArray(3);
-rmagx=InArray(4);
-xdum=InArray(5);
-
-InArray=cell2mat(textscan(fid,'%f',5,'Delimiter',{'',' ','\t','\n','\r'},'MultipleDelimsAsOne',1)); 
-zmagx=InArray(1);
-xdum=InArray(2);
-sibdry=InArray(3);
-xdum=InArray(4);
-xdum=InArray(5);
-
-
-fpol=cell2mat(textscan(fid,'%f',nxefit,'MultipleDelimsAsOne',1));   % Poloidal current function in m-T, F = RBt on uniform flux grid    
-pres=cell2mat(textscan(fid,'%f',nxefit,'MultipleDelimsAsOne',1));   % Plasma pressure in nt/m^2 on uniform flux grid
-ffprim=cell2mat(textscan(fid,'%f',nxefit,'MultipleDelimsAsOne',1)); %FF’(y) in (mT)2 / (Weber /rad) on uniform flux grid
-pprime=cell2mat(textscan(fid,'%f',nxefit,'MultipleDelimsAsOne',1)); %P’(y) in (nt /m2) / (Weber /rad) on uniform flux grid
-psi=reshape(cell2mat(textscan(fid,'%f',nxefit*nyefit,'MultipleDelimsAsOne',1)),nyefit,nxefit)'; %Poloidal flux in Weber/rad on grid points
-qpsi=cell2mat(textscan(fid,'%f',nxefit,'MultipleDelimsAsOne',1));   % q values on uniform flux grid
-
+fpol=InArray([1:nxefit]+20);% Poloidal current function in m-T, F = RBt on uniform flux grid    
+pos=20+nxefit;
+pres=InArray([1:nxefit]+pos);   % Plasma pressure in nt/m^2 on uniform flux grid
+pos=pos+nxefit;
+ffprim=InArray([1:nxefit]+pos); %FF’(y) in (mT)2 / (Weber /rad) on uniform flux grid
+pos=pos+nxefit;
+pprime=InArray([1:nxefit]+pos); %P’(y) in (nt /m2) / (Weber /rad) on uniform flux grid
+pos=pos+nxefit;
+psi=reshape(InArray([1:nxefit*nyefit]+pos),nxefit,nyefit)'; %Poloidal flux in Weber/rad on grid points
+pos=pos+nxefit*nyefit;
+qpsi=InArray([1:nxefit]+pos);   % q values on uniform flux grid
+pos=pos+nxefit;
 %The toroidal current JT related to P’(y) and FF’(y) through
 % JT (Amp/m2) = R P’(y) + FF’(y) / R
 
 %%Read boundary and limiters, if present
 %TODO checking of read
-nbdry=cell2mat(textscan(fid,'%d',1));
-nlim=cell2mat(textscan(fid,'%d',1));
+nbdry=InArray(pos+1);
+nlim=InArray(pos+2);
+pos=pos+2;
 % Plasma boundary
-if nbdry>0
-    fullbdr=reshape(cell2mat(textscan(fid,'%f',2*nbdry,'Delimiter',{' ','\t','\n'},'MultipleDelimsAsOne',1)),2,[]);
+if nbdry>0&&(pos+2*nbdry)<=Narray
+    fullbdr=reshape(InArray([1:nbdry*2]+pos),2,[]);
     rbdry=fullbdr(1,:)'; 
     zbdry=fullbdr(2,:)';
 %     clear fullbdr;
@@ -72,9 +77,10 @@ else
     rbdry=0;
     zbdry=0;
 end
+pos=pos+2*nbdry;
 % Wall boundary
-if nlim >0
-    fulllim=reshape(cell2mat(textscan(fid,'%f',2*nlim,'Delimiter',{' ','\t','\n'},'MultipleDelimsAsOne',1)),2,[]);
+if nlim >0&&(pos+2*nlim)<=Narray
+    fulllim=reshape(InArray([1:nlim*2]+pos),2,[]);
     xlim=fulllim(1,:)';
     ylim=fulllim(2,:)';
 %     clear fullim;
@@ -83,7 +89,8 @@ else
     ylim=0;
 end
 
-Out.Desc=DescSplit{1}(1:N-3);
+Out.Desc=cell(6,1);
+Out.Desc(1:N-3)=DescSplit{1}(1:N-3);
 Out.idum = idum;
 Out.nxefit = nxefit;
 Out.nyefit = nyefit;
