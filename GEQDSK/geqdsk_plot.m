@@ -1,5 +1,5 @@
-function geqdsk_plot(In)
-
+function fh=geqdsk_plot(In,fh,color)
+    colors=['b','r','k'];    
     %%Construct R-Z mesh
     r=zeros(In.nyefit,In.nxefit);
     z=r;
@@ -12,7 +12,18 @@ function geqdsk_plot(In)
         z(i,:)=(In.zmid-0.5*In.zdim)+(i-1)*In.zdim/(In.nyefit-1);
     end
     
-    figure('Units','normalize','OuterPosition',[0 0 1 1]);
+    if nargin<2||isempty(fh)||~ishandle(fh)||~strcmpi(get(fh,'Type'),'figure')
+        fh=figure('Units','normalize','OuterPosition',[0 0 1 1]);
+        n=0;
+    else
+        figure(fh);
+        subplot(2,3,2);
+        h=findobj(gca,'Type','line');
+        n=numel(h);        
+    end
+    if nargin<3||isempty(color)
+        color=colors(min([n+1,numel(colors)]));
+    end
     subplot(2,3,1)
     contour(r,z,In.psi,100)
     axis equal
@@ -33,7 +44,7 @@ function geqdsk_plot(In)
     
     subplot(2,3,2)
     grid on; hold on;
-    plot(rho,In.pres,'b','LineWidth',2);
+    plot(rho,In.pres,'LineWidth',2,'Color',color);
     set(gca,'FontSize',14)
     title('Pressure','FontSize',20,'FontWeight','demi');
     xlabel('\rho, m','FontSize',20,'FontWeight','demi');
@@ -41,7 +52,7 @@ function geqdsk_plot(In)
     
     subplot(2,3,3)
     grid on; hold on;
-    plot(rho,In.qpsi,'r','LineWidth',2);
+    plot(rho,In.qpsi,'LineWidth',2,'Color',color);
     plot(0,1,'+r','MarkerSize',10);
     set(gca,'FontSize',14)
     title('Safety factor','FontSize',20,'FontWeight','demi');
@@ -50,7 +61,7 @@ function geqdsk_plot(In)
 
     subplot(2,3,4)
     grid on; hold on;
-    plot(rho,In.fpol,'k','LineWidth',2);
+    plot(rho,In.fpol,'LineWidth',2,'Color',color);
     set(gca,'FontSize',14)
     title('Poloidal current function','FontSize',20,'FontWeight','demi');
     xlabel('\rho','FontSize',20,'FontWeight','demi');
@@ -58,7 +69,7 @@ function geqdsk_plot(In)
 
     subplot(2,3,5)
     grid on; hold on;
-    plot(rho,In.ffprim,'k','LineWidth',2);
+    plot(rho,In.ffprim,'LineWidth',2,'Color',color);
     set(gca,'FontSize',14)
     title('ffprim','FontSize',20,'FontWeight','demi');
     xlabel('\rho','FontSize',20,'FontWeight','demi');
@@ -66,7 +77,7 @@ function geqdsk_plot(In)
 
     subplot(2,3,6)
     grid on; hold on;
-    plot(rho,In.pprime,'k','LineWidth',2);
+    plot(rho,In.pprime,'LineWidth',2,'Color',color);
     set(gca,'FontSize',14)
     title('pprime','FontSize',20,'FontWeight','demi');
     xlabel('\rho','FontSize',20,'FontWeight','demi');
