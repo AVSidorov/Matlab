@@ -7,6 +7,7 @@ if nargin<3
     ny=nx;    
 end;
 
+rxyten=sortrows(rxyten);
 gridstep=min(diff(rxyten(:,1)));
 Ntheta=round(2*pi*max(rxyten(:,1))/gridstep);
 Ntheta=min([Ntheta,NthetaMax]);
