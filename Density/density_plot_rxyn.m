@@ -1,5 +1,5 @@
 function f=density_plot_rxyten(rxyte)
-Rdia=7.79;
+Rdia=7.785;
 
 Rdia=Rdia*10^(round(log10(max(rxyte(:,1))))-round(log10(Rdia)));
 theta=linspace(0,2*pi,361);
