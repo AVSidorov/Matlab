@@ -1,4 +1,4 @@
-function [R,C,dPhdL,denPh,Den]=density_pancake(x,fx,freq)
+function [rxyten,R,C,dPhdL,denPh,Den]=density_pancake(x,fx,freq,rxyten)
 if nargin<3
     freq=[];
 end;
@@ -23,6 +23,10 @@ n=numel(x);
 R=zeros(n,1);
 C=zeros(n,1);
 dPhdL=zeros(n,1);
+if nargin<4||isempty(rxyten)
+    rxyten=[1e-4,0,0,0,1.0,0;...
+        range(x),0,0,0,1.0,0];
+end
     
     i=0;
 while numel(x)>1 % "while" instead "for" because two or more points can be reduced
@@ -46,7 +50,9 @@ while numel(x)>1 % "while" instead "for" because two or more points can be reduc
         break;
     end;    
     %make pancake chord lengths
-    L=2*sqrt(R(i)^2-(x(2:end-1)-C(i)).^2); % 2:end-1 to avoid negative value under root and L on circle borders (or out side) is zero
+    L=ChordLength(x(2:end-1)-C(i),R(i),interp1(rxyten(:,1),rxyten(:,4),R(i),'pchip',0),...
+                         interp1(rxyten(:,1),rxyten(:,5),R(i),'pchip',1));
+        % 2:end-1 to avoid negative value under root and L on curve borders (or out side) is zero
     %determine dPhdL on current pancake
     [dPhdL(i),ind]=min([fx(2)/L(1) fx(end-1)/L(end)]);    
     %make new x and fx subtract pancake and reduce ends.
@@ -62,14 +68,23 @@ end
 denPh=cumsum(dPhdL);
 denPh(denPh<0)=0;
 Den=density_phase2den(denPh,freq);
+if nargin<4||isempty(rxyten)
+    clear rxyten;
+    rxyten(:,1)=R;
+    rxyten(:,2)=C;
+    rxyten(:,3)=0;
+    rxyten(:,5)=1.0;
+    rxyten(:,6)=Den;
+else
+    rxyten(:,2)=interp1(R,C,rxyten(:,1),'pchip',0);
+    rxyten(:,end)=interp1(R,Den,rxyten(:,1),'pchip',0);
+end
 end
 function [l,x,y]=ChordLength(x,r,t,e)
-% calculates chord length surface radius r, triangularity t and elongation e
+% calculates chord length for surface radius r, triangularity t and elongation e
 % x distance to center
     if t~=0
         c=(1-sqrt(1+4*t*(x/r+t)))/2/t;
-        x(abs(c)>1)=[];
-        c(abs(c)>1)=[];
     else
         c=x/r;
     end
