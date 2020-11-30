@@ -8,7 +8,8 @@ if nargin<5
 end
 
 Rlcs=fminbnd(@Rmax,0,Rdia);
-theta=linspace(thetaMax-pi,thetaMax+pi,N)';
+theta=linspace(thetaMax-pi,thetaMax+pi,N+1)';
+theta(end)=[];
 x=shiftX+Rlcs*(cos(theta)-trian*sin(theta).^2);
 y=shiftY+Rlcs*el*sin(theta);
 [xmin,xi1]=min(x);
