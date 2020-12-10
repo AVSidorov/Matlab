@@ -45,12 +45,13 @@ ph0(x>=rxyn(end,2)+Rlcs)=0;
 %% make initial densities by pancakes if isempty
    if all(rxyn(:,4)<1e10)
         rxynOld=rxyn;
-        [R,C,~,~,Den]=density_pancake(x,ph0,freq);
-        rxyn=zeros(size(R,1),4);
-        rxyn(:,[1,2,4])=[R,C,Den];
-        rxyn(rxyn(:,1)>Rlcs,:)=[];
-        rxyn=sortrows(rxyn);
-        rxyn(:,3)=interp1(rxynOld(:,1),rxynOld(:,3),rxyn(:,1));
+        [rxyten,R,C,~,~,Den]=density_pancake(x,ph0,freq);
+        rxyn=rxyten(:,[1:3,end]);
+%         rxyn=zeros(size(R,1),4);
+%         rxyn(:,[1,2,4])=[R,C,Den];
+         rxyn(rxyn(:,1)>Rlcs,:)=[];
+         rxyn=sortrows(rxyn);
+         rxyn(:,3)=interp1(rxynOld(:,1),rxynOld(:,3),rxyn(:,1));
    end
 %% fit
 nr=size(antSet,1); % number of beams
@@ -87,10 +88,12 @@ while niter>2
         ph1=reshape(ph1,1,[]);
         ph1=ph1+k*dPh;
         ph1(ph1<0)=0;
-        [R,C,~,~,Den]=density_pancake(x,ph1,freq);
+
+        [rxyten,R,C,~,~,Den]=density_pancake(x,ph1,freq);
         rxynOld=rxyn;
-        rxyn=zeros(size(R,1),4);
-        rxyn(:,[1,2,4])=[R,C,Den];
+        rxyn=rxyten(:,[1:3,end]);
+%         rxyn=zeros(size(R,1),4);
+%         rxyn(:,[1,2,4])=[R,C,Den];
         rxyn(:,3)=interp1(rxynOld(:,1),rxynOld(:,3),rxyn(:,1),'linear',mean(rxynOld(:,3)));
         rxyn(rxyn(:,1)>Rlcs,:)=[];
         rxyn=sortrows(rxyn);
