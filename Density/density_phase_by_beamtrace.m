@@ -35,7 +35,7 @@ for count=stI:Ncount+1
     end;
     disp(count);
 end;
-phU=unwrap(ph')-repmat(ph(:,1)',Ncount+1,1);
+phU=unwrap(ph')-repmat(ph(:,1)',size(ph,2),1);
 phU=phU/2/pi;
 phU=phU';
 prof=phU(:,end);
