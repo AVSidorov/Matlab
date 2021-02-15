@@ -1,5 +1,10 @@
 function [x,y,n,X,Y]=density_rxyten2grid(rxyten,nx,ny,xdim,ydim)
 NthetaMax=1000;
+if size(rxyten,2)==4
+    rxyten(:,[1:3,6])=rxyten;
+    rxyten(:,4)=0;
+    rxyten(:,5)=1;
+end
 if nargin<2
     nx=size(rxyten,1);
 end;
@@ -22,18 +27,22 @@ nn=xx;
 for nr=1:Nr
     nn(nr,:)=rxyten(nr,6);
     xx(nr,:)=rxyten(nr,2)+rxyten(nr,1)*(cos(theta)-rxyten(nr,4)*sin(theta).^2);
-    yy(nr,:)=rxyten(nr,3)+rxyten(nr,1)*rxyten(nr,5)*sin(theta);
+    yy(nr,:)=rxyten(nr,3)+rxyten(nr,1)*rxyten(nr,5)*sin(theta);  
 end
 
 
 if nargin<3
-    xdim=2*max(abs(xx(:)));
-end;
-if nargin<4
-    ydim=2*max(abs(yy(:)));
+    x=[rxyten(:,2)-rxyten(:,1);rxyten(:,2)+rxyten(:,1)];
+    x=sortrows(x);
+    y=[rxyten(:,3)+rxyten(:,1).*rxyten(:,5);rxyten(:,3)-rxyten(:,1).*rxyten(:,5)];
+    y=sortrows(y);
+else
+    if narging<4
+        ydim=xdim;
+    end    
+    x=linspace(-xdim/2,xdim/2,nx);
+    y=linspace(-ydim/2,ydim/2,ny);
 end
-x=linspace(-xdim/2,xdim/2,nx);
-y=linspace(-ydim/2,ydim/2,ny);
 [X,Y]=meshgrid(x,y);
 n=griddata(xx,yy,nn,X,Y);
 %n(isnan(n(:)))=0; %removed because this function can be used for
