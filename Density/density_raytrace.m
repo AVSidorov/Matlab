@@ -1,4 +1,4 @@
-function [curX,curY,curKx,curKy,curL,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
+function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
 % x,y in cm
 %% input check
     if nargin<8||isempty(freq)
@@ -40,6 +40,8 @@ function [curX,curY,curKx,curKy,curL,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,
     curKy=zeros(Nstep,1);
     curL=zeros(Nstep,1);
     curPhase=zeros(Nstep,1);
+    curPhase1=zeros(Nstep,1);
+    vacPhase=zeros(Nstep,1);
     
     x2left=[-1 0];
     x2right=[0 1];
@@ -62,6 +64,7 @@ function [curX,curY,curKx,curKy,curL,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,
         
         gradNx=dNx(kY,kX);
         gradNy=dNy(kY,kX);
+        k=sqrt(curKx(i).^2+curKy(i).^2);
         
         if curX(i)-kX==0&&curKx(i)<0
             hx=dX(kX-1);
@@ -85,29 +88,35 @@ function [curX,curY,curKx,curKy,curL,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,
         %% founding shortest path length till cell border in physical units 
         l=zeros(0,1);
         
-        l=[l;roots([-gradNx/2/nc/2,curKx(i)*c/w,-max(x2left(x2left<0))*hx])];
-        l=[l;roots([-gradNx/2/nc/2,curKx(i)*c/w,-min(x2right(x2right>0))*hx])];
+        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k,curKx(i)/k,-max(x2left(x2left<0))*hx])];
+        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k,curKx(i)/k,-min(x2right(x2right>0))*hx])];
             
-        l=[l;roots([-gradNy/2/nc/2,curKy(i)*c/w,-max(y2down(y2down<0))*hy])];
-        l=[l;roots([-gradNy/2/nc/2,curKy(i)*c/w,-min(y2up(y2up>0))*hy])];
+        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k,curKy(i)/k,-max(y2down(y2down<0))*hy])];
+        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k,curKy(i)/k,-min(y2up(y2up>0))*hy])];
         
         l=l(~imag(l(:)));
         l=l(l>0);
         if isempty(l)
+            i=i-1;
             break;
         else
+            i=i+1;
             curL(i)=min(l);
-            curKx(i+1)=curKx(i)-gradNx*w/2/nc/c*curL(i);
-            curKy(i+1)=curKy(i)-gradNy*w/2/nc/c*curL(i);
+            curKx(i)=curKx(i-1)-gradNx/2/nc*w^2/c^2/k*curL(i);
+            curKy(i)=curKy(i-1)-gradNy/2/nc*w^2/c^2/k*curL(i);
             
             %convert physical length to grid coordinates
             %in main grid 
-            curX(i+1)=curX(i)+polyval([-gradNx/2/nc/2,curKx(i)*c/w,0],curL(i))/hx; 
-            curY(i+1)=curY(i)+polyval([-gradNy/2/nc/2,curKy(i)*c/w,0],curL(i))/hy;
+            dx=polyval([-gradNx/2/nc/2*w^2/c^2/k,curKx(i-1)/k,0],curL(i));
+            dy=polyval([-gradNy/2/nc/2*w^2/c^2/k,curKy(i-1)/k,0],curL(i));
+            curX(i)=curX(i-1)+dx/hx; 
+            curY(i)=curY(i-1)+dy/hy;
             
             
-            curPhase(i+1)=curPhase(i)+curL(i)*w/c;
-            i=i+1;
+            curPhase(i)=curPhase(i-1)+curL(i)*k;
+            curPhase1(i)=curPhase1(i-1)+dx*curKx(i-1)+dy*curKy(i-1);
+            vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
+            
             %snaprounding to shifted grid first time at step 2
              if abs(curX(i)-fix(curX(i)))<abs(curY(i)-fix(curY(i)))
                  curX(i)=round(curX(i));
@@ -124,4 +133,7 @@ function [curX,curY,curKx,curKy,curL,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,
     curKx=curKx(1:i);
     curKy=curKy(1:i);
     curL=curL(1:i);
+    curPhase=curPhase(1:i);
+    curPhase1=curPhase1(1:i);
+    vacPhase=vacPhase(1:i);
 end
