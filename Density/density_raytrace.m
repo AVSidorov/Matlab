@@ -1,4 +1,4 @@
-function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
+function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
 % x,y in cm
 %% input check
     if nargin<8||isempty(freq)
@@ -42,6 +42,8 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytra
     curPhase=zeros(Nstep,1);
     curPhase1=zeros(Nstep,1);
     vacPhase=zeros(Nstep,1);
+    curAx=zeros(Nstep,1);
+    curAy=zeros(Nstep,1);
     
     x2left=[-1 0];
     x2right=[0 1];
@@ -64,7 +66,12 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytra
         
         gradNx=dNx(kY,kX);
         gradNy=dNy(kY,kX);
+
         k=sqrt(curKx(i).^2+curKy(i).^2);
+
+	curAx(i)=-gradNx/2/nc/2;
+	curAy(i)=-gradNy/2/nc/2;
+
         
         if curX(i)-kX==0&&curKx(i)<0
             hx=dX(kX-1);
@@ -88,11 +95,11 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytra
         %% founding shortest path length till cell border in physical units 
         l=zeros(0,1);
         
-        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k,curKx(i)/k,-max(x2left(x2left<0))*hx])];
-        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k,curKx(i)/k,-min(x2right(x2right>0))*hx])];
+        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-max(x2left(x2left<0))*hx])];
+        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-min(x2right(x2right>0))*hx])];
             
-        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k,curKy(i)/k,-max(y2down(y2down<0))*hy])];
-        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k,curKy(i)/k,-min(y2up(y2up>0))*hy])];
+        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-max(y2down(y2down<0))*hy])];
+        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-min(y2up(y2up>0))*hy])];
         
         l=l(~imag(l(:)));
         l=l(l>0);
@@ -107,13 +114,15 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytra
             
             %convert physical length to grid coordinates
             %in main grid 
-            dx=polyval([-gradNx/2/nc/2*w^2/c^2/k,curKx(i-1)/k,0],curL(i));
-            dy=polyval([-gradNy/2/nc/2*w^2/c^2/k,curKy(i-1)/k,0],curL(i));
+            
+            dx=polyval([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i-1)/k,0],curL(i));
+            dy=polyval([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i-1)/k,0],curL(i));
+
             curX(i)=curX(i-1)+dx/hx; 
             curY(i)=curY(i-1)+dy/hy;
             
             
-            curPhase(i)=curPhase(i-1)+curL(i)*k;
+            curPhase(i)=curPhase(i-1)+curL(i)*(k+sqrt(curKx(i)^2+curKy(i)^2))/2;
             curPhase1(i)=curPhase1(i-1)+dx*curKx(i-1)+dy*curKy(i-1);
             vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
             
@@ -136,4 +145,8 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase]=density_raytra
     curPhase=curPhase(1:i);
     curPhase1=curPhase1(1:i);
     vacPhase=vacPhase(1:i);
+    curAx=curAx(1:i);
+    curAy=curAy(1:i);
+
+    L=cumsum(curL);
 end
