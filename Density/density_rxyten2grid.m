@@ -37,7 +37,7 @@ if nargin<3
     y=[rxyten(:,3)+rxyten(:,1).*rxyten(:,5);rxyten(:,3)-rxyten(:,1).*rxyten(:,5)];
     y=sortrows(y);
 else
-    if narging<4
+    if nargin<4
         ydim=xdim;
     end    
     x=linspace(-xdim/2,xdim/2,nx);
