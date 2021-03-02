@@ -53,8 +53,8 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
 %%  initialization of the rays
     curX(1)=interp1(x,1:nx,x0,'linear',1);
     curY(1)=interp1(y,1:ny,y0,'linear',1);
-    curKx(1)=kx0*w/c;
-    curKy(1)=ky0*w/c;    
+    curKx(1)=kx0*w/c*sqrt(1-n(round(curY(1)),round(curX(1)))/nc);
+    curKy(1)=ky0*w/c*sqrt(1-n(round(curY(1)),round(curX(1)))/nc);    
 
     
 %% actual raytracing from cell to cell
@@ -93,22 +93,20 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
         
         
         %% founding shortest path length till cell border in physical units 
-        l=zeros(0,1);
+        l=[inf 0];
         
-        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-max(x2left(x2left<0))*hx])];
-        l=[l;roots([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-min(x2right(x2right>0))*hx])];
+        l=newL(l,[-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-max(x2left(x2left<0))*hx],1);
+        l=newL(l,[-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-min(x2right(x2right>0))*hx],2);
             
-        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-max(y2down(y2down<0))*hy])];
-        l=[l;roots([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-min(y2up(y2up>0))*hy])];
+        l=newL(l,[-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-max(y2down(y2down<0))*hy],3);
+        l=newL(l,[-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-min(y2up(y2up>0))*hy],4);
         
-        l=l(~imag(l(:)));
-        l=l(l>0);
-        if isempty(l)
+        if  isinf(l(1));
             i=i-1;
             break;
         else
             i=i+1;
-            curL(i)=min(l);
+            curL(i)=l(1);            
             curKx(i)=curKx(i-1)-gradNx/2/nc*w^2/c^2/k*curL(i);
             curKy(i)=curKy(i-1)-gradNy/2/nc*w^2/c^2/k*curL(i);
             
@@ -127,7 +125,7 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
             vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
             
             %snaprounding to shifted grid first time at step 2
-             if abs(curX(i)-fix(curX(i)))<abs(curY(i)-fix(curY(i)))
+             if l(2)<3
                  curX(i)=round(curX(i));
              else
                  curY(i)=round(curY(i));
@@ -149,4 +147,14 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
     curAy=curAy(1:i);
 
     L=cumsum(curL);
+end
+function l=newL(l,coeff,xy)
+    lnew=roots(coeff);
+    lnew=lnew(~imag(lnew));
+    lnew=lnew(lnew>0);
+    lnew=min(lnew);
+    if ~isempty(lnew)&&lnew<l(1)
+        l(1)=lnew;
+        l(2)=xy;
+    end
 end
