@@ -39,11 +39,15 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
     curKx=zeros(Nstep,1);
     curKy=zeros(Nstep,1);
     curL=zeros(Nstep,1);
+
+    curAx=zeros(Nstep,1);
+    curAy=zeros(Nstep,1);
+
     curPhase=zeros(Nstep,1);
     curPhase1=zeros(Nstep,1);
     vacPhase=zeros(Nstep,1);
-    curAx=zeros(Nstep,1);
-    curAy=zeros(Nstep,1);
+    kByDen=zeros(Nstep,1);
+
     
     x2left=[-1 0];
     x2right=[0 1];
@@ -53,8 +57,10 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
 %%  initialization of the rays
     curX(1)=interp1(x,1:nx,x0,'linear',1);
     curY(1)=interp1(y,1:ny,y0,'linear',1);
-    curKx(1)=kx0*w/c*sqrt(1-n(round(curY(1)),round(curX(1)))/nc);
-    curKy(1)=ky0*w/c*sqrt(1-n(round(curY(1)),round(curX(1)))/nc);    
+    N=sqrt(1-n(round(curY(1)),round(curX(1)))/nc);
+    curKx(1)=kx0*w/c*N;
+    curKy(1)=ky0*w/c*N;
+    kByDen(1)=N*w/c;
 
     
 %% actual raytracing from cell to cell
@@ -118,19 +124,20 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
 
             curX(i)=curX(i-1)+dx/hx; 
             curY(i)=curY(i-1)+dy/hy;
-            
-            
-            curPhase(i)=curPhase(i-1)+curL(i)*(k+sqrt(curKx(i)^2+curKy(i)^2))/2;
-            curPhase1(i)=curPhase1(i-1)+dx*curKx(i-1)+dy*curKy(i-1);
-            vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
-            
+
             %snaprounding to shifted grid first time at step 2
              if l(2)<3
                  curX(i)=round(curX(i));
              else
                  curY(i)=round(curY(i));
              end;
-
+            
+            % additional values that can be calculated later
+            curPhase(i)=curPhase(i-1)+curL(i)*(k+sqrt(curKx(i)^2+curKy(i)^2))/2;
+            curPhase1(i)=curPhase1(i-1)+dx*curKx(i-1)+dy*curKy(i-1);
+            vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
+            N=sqrt(1-n(round(curY(i)),round(curX(i)))/nc);
+            kByDen(i)=N*w/c;
         end;
     end;
     curX=curX(1:i);
@@ -145,6 +152,7 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
     vacPhase=vacPhase(1:i);
     curAx=curAx(1:i);
     curAy=curAy(1:i);
+    kByDen=kByDen(1:i);
 
     L=cumsum(curL);
 end

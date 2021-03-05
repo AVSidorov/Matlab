@@ -1,10 +1,14 @@
-function [ph,Amp,phRay,x_max,x_out,Erx,Eant]=density_rays2field(raysIn,raysOut,x,y)
+function [beam,ph,Amp,phRay,Erx,Eant]=density_rays2field(beam)
 % assumes x is center of antenna, y is vertical position
 
 c=299792458*100;
-focus=0.0095;
 
-nr=size(raysIn,1);
+focus=beam.antFocus;
+nr=beam.nr;
+x=beam.antRX_X;
+y=beam.antRX_Y;
+raysOut=beam.r;
+
 len_out=NaN(nr,1);
 ind_out=NaN(nr,1);
 k_out=NaN(nr,1);
@@ -12,7 +16,6 @@ x_out=NaN(nr,1);
 y_out=NaN(nr,1);
 ph_out=NaN(nr,1);
 phV_out=NaN(nr,1);
-Amp=zeros(nr,1);
 
 for i=1:nr
     kVac=2*pi*raysOut(i).freq/c;
@@ -51,12 +54,19 @@ for i=1:nr
 end
 
 
-dist0=sqrt(diff(raysIn(:,1)*100).^2+diff(raysIn(:,2)*100).^2);
+% initial ray widths (half distances sum to neighbour rays)
+for i=1:nr
+    x_in(i)=raysOut(i).curX(1);
+    y_in(i)=raysOut(i).curY(1);
+end
+
+dist0=sqrt(diff(x_in).^2+diff(y_in).^2);
 dist0(end+1)=dist0(end);
 dist0(2:end-1)=(dist0(1:end-2)+dist0(2:end-1))/2;
 dist1=dist0;
 
-%calculate halfwidths
+%calculate new halfwidths
+% it's neccesary to find position where neighbour rays have same phase
 for i=1:nr
     xx=[];
     yy=[];
@@ -77,7 +87,8 @@ for i=1:nr
     end
     dist1(i)=(sqrt((x_out(i)-xx(1))^2+(y_out(i)-yy(1))^2)+sqrt((x_out(i)-xx(2))^2+(y_out(i)-yy(2))^2))/2;
 end
-Amp=dist0./dist1;
+amp_out=dist0./dist1;
+amp_out=reshape(amp_out,[],1);
 
 indR=find(~isnan(len_out));
 ind_out=ind_out(indR);
@@ -87,7 +98,7 @@ phV_out=phV_out(indR);
 ph_out=ph_out(indR);
 x_out=x_out(indR);
 y_out=y_out(indR);
-Amp=Amp(indR);
+amp_out=amp_out(indR);
 
 [x_out,index]=sortrows(x_out);
 indR=indR(index);
@@ -97,7 +108,7 @@ k_out=k_out(index);
 phV_out=phV_out(index);
 ph_out=ph_out(index);
 y_out=y_out(index);
-Amp=Amp(index);
+amp_out=amp_out(index);
 
 
 dist2=sqrt(diff(x_out).^2+diff(y_out).^2);
@@ -106,11 +117,11 @@ dist2(2:end-1)=(dist2(1:end-2)+dist2(2:end-1))/2;
 
 [~,~,~,rayGauss]=Gauss_beam(x_out/100,x/100,-focus,raysOut(1).freq);
 rayGauss=rayGauss.';
-Eant=raysIn(indR,5).*Amp.*exp(-1i*ph_out);
+Eant=beam.ampIn(indR).*amp_out.*exp(-1i*ph_out);
 Erx=Eant.*rayGauss;
 
-total=sum(Erx.*dist2*0.7);  
 
+total=sum(Erx.*dist2*0.7);  
 ph=angle(total);
 Amp=abs(total);
 %% Calculating phase by phase along ray
@@ -124,10 +135,35 @@ else
 end
 
 
-[~,indMaxIn]=min(abs(x_max-x_out)); %Ray wich comes in maximum of field
-[~,indMaxOut]=max(raysIn(:,5));     %Ray with maximal initial amplitude
+[~,indMaxOut]=min(abs(x_max-x_out));  %Ray wich comes in maximum of field
+[~,indMaxIn]=max(beam.ampIn);         %Ray with maximal initial amplitude
+[~,indMidOut]=min(abs(x-x_out));      %Ray wich comes in center of RX antennae
+
+indMaxOut=indR(indMaxOut);
+indMidOut=indR(indMidOut);
 
 phBase=abs(y-(raysOut(indMaxIn).curY(1)+raysOut(indMaxOut).curY(1))/2)*kVac;
 
 % phRay=interp1(x_out,(phV_out-ph_out)/2/pi,x_max,'pchip');
 phRay=interp1(x_out,(phBase-ph_out)/2/pi,x_max,'pchip');
+
+beam.ph=ph;
+beam.phBase=phBase;
+beam.phRay=phRay;
+beam.ampOut=Amp;
+beam.xMax=x_max;
+
+beam.rayMaxIn=indMaxIn;
+beam.rayMaxOut=indMaxOut;
+beam.rayMidOut=indMidOut;
+
+beam.nrOut=length(x_out);
+beam.x_out=x_out;
+beam.y_out=y_out;
+beam.len_out=len_out;
+beam.indRay_out=indR;
+beam.lastPointInd_out=ind_out;
+beam.ph_out=ph_out;
+beam.amp_out=amp_out;
+beam.k_out=k_out;
+beam.phV_out=phV_out;
