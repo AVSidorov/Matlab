@@ -1,4 +1,4 @@
-function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
+function [curX,curY,curKx,curKy,curL,curAx,curAy,curPhase]=density_raytrace(x,y,n,x0,y0,kx0,ky0,freq)
 % x,y in cm
 %% input check
     if nargin<8||isempty(freq)
@@ -38,14 +38,13 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
     curY=zeros(Nstep,1);
     curKx=zeros(Nstep,1);
     curKy=zeros(Nstep,1);
-    curL=zeros(Nstep,1);
+    curL=inf(Nstep,1);
 
     curAx=zeros(Nstep,1);
     curAy=zeros(Nstep,1);
 
     curPhase=zeros(Nstep,1);
     curPhase1=zeros(Nstep,1);
-    vacPhase=zeros(Nstep,1);
     kByDen=zeros(Nstep,1);
 
     
@@ -73,10 +72,13 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
         gradNx=dNx(kY,kX);
         gradNy=dNy(kY,kX);
 
-        k=sqrt(curKx(i).^2+curKy(i).^2);
+        N=sqrt(1-n(round(curY(i)),round(curX(i)))/nc);
+        kByDen(i)=N*w/c;
 
-	curAx(i)=-gradNx/2/nc/2;
-	curAy(i)=-gradNy/2/nc/2;
+        curK=sqrt(curKx(i).^2+curKy(i).^2);
+        
+        curAx(i)=-gradNx/2/nc*w^2/c^2;
+        curAy(i)=-gradNy/2/nc*w^2/c^2;
 
         
         if curX(i)-kX==0&&curKx(i)<0
@@ -95,51 +97,34 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
         x2right(1)=1+kX-curX(i);
         
         y2down(2)=kY-curY(i);
-        y2up(1)=1+kY-curY(i);
+        y2up(1)=1+kY-curY(i);     
+                
+        %% determination new state by iteration over directions of moving
         
-        
-        %% founding shortest path length till cell border in physical units 
-        l=[inf 0];
-        
-        l=newL(l,[-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-max(x2left(x2left<0))*hx],1);
-        l=newL(l,[-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i)/k,-min(x2right(x2right>0))*hx],2);
+        xy=[]; %variable to store direction of move
+
+        newState([curAx(i)/2,curKx(i),-max(x2left(x2left<0))*hx],1);
+        newState([curAx(i)/2,curKx(i),-min(x2right(x2right>0))*hx],2);
             
-        l=newL(l,[-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-max(y2down(y2down<0))*hy],3);
-        l=newL(l,[-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i)/k,-min(y2up(y2up>0))*hy],4);
+        newState([curAy(i),curKy(i),-max(y2down(y2down<0))*hy],3);
+        newState([curAy(i),curKy(i),-min(y2up(y2up>0))*hy],4);
         
-        if  isinf(l(1));
+        i=i+1;
+        %% exit from cycle or snaprounding to grid 
+        % first time at i=2 (after first step, which can start inside cell)
+        if  isempty(xy)
             i=i-1;
             break;
         else
-            i=i+1;
-            curL(i)=l(1);            
-            curKx(i)=curKx(i-1)-gradNx/2/nc*w^2/c^2/k*curL(i);
-            curKy(i)=curKy(i-1)-gradNy/2/nc*w^2/c^2/k*curL(i);
-            
-            %convert physical length to grid coordinates
-            %in main grid 
-            
-            dx=polyval([-gradNx/2/nc/2*w^2/c^2/k^2,curKx(i-1)/k,0],curL(i));
-            dy=polyval([-gradNy/2/nc/2*w^2/c^2/k^2,curKy(i-1)/k,0],curL(i));
-
-            curX(i)=curX(i-1)+dx/hx; 
-            curY(i)=curY(i-1)+dy/hy;
-
-            %snaprounding to shifted grid first time at step 2
-             if l(2)<3
+             if xy<3
                  curX(i)=round(curX(i));
              else
                  curY(i)=round(curY(i));
              end;
-            
-            % additional values that can be calculated later
-            curPhase(i)=curPhase(i-1)+curL(i)*(k+sqrt(curKx(i)^2+curKy(i)^2))/2;
-            curPhase1(i)=curPhase1(i-1)+dx*curKx(i-1)+dy*curKy(i-1);
-            vacPhase(i)=vacPhase(i-1)+curL(i)*w/c;
-            N=sqrt(1-n(round(curY(i)),round(curX(i)))/nc);
-            kByDen(i)=N*w/c;
-        end;
+        end           
     end;
+    curL(1)=0;
+    
     curX=curX(1:i);
     curY=curY(1:i);
     curX=interp1(1:nx,x,curX,'linear','extrap');
@@ -148,21 +133,38 @@ function [curX,curY,curKx,curKy,curL,curPhase,curPhase1,vacPhase,L,curAx,curAy]=
     curKy=curKy(1:i);
     curL=curL(1:i);
     curPhase=curPhase(1:i);
-    curPhase1=curPhase1(1:i);
-    vacPhase=vacPhase(1:i);
     curAx=curAx(1:i);
     curAy=curAy(1:i);
+    
     kByDen=kByDen(1:i);
+    
+function newState(coeff,xyMark)   
+    t=roots(coeff);
+    t=t(~imag(t));
+    t=t(t~=0);
+    for ii=1:numel(t)
+        kx=curKx(i)+curAx(i)*t(ii);
+        ky=curKy(i)+curAy(i)*t(ii);
+        k1=sqrt(kx^2+ky^2);
+        l=t(ii)*(k1+curK)/2;
+        if l>0&&l<curL(i+1)
+            xy=xyMark;
+            curKx(i+1)=kx;
+            curKy(i+1)=ky;
 
-    L=cumsum(curL);
-end
-function l=newL(l,coeff,xy)
-    lnew=roots(coeff);
-    lnew=lnew(~imag(lnew));
-    lnew=lnew(lnew>0);
-    lnew=min(lnew);
-    if ~isempty(lnew)&&lnew<l(1)
-        l(1)=lnew;
-        l(2)=xy;
+            %convert physical length to grid coordinates           
+            dx=curAx(i)*t(ii)^2/2+curKx(i)*t(ii);
+            dy=curAy(i)*t(ii)^2/2+curKy(i)*t(ii);
+
+            curX(i+1)=curX(i)+dx/hx; 
+            curY(i+1)=curY(i)+dy/hy;
+
+            curL(i+1)=l;
+            
+            % additional values that can be calculated later
+            curPhase(i+1)=curPhase(i)+l*(k1+curK)/2;
+        end
     end
 end
+end
+
