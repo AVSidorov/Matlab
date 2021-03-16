@@ -56,7 +56,9 @@ function [curX,curY,curKx,curKy,curL,curAx,curAy,curPhase]=density_raytrace(x,y,
 %%  initialization of the rays
     curX(1)=interp1(x,1:nx,x0,'linear',1);
     curY(1)=interp1(y,1:ny,y0,'linear',1);
-    N=sqrt(1-n(round(curY(1)),round(curX(1)))/nc);
+    [X,Y]=meshgrid(x,y);
+    n0=interp2(X,Y,n,x0,y0); %interpolated ("exact") density in starting point
+    N=sqrt(1-n0/nc);         %refractive index in starting point
     curKx(1)=kx0*w/c*N;
     curKy(1)=ky0*w/c*N;
     kByDen(1)=N*w/c;
@@ -139,14 +141,22 @@ function [curX,curY,curKx,curKy,curL,curAx,curAy,curPhase]=density_raytrace(x,y,
     kByDen=kByDen(1:i);
     
 function newState(coeff,xyMark)   
-    t=roots(coeff);
+    if coeff(1)==0
+        t=-coeff(3)/coeff(2);
+    else
+        t=roots(coeff);
+    end;
     t=t(~imag(t));
     t=t(t~=0);
     for ii=1:numel(t)
         kx=curKx(i)+curAx(i)*t(ii);
         ky=curKy(i)+curAy(i)*t(ii);
         k1=sqrt(kx^2+ky^2);
-        l=t(ii)*(k1+curK)/2;
+        if abs(k1-curK)<1e2*eps
+            l=t(ii)*(k1+curK)/2;
+        else
+            l=t(ii)*(k1-curK)/(log(k1)-log(curK));
+        end;
         if l>0&&l<curL(i+1)
             xy=xyMark;
             curKx(i+1)=kx;

@@ -9,7 +9,7 @@ focus=beam.antFocus;
 nr=beam.nr;
 out.antRX_X=x;
 out.antRX_Y=y;
-raysOut=beam.r;
+
 
 %% preallocation
 len_out=NaN(nr,1);
@@ -18,53 +18,63 @@ k_out=NaN(nr,1);
 x_out=NaN(nr,1);
 y_out=NaN(nr,1);
 ph_out=NaN(nr,1);
-phV_out=NaN(nr,1);
 
-%% find out lengths and position (on RX antenna plane)
-for i=1:nr
-    kVac=2*pi*raysOut(i).freq/c;
-	
-    len_out(i)=interp1(raysOut(i).curY,raysOut(i).L,y,'linear',NaN);				
+%% find out position (on RX antenna plane), length etc.
+for i=1:nr    
+    ind=find(beam.r(i).curY<=y,1,'last');
+    ind_out(i)=ind;
+
+    dy=y-beam.r(i).curY(ind);
+    curK=hypot(beam.r(i).curKx(ind),beam.r(i).curKy(ind));
+    dl=inf;
     
-    if ~isnan(len_out(i))
+    %TODO
+    if ind==length(beam.r(i).curY)&&beam.r(i).curKy(ind)~=0
         
-        ind_out(i)=find(raysOut(i).L<=len_out(i),1,'last');
-        ind=ind_out(i);
-        
-        l=len_out(i)-raysOut(i).L(ind);
-        k0=sqrt(raysOut(i).curKx(ind)^2+raysOut(i).curKy(ind)^2);
-        
-        if ind<length(raysOut(i).curL)
-            k1=sqrt(raysOut(i).curKx(ind+1)^2+raysOut(i).curKy(ind+1)^2);
-            k_out(i)=((raysOut(i).curL(ind+1)-l)*k0+l*k1)/raysOut(i).curL(ind+1);
-        else
-            k_out(i)=k0;
-        end
+        dl=curK*dy/beam.r(i).curKy(ind);
 
-        phV_out(i)=len_out(i)*kVac;
-        ph_out(i)=raysOut(i).curPhase(ind)+l*(k0+k_out(i))/2;
-        
-        t=2*l/(k0+k_out(i));        
-        x_out(i)=polyval([raysOut(i).curAx(ind)*t^2/2, raysOut(i).curKx(ind)*t, raysOut(i).curX(ind)], l);
-        y_out(i)=polyval([raysOut(i).curAy(ind)*t^2/2, raysOut(i).curKy(ind)*t, raysOut(i).curY(ind)], l);
-        
-    elseif (y-raysOut(i).curY(end))*raysOut(i).curKy(end)>0
-        ind_out(i)=-1;
-        k_out(i)=sqrt(raysOut(i).curKx(end)^2+raysOut(i).curKy(end)^2);
-        l=(y-raysOut(i).curY(end))*k_out(i)/raysOut(i).curKy(end);
-        len_out(i)=raysOut(i).L(end)+l;
-        phV_out(i)=len_out(i)*kVac;
-        ph_out(i)=raysOut(i).curPhase(end)+k_out(i)*l;
-        x_out(i)=raysOut(i).curX(end)+ raysOut(i).curKx(end)/k_out(i)*l;
-        y_out(i)=raysOut(i).curY(end)+ raysOut(i).curKy(end)/k_out(i)*l;       
+        x_out(i)=beam.r(i).curKx(ind)*dl/curK+beam.r(i).curX(ind);
+        y_out(i)=beam.r(i).curKy(ind)*dl/curK+beam.r(i).curY(ind);
+
+        ph_out(i)=beam.r(i).curPhase(ind)+dl*curK;
+        len_out(i)=beam.r(i).L(ind)+dl;
+        k_out(i)=curK;
+    else    
+        if beam.r(i).curAy(ind)==0&&beam.r(i).curKy(ind)~=0
+            t=dy/beam.r(i).curKy(ind);
+        else
+            t=roots([beam.r(i).curAy(ind),beam.r(i).curKy(ind),-dy]);
+        end;
+        t=t(~imag(t));
+        t=t(t~=0);
+        for ii=1:numel(t)
+            kx=beam.r(i).curKx(ind)+beam.r(i).curAx(ind)*t(ii);
+            ky=beam.r(i).curKy(ind)+beam.r(i).curAy(ind)*t(ii);
+            k1=sqrt(kx^2+ky^2);
+            if abs(k1-curK)<1e2*eps
+                l=t(ii)*(k1+curK)/2;
+            else
+                l=t(ii)*(k1-curK)/(log(k1)-log(curK));
+            end;
+            if l>0&&l<dl
+                x_out(i)=beam.r(i).curAx(ind)*t(ii)^2/2+beam.r(i).curKx(ind)*t(ii)+beam.r(i).curX(ind);
+                y_out(i)=beam.r(i).curAy(ind)*t(ii)^2/2+beam.r(i).curKy(ind)*t(ii)+beam.r(i).curY(ind);
+
+                dl=l;
+
+                ph_out(i)=beam.r(i).curPhase(ind)+l*(k1+curK)/2;
+                len_out(i)=beam.r(i).L(ind)+l;
+                k_out(i)=k1;
+            end
+        end   
     end
 end
 
 
 %% initial ray widths (half distances sum to neighbour rays)
 for i=1:nr
-    x_in(i)=raysOut(i).curX(1);
-    y_in(i)=raysOut(i).curY(1);
+    x_in(i)=beam.r(i).curX(1);
+    y_in(i)=beam.r(i).curY(1);
 end
 
 dist0=sqrt(diff(x_in).^2+diff(y_in).^2);
@@ -79,19 +89,27 @@ for i=1:nr
     yy=[];
     for sh=[-1 1]
         if (i+sh)>=1&&(i+sh)<=nr
-            xx(end+1)=interp1(raysOut(i+sh).curPhase,raysOut(i+sh).curX,ph_out(i),'linear',NaN);
-            yy(end+1)=interp1(raysOut(i+sh).curPhase,raysOut(i+sh).curY,ph_out(i),'linear',NaN);
+            if ph_out(i)<=beam.r(i+sh).curPhase(end)
+                xx(end+1)=interp1(beam.r(i+sh).curPhase,beam.r(i+sh).curX,ph_out(i),'linear',NaN);
+                yy(end+1)=interp1(beam.r(i+sh).curPhase,beam.r(i+sh).curY,ph_out(i),'linear',NaN);
+            end
+            if ph_out(i)>beam.r(i+sh).curPhase(end)||isnan(xx(end))
+                k=hypot(beam.r(i+sh).curKx(end),beam.r(i+sh).curKy(end));
+                dl=(ph_out(i)-beam.r(i+sh).curPhase(end))/k;
+                xx(end+1)=beam.r(i+sh).curX(end)+dl*beam.r(i+sh).curKx(end)/k;
+                yy(end+1)=beam.r(i+sh).curY(end)+dl*beam.r(i+sh).curKy(end)/k;
+            end
         else
             xx(end+1)=x_out(i);
             yy(end+1)=y_out(i);
         end
-        if isnan(xx(end))
-            k=sqrt(raysOut(i+sh).curKx(end)^2+raysOut(i+sh).curKy(end)^2);
-            l=(ph_out(i)-raysOut(i+sh).curPhase(end))/k;
-            xx(end)=raysOut(i+sh).curX(end)+raysOut(i+sh).curKx(end)/k*l;
-            yy(end)=raysOut(i+sh).curY(end)+raysOut(i+sh).curKy(end)/k*l;
-        end
-    end
+%         if sh==-1
+%             col='b';
+%         else
+%             col='m';
+%         end;            
+%             plot([x_out(i),xx(end)],[y_out(i),yy(end)],['.-',col]);
+     end
     dist1(i)=(sqrt((x_out(i)-xx(1))^2+(y_out(i)-yy(1))^2)+sqrt((x_out(i)-xx(2))^2+(y_out(i)-yy(2))^2))/2;
 end
 
@@ -104,7 +122,6 @@ indR=find(~isnan(len_out));
 ind_out=ind_out(indR);
 len_out=len_out(indR);
 k_out=k_out(indR);
-phV_out=phV_out(indR);
 ph_out=ph_out(indR);
 x_out=x_out(indR);
 y_out=y_out(indR);
@@ -115,14 +132,13 @@ indR=indR(index);
 ind_out=ind_out(index);
 len_out=len_out(index);
 k_out=k_out(index);
-phV_out=phV_out(index);
 ph_out=ph_out(index);
 y_out=y_out(index);
 amp_out=amp_out(index);
 
 
 
-[~,~,~,rayGauss]=Gauss_beam(x_out/100,x/100,-focus,raysOut(1).freq);
+[~,~,~,rayGauss]=Gauss_beam(x_out/100,x/100,-focus,beam.freq);
 rayGauss=rayGauss.';
 Eant=beam.ampIn(indR).*amp_out.*exp(-1i*ph_out);
 Eres=Eant.*rayGauss;
