@@ -112,7 +112,7 @@ for i=1:nr
      end
     dist1(i)=(sqrt((x_out(i)-xx(1))^2+(y_out(i)-yy(1))^2)+sqrt((x_out(i)-xx(2))^2+(y_out(i)-yy(2))^2))/2;
 end
-
+dist1([1,end])=2*dist1([1,end]);
 %% out relative to inital Amplitude
 amp_out=dist0./dist1;
 amp_out=reshape(amp_out,[],1);
@@ -153,34 +153,10 @@ total=sum(Eres.*dist2*0.7);
 ph=angle(total);
 Amp=abs(total);
 
-%% Calculating phase by phase along ray
-% Determine position of result field amplitude maximum
-[~,mI]=max(abs(Eres));
-if mI>1&&mI<length(indR)    
-    fit=polyfit(x_out(mI-1:mI+1),abs(Eres(mI-1:mI+1)),2);
-    x_max=-fit(2)/2/fit(1);    
-else
-    x_max=x_out(mI);
-end
-
-
-[~,indMaxOut]=min(abs(x_max-x_out));  %Ray wich comes in maximum of field
-[~,indMaxIn]=max(beam.ampIn);         %Ray with maximal initial amplitude
-[~,indMidOut]=min(abs(x-x_out));      %Ray wich comes in center of RX antennae
-
-indMaxOut=indR(indMaxOut);
-indMidOut=indR(indMidOut);
-
-
 
 %% output
 out.ph=ph;
 out.ampOut=Amp;
-out.xMax=x_max;
-
-out.rayMaxIn=indMaxIn;
-out.rayMaxOut=indMaxOut;
-out.rayMidOut=indMidOut;
 
 out.nrOut=length(x_out);
 out.x_out=x_out;
