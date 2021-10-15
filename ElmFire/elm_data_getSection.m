@@ -16,12 +16,12 @@ end;
 NtimeStep=size(MatFile,'tbl',1)/Ngrid;
 T=T(T<=NtimeStep);
 %% reading
-indSection=elm_grid_fullsections(Nz(1),GridSet);
+indSection=elm_grid_fullsection(Nz(1),GridSet);
 Nsection=numel(indSection);
 %Nsection=GridSet.Nsection;
 tbl=zeros(Nsection,numel(T),numel(Nz));
 for nz=1:numel(Nz)
-    indSection=elm_grid_fullsections(Nz(nz),GridSet);
+    indSection=elm_grid_fullsection(Nz(nz),GridSet);
     for i=1:numel(T)
         t=T(i);
         % for reading from .mat file 
