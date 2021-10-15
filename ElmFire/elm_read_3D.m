@@ -26,7 +26,7 @@ clear FileInfo InputVector InputString;
 %% reading
 fseek(fid,0,'bof');
 MatFile=matfile([filename,'.mat'],'Writable',true);
-MatFile.tbl=zeros(Nrows,Ncolumns);
+% MatFile.tbl=zeros(Nrows,Ncolumns);
 
 PartK=4; %this coefficent determines the ratio of part size in bytes to full available memory
 rowInd=1;
@@ -45,7 +45,7 @@ while ~feof(fid)
     clear InputArray;
     
     t=tic;
-        MatFile.tbl(rowInd:rowInd+length(tmp)-1,:)=tmp;
+        MatFile.tbl(rowInd:rowInd+length(tmp)-1,1:Ncolumns)=tmp;
     fprintf('Writing to MAT file time is %7.2f sec\n',toc(t));
     rowInd=rowInd+length(tmp);
     clear tmp;        
