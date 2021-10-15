@@ -1,4 +1,4 @@
-function [ph,ph1]=density_out2phaseRay(out)
+function [ph1,ph,x_max1,x_max]=density_out2phaseRay(out)
 Eres=out.Eres;
 x_out=out.x_out;
 ph_out=out.ph_out;
