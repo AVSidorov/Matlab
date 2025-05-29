@@ -2,3 +2,4 @@
 *.asv
 #ignore SVN folder
 .svn/
+**/.idea/
